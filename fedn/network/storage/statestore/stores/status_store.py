@@ -83,7 +83,7 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
 
     def count(self, **kwargs):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-        return self.sql_count(**kwargs)
+        return super().count(**kwargs)
 
     def _update_orm_model_from_dto(self, entity: StatusModel, item: StatusDTO):
         item_dict = item.to_db(exclude_unset=False)

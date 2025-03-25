@@ -88,7 +88,7 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
 
     def count(self, **kwargs):
         kwargs = translate_key_sql(kwargs)
-        return self.sql_count(**kwargs)
+        return super().count(**kwargs)
 
     def _update_orm_model_from_dto(self, entity: ValidationModel, item: ValidationDTO):
         item_dict = item.to_db(exclude_unset=False)

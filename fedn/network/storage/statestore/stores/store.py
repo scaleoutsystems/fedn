@@ -194,7 +194,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
         self.SQLModel = SQLModel
         self.Session = Session
 
-    def get(self, id: str) -> MODEL:
+    def get(self, id: str) -> DTO:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(self.SQLModel.id == id)
             entity = session.scalars(stmt).first()
@@ -218,7 +218,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return self._dto_from_orm_model(newEntity)
 
-    def update(self, item):
+    def update(self, item: DTO) -> DTO:
         raise NotImplementedError("update not implemented for SQLStore by default. Use sql_update in derived classes.")
 
     def sql_update(self, item: DTO) -> DTO:
@@ -247,7 +247,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return True
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         with self.Session() as session:
             stmt = select(self.SQLModel)
 
@@ -274,7 +274,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
             entities = session.scalars(stmt).all()
             return [self._dto_from_orm_model(entity) for entity in entities]
 
-    def sql_count(self, **kwargs) -> int:
+    def count(self, **kwargs) -> int:
         with self.Session() as session:
             stmt = select(func.count()).select_from(self.SQLModel)
 

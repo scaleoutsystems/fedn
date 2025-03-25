@@ -72,9 +72,6 @@ class SQLClientStore(ClientStore, SQLStore[ClientDTO, ClientModel]):
     def update(self, item: ClientDTO) -> ClientDTO:
         return self.sql_update(item)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def connected_client_count(self, combiners) -> List[Dict]:
         with self.Session() as session:
             stmt = select(ClientModel.combiner, func.count(ClientModel.combiner)).group_by(ClientModel.combiner)

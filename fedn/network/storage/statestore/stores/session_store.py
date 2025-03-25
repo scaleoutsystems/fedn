@@ -105,9 +105,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.sql_update(item)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def _update_orm_model_from_dto(self, entity: SessionModel, item: SessionDTO) -> SessionModel:
         item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("session_id", None)

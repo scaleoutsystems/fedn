@@ -52,9 +52,6 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
     def update(self, item: RoundDTO) -> RoundDTO:
         return self.sql_update(item)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def get_latest_round_id(self) -> int:
         rounds = self.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
         if any(rounds):

@@ -175,9 +175,6 @@ class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
         super().__init__(Session, PackageModel)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def set_active(self, id: str):
         with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)

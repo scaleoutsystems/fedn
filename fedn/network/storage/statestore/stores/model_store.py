@@ -183,9 +183,6 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
     def update(self, item: ModelDTO) -> ModelDTO:
         return self.sql_update(item)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def list_descendants(self, id: str, limit: int):
         with self.Session() as session:
             # Define the recursive CTE

@@ -37,9 +37,6 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
 
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
-
     def get_by_name(self, name: str) -> CombinerDTO:
         with self.Session() as session:
             entity = session.query(CombinerModel).filter(CombinerModel.name == name).first()
