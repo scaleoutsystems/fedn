@@ -175,9 +175,6 @@ class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
         super().__init__(Session, PackageModel)
 
-    def update(self, item: PackageDTO):
-        raise NotImplementedError
-
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 

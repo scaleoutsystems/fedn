@@ -49,72 +49,8 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
     def __init__(self, Session):
         super().__init__(Session, RoundModel)
 
-    def update(self, item: RoundDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            stmt = select(RoundModel).where(RoundModel.id == item.round_id)
-            existing_item = session.scalars(stmt).first()
-            item_dict = item.to_db()
-
-            if existing_item is None:
-                return False, f"Entity with (id | round_id) {item.round_id} not found"
-
-            if item_dict["round_data"] is not None:
-                round_data = item_dict["round_data"]
-                reduce = round_data["reduce"] if "reduce" in round_data else {}
-
-                if existing_item.round_data is None:
-                    round_data_model = RoundDataModel(
-                        time_commit=round_data["time_commit"] if "time_commit" in round_data else None,
-                        reduce_time_aggregate_model=reduce["time_aggregate_model"] if "time_aggregate_model" in reduce else None,
-                        reduce_time_fetch_model=reduce["time_fetch_model"] if "time_fetch_model" in reduce else None,
-                        reduce_time_load_model=reduce["time_load_model"] if "time_load_model" in reduce else None,
-                    )
-                    session.add(round_data_model)
-                    existing_item.round_data = round_data_model
-                else:
-                    existing_item.round_data.time_commit = round_data["time_commit"] if "time_commit" in round_data else None
-                    existing_item.round_data.reduce_time_aggregate_model = reduce["time_aggregate_model"] if "time_aggregate_model" in reduce else None
-                    existing_item.round_data.reduce_time_fetch_model = reduce["time_fetch_model"] if "time_fetch_model" in reduce else None
-                    existing_item.round_data.reduce_time_load_model = reduce["time_load_model"] if "time_load_model" in reduce else None
-            elif existing_item.round_data is not None:
-                session.delete(existing_item.round_data)
-                existing_item.round_data = None
-
-            if item_dict["round_config"] is not None:
-                if existing_item.round_config is None:
-                    existing_item.round_config = RoundConfigModel(**item_dict["round_config"])
-                else:
-                    for key, value in item_dict["round_config"].items():
-                        setattr(existing_item.round_config, key, value)
-            elif existing_item.round_config is not None:
-                session.delete(existing_item.round_config)
-                existing_item.round_config = None
-
-            if item_dict["combiners"] is not None:
-                existing_item.combiners.clear()
-
-                for combiner in item_dict["combiners"]:
-                    config = combiner.pop("config", {})
-                    data = combiner.pop("data", {})
-                    aggregation_time = data.pop("aggregation_time", {})
-                    data["aggregation_time_nr_aggregated_models"] = aggregation_time.pop("nr_aggregated_models", None)
-                    data["aggregation_time_time_model_aggregation"] = aggregation_time.pop("time_model_aggregation", None)
-                    data["aggregation_time_time_model_load"] = aggregation_time.pop("time_model_load", None)
-
-                    combiner["config_job_id"] = config.pop("_job_id", None)
-
-                    child = RoundCombinerModel(**combiner)
-                    config_model = RoundConfigModel(**config)
-                    child.round_config = config_model
-                    data_model = RoundCombinerDataModel(**data)
-                    child.data = data_model
-
-                    existing_item.combiners.append(child)
-
-            existing_item.status = item_dict["status"]
-            session.commit()
-
-            return self._dto_from_orm_model(existing_item)
+    def update(self, item: RoundDTO) -> RoundDTO:
+        return self.sql_update(item)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)

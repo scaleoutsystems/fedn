@@ -37,9 +37,6 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
 
-    def update(self, item):
-        raise NotImplementedError
-
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 

@@ -102,33 +102,8 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
 
-    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=True)
-            item_dict = self._to_orm_dict(item_dict)
-            valid, message = validate(item_dict)
-            if not valid:
-                return False, message
-
-            session_config_dict = item_dict.pop("session_config")
-
-            stmt = select(SessionModel).where(SessionModel.id == item_dict["id"])
-            existing_item = session.scalars(stmt).first()
-
-            if existing_item is None:
-                return False, "Item not found"
-
-            for key, value in item_dict.items():
-                setattr(existing_item, key, value)
-
-            exsisting_session_config = existing_item.session_config
-
-            for key, value in session_config_dict.items():
-                setattr(exsisting_session_config, key, value)
-
-            session.commit()
-
-            return self._dto_from_orm_model(existing_item)
+    def update(self, item: SessionDTO) -> SessionDTO:
+        return self.sql_update(item)
 
     def delete(self, id: str) -> bool:
         with self.Session() as session:

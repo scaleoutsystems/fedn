@@ -76,9 +76,6 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
-    def update(self, item: StatusDTO) -> Tuple[bool, Any]:
-        raise NotImplementedError
-
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 

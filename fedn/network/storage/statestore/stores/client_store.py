@@ -70,11 +70,7 @@ class SQLClientStore(ClientStore, SQLStore[ClientDTO, ClientModel]):
         super().__init__(Session, ClientModel)
 
     def update(self, item: ClientDTO) -> ClientDTO:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=True)
-            item_dict["id"] = item_dict.pop("client_id", None)
-            success, obj = self.sql_update(session, item_dict)
-            return self._dto_from_orm_model(obj)
+        return self.sql_update(item)
 
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[ClientDTO]:
         with self.Session() as session:

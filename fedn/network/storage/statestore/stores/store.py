@@ -218,18 +218,21 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return self._dto_from_orm_model(newEntity)
 
-    def sql_update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
-        stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
-        existing_item = session.scalars(stmt).first()
+    def update(self, item):
+        raise NotImplementedError("update not implemented for SQLStore by default. Use sql_update in derived classes.")
 
-        if existing_item is None:
-            return False, "Item not found"
-        for key, value in item.items():
-            setattr(existing_item, key, value)
+    def sql_update(self, item: DTO) -> DTO:
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == item.primary_id)
+            existing_item = session.scalars(stmt).first()
 
-        session.commit()
+            if existing_item is None:
+                raise EntityNotFound(f"Entity with id {item.primary_id} not found")
 
-        return True, existing_item
+            self._update_orm_model_from_dto(existing_item, item)
+            session.commit()
+
+            return self._dto_from_orm_model(existing_item)
 
     def sql_delete(self, id: str) -> bool:
         with self.Session() as session:

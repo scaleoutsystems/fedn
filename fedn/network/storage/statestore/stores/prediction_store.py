@@ -75,9 +75,6 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionMode
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
 
-    def update(self, id: str, item: PredictionDTO) -> bool:
-        raise NotImplementedError("Update not implemented for PredictionStore")
-
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 

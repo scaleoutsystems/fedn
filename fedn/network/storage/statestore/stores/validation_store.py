@@ -81,9 +81,6 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
-    def update(self, item: ValidationDTO) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationStore")
-
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
 

@@ -181,11 +181,7 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
         super().__init__(Session, ModelModel)
 
     def update(self, item: ModelDTO) -> ModelDTO:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict["id"] = item_dict.pop("model_id")
-            success, obj = self.sql_update(session, item_dict)
-            return self._dto_from_orm_model(obj)
+        return self.sql_update(item)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
