@@ -72,20 +72,12 @@ def _translate_key(key: str) -> str:
     return key
 
 
-class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
+class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
     def update(self, item: StatusDTO) -> Tuple[bool, Any]:
         raise NotImplementedError
-
-    def add(self, item: StatusDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            status = StatusModel(**item_dict)
-            success, obj = self.sql_add(session, status)
-            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
@@ -101,16 +93,18 @@ class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
         return self.sql_count(**kwargs)
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+    def _update_orm_model_from_dto(self, entity: StatusModel, item: StatusDTO):
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("status_id", None)
-        sender = item_dict.pop("sender", None)
-        if sender:
-            item_dict["sender_name"] = sender.get("name")
-            item_dict["sender_role"] = sender.get("role")
-        return item_dict
+
+        sender: Dict = item_dict.pop("sender", {})
+
+        item_dict["sender_name"] = sender.get("name")
+        item_dict["sender_role"] = sender.get("role")
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: StatusModel) -> StatusDTO:
         orm_dict = from_orm_model(item, StatusModel)

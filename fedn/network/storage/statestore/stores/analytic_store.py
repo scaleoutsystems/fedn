@@ -17,7 +17,7 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
         super().__init__(database, collection, "id")
         self.database[self.collection].create_index([("sender_id", pymongo.DESCENDING)])
 
-    def add(self, item: AnalyticDTO) -> Tuple[bool, Any]:
+    def add(self, item: AnalyticDTO) -> AnalyticDTO:
         analytic = super().add(item)
         self._delete_old_records(analytic.sender_id)
         return analytic

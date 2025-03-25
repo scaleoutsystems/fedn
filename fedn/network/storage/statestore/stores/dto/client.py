@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
 class ClientDTO(BaseDTO):
     """Client data transfer object."""
 
-    client_id: Optional[str] = Field(None)
+    client_id: Optional[str] = PrimaryID(None)
     name: str = Field(None)
     combiner: str = Field(None)
     combiner_preferred: Optional[str] = Field(None)

@@ -1,12 +1,12 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
 class PackageDTO(BaseDTO):
     """Package data transfer object."""
 
-    package_id: Optional[str] = Field(None)
+    package_id: Optional[str] = PrimaryID(None)
     description: str = Field(None)
     file_name: str = Field(None)
     helper: str = Field(None)

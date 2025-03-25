@@ -1,7 +1,7 @@
 from typing import Optional
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, DictDTO, Field, ListDTO
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, DictDTO, Field, ListDTO, PrimaryID
 
 
 class RoundConfigDTO(SessionConfigDTO):
@@ -68,7 +68,7 @@ class RoundCombinerDTO(DictDTO):
 class RoundDTO(BaseDTO):
     """Round data transfer object."""
 
-    round_id: Optional[str] = Field(None)
+    round_id: Optional[str] = PrimaryID(None)
     status: Optional[str] = Field(None)
     round_config: Optional[RoundConfigDTO] = Field(None)
     round_data: Optional[RoundDataDTO] = Field(None)

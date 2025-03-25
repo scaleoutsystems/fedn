@@ -33,20 +33,12 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
         return CombinerDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
 
-class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
+class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
 
     def update(self, item):
         raise NotImplementedError
-
-    def add(self, item):
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            entity = CombinerModel(**item_dict)
-            success, obj = self.sql_add(session, entity)
-            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
@@ -66,12 +58,12 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
                 return None
             return self._dto_from_orm_model(entity)
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("combiner_id")
-        return item_dict
+    def _update_orm_model_from_dto(self, entity: CombinerModel, item: CombinerDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("combiner_id", None)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: CombinerModel) -> CombinerDTO:
         orm_dict = from_orm_model(item, CombinerModel)

@@ -1,13 +1,14 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field, PrimaryID
 
 
 class StatusDTO(BaseDTO):
     """Status data transfer object."""
 
-    status_id: Optional[str] = Field(None)
+    # TODO: Correct which fields are optional
+    status_id: Optional[str] = PrimaryID(None)
     status: Optional[str] = Field(None)
     timestamp: Optional[datetime] = Field(None)
     log_level: Optional[str] = Field(None)

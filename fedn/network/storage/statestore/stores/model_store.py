@@ -176,23 +176,15 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
         return ModelDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
-class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
+class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
     def __init__(self, Session):
         super().__init__(Session, ModelModel)
 
     def update(self, item: ModelDTO) -> ModelDTO:
         with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=True)
-            item_dict = self._to_orm_dict(item_dict)
-            success, obj = self.sql_update(session, item_dict)
-            return self._dto_from_orm_model(obj)
-
-    def add(self, item: ModelDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
             item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            entity = ModelModel(**item_dict)
-            success, obj = self.sql_add(session, entity)
+            item_dict["id"] = item_dict.pop("model_id")
+            success, obj = self.sql_update(session, item_dict)
             return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
@@ -273,12 +265,12 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
             session.commit()
         return True
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("model_id")
-        return item_dict
+    def _update_orm_model_from_dto(self, entity: ModelModel, item: ModelDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("model_id", None)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: ModelModel) -> ModelDTO:
         orm_dict = from_orm_model(item, ModelModel)

@@ -77,20 +77,12 @@ def translate_key_sql(key: str) -> str:
     return key
 
 
-class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
+class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationModel]):
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
     def update(self, item: ValidationDTO) -> bool:
         raise NotImplementedError("Update not implemented for ValidationStore")
-
-    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            model = ValidationModel(**item_dict)
-            success, obj = self.sql_add(session, model)
-            return self._dto_from_orm_model(obj)
 
     def delete(self, id: str) -> bool:
         return self.sql_delete(id)
@@ -106,20 +98,21 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
         kwargs = translate_key_sql(kwargs)
         return self.sql_count(**kwargs)
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _to_orm_dict(self, item_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def _update_orm_model_from_dto(self, entity: ValidationModel, item: ValidationDTO):
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("validation_id")
-        sender = item_dict.pop("sender", None)
-        if sender:
-            item_dict["sender_name"] = sender.get("name")
-            item_dict["sender_role"] = sender.get("role")
-        receiver = item_dict.pop("receiver", None)
-        if receiver:
-            item_dict["receiver_name"] = receiver.get("name")
-            item_dict["receiver_role"] = receiver.get("role")
-        return item_dict
+
+        sender: Dict = item_dict.pop("sender", {})
+        item_dict["sender_name"] = sender.get("name")
+        item_dict["sender_role"] = sender.get("role")
+
+        receiver: Dict = item_dict.pop("receiver", {})
+        item_dict["receiver_name"] = receiver.get("name")
+        item_dict["receiver_role"] = receiver.get("role")
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: ValidationModel) -> ValidationDTO:
         orm_dict = from_orm_model(item, ValidationModel)

@@ -226,15 +226,6 @@ class DictDTO(DTO):
         return self.__class__(**copy.deepcopy(self.model_dump(exclude_unset=True)))
 
 
-class BaseDTO(DictDTO):
-    """BaseDTO for Data Transfer Objects."""
-
-    committed_at: datetime = Field(None)
-
-    def _is_field_optional(self, key):
-        return super()._is_field_optional(key) or key == "committed_at"
-
-
 class ListDTO(DTO, Generic[T]):
     """ListDTO for Data Transfer Objects."""
 
@@ -309,6 +300,31 @@ class ListDTO(DTO, Generic[T]):
 
     def __deepcopy__(self, memo):
         return self.__class__(self._ListClass, *copy.deepcopy(self.model_dump(exclude_unset=True)))
+
+
+class PrimaryID(Field):
+    """PrimaryID field for DTOs."""
+
+    pass
+
+
+class BaseDTO(DictDTO):
+    """BaseDTO for Data Transfer Objects."""
+
+    committed_at: datetime = Field(None)
+
+    @property
+    def primary_id(self) -> str:
+        """Get the id of the DTO."""
+        for base in self.__class__.__mro__:
+            if hasattr(base, "__dict__"):
+                for key in base.__dict__.keys():
+                    if isinstance(getattr(self.__class__, key), PrimaryID):
+                        return getattr(self, key)
+        raise AttributeError(f"{self.__class__.__name__} has no field of type PrimaryID")
+
+    def _is_field_optional(self, key):
+        return super()._is_field_optional(key) or key == "committed_at"
 
 
 class AgentDTO(DictDTO):

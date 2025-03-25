@@ -98,7 +98,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
         return SessionDTO().patch_with(session, throw_on_extra_keys=False)
 
 
-class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
+class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
 
@@ -130,27 +130,6 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
 
             return self._dto_from_orm_model(existing_item)
 
-    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-
-            valid, message = validate(item_dict)
-            if not valid:
-                return False, message
-
-            session_config_dict = item_dict.pop("session_config")
-
-            entity = SessionModel(**item_dict)
-            session_config = SessionConfigModel(**session_config_dict)
-            entity.session_config = session_config
-
-            session.add(entity)
-
-            session.commit()
-
-            return self._dto_from_orm_model(entity)
-
     def delete(self, id: str) -> bool:
         with self.Session() as session:
             stmt = select(SessionModel).where(SessionModel.id == id)
@@ -175,8 +154,20 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
     def count(self, **kwargs):
         return self.sql_count(**kwargs)
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
+    def _update_orm_model_from_dto(self, entity: SessionModel, item: SessionDTO) -> SessionModel:
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("session_id", None)
+
+        session_config_dict = item_dict.pop("session_config")
+        if entity.session_config is None:
+            entity.session_config = SessionConfigModel(**session_config_dict)
+        else:
+            for key, value in session_config_dict.items():
+                setattr(entity.session_config, key, value)
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
         session_dict = from_orm_model(item, SessionModel)
@@ -188,6 +179,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
         session_config_dict.pop("id")
         session_config_dict.pop("committed_at")
         session_dict.pop("session_config_id")
+
         return SessionDTO().populate_with(session_dict)
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:

@@ -171,19 +171,9 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
         return PackageDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
-class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
+class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
         super().__init__(Session, PackageModel)
-
-    def add(self, item: PackageDTO) -> Tuple[bool, Union[str, PackageDTO]]:
-        item_dict = item.to_db(exclude_unset=False)
-
-        item_dict = self._orm_dict_from_dto_dict(item_dict)
-
-        with self.Session() as session:
-            package = PackageModel(**item_dict)
-            success, obj = self.sql_add(session, package)
-            return self._dto_from_orm_model(obj)
 
     def update(self, item: PackageDTO):
         raise NotImplementedError
@@ -257,13 +247,13 @@ class SQLPackageStore(PackageStore, SQLStore[PackageModel]):
                 return True
             return False
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _orm_dict_from_dto_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("package_id")
+    def _update_orm_model_from_dto(self, entity: PackageModel, item: PackageDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("package_id", None)
         _complement_with_storage_filename(item_dict)
-        return item_dict
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: PackageModel) -> PackageDTO:
         orm_dict = from_orm_model(item, PackageModel)

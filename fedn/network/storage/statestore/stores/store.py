@@ -1,16 +1,19 @@
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as SessionClass
 
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO
 from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 
-T = TypeVar("T")
+MODEL = TypeVar("MODEL", bound=MyAbstractBase)
+DTO = TypeVar("DTO", bound=BaseDTO)
 
 
 def from_document(document: dict) -> dict:
@@ -18,31 +21,31 @@ def from_document(document: dict) -> dict:
     return document
 
 
-class Store(ABC, Generic[T]):
+class Store(ABC, Generic[DTO]):
     """Abstract class for a store."""
 
     @abstractmethod
-    def get(self, id: str) -> T:
+    def get(self, id: str) -> DTO:
         """Get an entity by id.
 
         Args:
             id (str): Entity id
 
         Returns:
-            T: The entity or null if not found
+            DTO: The entity or null if not found
 
         """
         pass
 
     @abstractmethod
-    def update(self, item: T) -> T:
+    def update(self, item: DTO) -> DTO:
         """Update an existing entity.
 
         Args:
-            item (T): The entity to update.
+            item (DTO): The entity to update.
 
         Returns:
-            T: The updated entity.
+            DTO: The updated entity.
 
         Raises:
             EntityNotFound: If the entity is not found.
@@ -52,14 +55,14 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def add(self, item: T) -> T:
+    def add(self, item: DTO) -> DTO:
         """Add an entity.
 
         Args:
-            item (T): The entity to update.
+            item (DTO): The entity to update.
 
         Returns:
-            T: The updated entity.
+            DTO: The updated entity.
 
         Raises:
             ValidationError: If validation fails.
@@ -81,7 +84,7 @@ class Store(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         """Select entities.
 
         Args:
@@ -92,7 +95,7 @@ class Store(ABC, Generic[T]):
             kwargs (dict): Additional query parameters
 
         Returns:
-            List[T]: The list of entities
+            List[DTO]: The list of entities
 
         """
         pass
@@ -112,7 +115,7 @@ class Store(ABC, Generic[T]):
         pass
 
 
-class MongoDBStore(Store[T], Generic[T]):
+class MongoDBStore(Store[DTO], Generic[DTO]):
     """Base MongoDB store implementation."""
 
     def __init__(self, database: Database, collection: str, primary_key: str) -> None:
@@ -128,7 +131,7 @@ class MongoDBStore(Store[T], Generic[T]):
             return None
         return self._dto_from_document(document)
 
-    def add(self, item: T) -> T:
+    def add(self, item: DTO) -> DTO:
         item_dict = self._document_from_dto(item)
 
         if self.primary_key not in item_dict or not item_dict[self.primary_key]:
@@ -140,10 +143,10 @@ class MongoDBStore(Store[T], Generic[T]):
 
         return self._dto_from_document(document)
 
-    def update(self, item: T) -> T:
+    def update(self, item: DTO) -> DTO:
         raise NotImplementedError("update not implemented for MongoDBStore by default. Use mongo_update in derived classes.")
 
-    def mongo_update(self, item: T) -> T:
+    def mongo_update(self, item: DTO) -> DTO:
         item_dict = self._document_from_dto(item)
         id = item_dict[self.primary_key]
         result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
@@ -156,7 +159,7 @@ class MongoDBStore(Store[T], Generic[T]):
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         _sort_order = sort_order or pymongo.DESCENDING
         if sort_key and sort_key != self.primary_key:
             cursor = (
@@ -175,23 +178,23 @@ class MongoDBStore(Store[T], Generic[T]):
         return self.database[self.collection].count_documents(kwargs)
 
     @abstractmethod
-    def _dto_from_document(self, document: Dict) -> T:
+    def _dto_from_document(self, document: Dict) -> DTO:
         pass
 
     @abstractmethod
-    def _document_from_dto(self, item: T) -> Dict:
+    def _document_from_dto(self, item: DTO) -> Dict:
         pass
 
 
-class SQLStore(Store[T], Generic[T]):
+class SQLStore(Store[DTO], Generic[DTO, MODEL]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session: Type[SessionClass], SQLModel: Type[T]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL]) -> None:
         """Initialize SQLStore."""
         self.SQLModel = SQLModel
         self.Session = Session
 
-    def get(self, id: str) -> T:
+    def get(self, id: str) -> MODEL:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(self.SQLModel.id == id)
             entity = session.scalars(stmt).first()
@@ -199,13 +202,21 @@ class SQLStore(Store[T], Generic[T]):
                 return None
             return self._dto_from_orm_model(entity)
 
-    def sql_add(self, session, entity: T) -> Tuple[bool, Any]:
-        if not entity.id:
-            entity.id = str(uuid.uuid4())
-        session.add(entity)
-        session.commit()
+    def add(self, item: DTO) -> DTO:
+        with self.Session() as session:
+            newEntity = self.SQLModel()
+            newEntity = self._update_orm_model_from_dto(newEntity, item)
 
-        return True, entity
+            if not item.primary_id:
+                newEntity.id = str(uuid.uuid4())
+            else:
+                newEntity.id = item.primary_id
+            newEntity.committed_at = datetime.now()
+
+            session.add(newEntity)
+            session.commit()
+
+            return self._dto_from_orm_model(newEntity)
 
     def sql_update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
         stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
@@ -233,7 +244,7 @@ class SQLStore(Store[T], Generic[T]):
 
             return True
 
-    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         stmt = select(self.SQLModel)
 
         for key, value in kwargs.items():
@@ -268,9 +279,9 @@ class SQLStore(Store[T], Generic[T]):
             return session.scalar(stmt)
 
     @abstractmethod
-    def _dto_from_orm_model(self, item: T) -> T:
+    def _dto_from_orm_model(self, item: MODEL) -> DTO:
         pass
 
     @abstractmethod
-    def _update_orm_model_from_dto(self, model, item: T):
+    def _update_orm_model_from_dto(self, entity: MODEL, item: DTO) -> MODEL:
         pass

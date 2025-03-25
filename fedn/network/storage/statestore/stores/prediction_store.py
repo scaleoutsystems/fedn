@@ -71,16 +71,9 @@ def _translate_key(key: str):
     return key
 
 
-class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
+class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionModel]):
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
-
-    def add(self, item: PredictionDTO) -> Tuple[bool, Union[str, PredictionDTO]]:
-        with self.Session() as session:
-            item_dict = self._to_orm_dict(item)
-            prediction = PredictionModel(**item_dict)
-            _, obj = self.sql_add(session, prediction)
-            return self._dto_from_orm_model(obj)
 
     def update(self, id: str, item: PredictionDTO) -> bool:
         raise NotImplementedError("Update not implemented for PredictionStore")
@@ -99,21 +92,22 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
         kwargs = {_translate_key(k): v for k, v in kwargs.items()}
         return self.sql_count(**kwargs)
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
+    def _update_orm_model_from_dto(self, entity: PredictionModel, item: PredictionDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("prediction_id", None)
 
-    def _to_orm_dict(self, prediction: PredictionDTO) -> Dict:
-        item_dict = prediction.to_db()
-        item_dict["id"] = item_dict.pop("prediction_id")
         if "sender" in item_dict:
-            sender = item_dict.pop("sender")
+            sender: Dict = item_dict.pop("sender")
             item_dict["sender_name"] = sender.get("name")
             item_dict["sender_role"] = sender.get("role")
         if "receiver" in item_dict:
-            receiver = item_dict.pop("receiver")
+            receiver: Dict = item_dict.pop("receiver")
             item_dict["receiver_name"] = receiver.get("name")
             item_dict["receiver_role"] = receiver.get("role")
-        return item_dict
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: PredictionModel) -> PredictionDTO:
         orm_dict = from_orm_model(item, PredictionModel)

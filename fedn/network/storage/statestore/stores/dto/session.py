@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, DictDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, DictDTO, Field, PrimaryID
 
 
 class SessionConfigDTO(DictDTO):
@@ -23,7 +23,7 @@ class SessionConfigDTO(DictDTO):
 class SessionDTO(BaseDTO):
     """Session data transfer object."""
 
-    session_id: str = Field(None)
+    session_id: str = PrimaryID(None)
     name: str = Field(None)
     status: Optional[str] = Field("Created")
     session_config: SessionConfigDTO = Field(SessionConfigDTO())

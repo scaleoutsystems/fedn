@@ -1,12 +1,12 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
 class ModelDTO(BaseDTO):
     """Model data transfer object."""
 
-    model_id: Optional[str] = Field(None)
+    model_id: Optional[str] = PrimaryID(None)
     name: str = Field(None)
     parent_model: Optional[str] = Field(None)
     session_id: Optional[str] = Field(None)

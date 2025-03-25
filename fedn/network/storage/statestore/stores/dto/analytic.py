@@ -1,8 +1,8 @@
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
 class AnalyticDTO(BaseDTO):
-    id: str = Field(None)
+    id: str = PrimaryID(None)
     sender_id: str = Field(None)
     sender_role: str = Field(None)
     memory_utilisation: float = Field(None)

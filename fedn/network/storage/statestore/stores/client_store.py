@@ -65,22 +65,14 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
         return item.to_db(exclude_unset=False)
 
 
-class SQLClientStore(ClientStore, SQLStore[ClientModel]):
+class SQLClientStore(ClientStore, SQLStore[ClientDTO, ClientModel]):
     def __init__(self, Session):
         super().__init__(Session, ClientModel)
-
-    def add(self, item: ClientDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            entity = ClientModel(**item_dict)
-            success, obj = self.sql_add(session, entity)
-            return self._dto_from_orm_model(obj)
 
     def update(self, item: ClientDTO) -> ClientDTO:
         with self.Session() as session:
             item_dict = item.to_db(exclude_unset=True)
-            item_dict = self._to_orm_dict(item_dict)
+            item_dict["id"] = item_dict.pop("client_id", None)
             success, obj = self.sql_update(session, item_dict)
             return self._dto_from_orm_model(obj)
 
@@ -109,12 +101,12 @@ class SQLClientStore(ClientStore, SQLStore[ClientModel]):
 
             return result
 
-    def _update_orm_model_from_dto(self, model, item):
-        pass
-
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+    def _update_orm_model_from_dto(self, entity: ClientModel, item: ClientDTO) -> ClientModel:
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("client_id", None)
-        return item_dict
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: ClientModel) -> ClientDTO:
         orm_dict = from_orm_model(item, ClientModel)
