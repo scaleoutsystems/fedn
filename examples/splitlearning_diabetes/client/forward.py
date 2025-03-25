@@ -14,8 +14,14 @@ abs_path = os.path.abspath(dir_path)
 HELPER_MODULE = "splitlearninghelper"
 helper = get_helper(HELPER_MODULE)
 
+seed = 42
+torch.manual_seed(seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
-def forward_pass(client_id, out_embedding_path, data_path=None):
+
+def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
     """Complete a forward pass on the client side (client model). Save the embeddings s.t. they can be used on
     combiner level.
 
@@ -23,11 +29,16 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
     perform a model update, and write updated paramters
     to out_model_path (picked up by the FEDn client).
     """
-    logger.info(f"Client-side forward pass for client {client_id}")
+    if is_validate == "True":
+        logger.info(f"Client-side validation forward pass for client {client_id}")
+        X = load_data(data_path, is_train=False)
+        logger.info("len of data is {}".format(len(X)))
+    else:
+        logger.info(f"Client-side training forward pass for client {client_id}")
+        X = load_data(data_path, is_train=True)
+        logger.info("len of data is {}".format(len(X)))
 
-    x_train = load_data(data_path, is_train=True)
-
-    num_local_features = x_train.shape[1]
+    num_local_features = X.shape[1]
 
     if not os.path.exists(f"{abs_path}/local_models/{client_id}.pth"):
         model = compile_model(num_local_features)
@@ -37,12 +48,12 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
 
     model.eval()
     with torch.no_grad():
-        embedding = model(x_train)
+        embedding = model(X)
 
     # Metadata needed for aggregation server side
     metadata = {
         # num_examples are mandatory
-        "num_examples": len(x_train),
+        "num_examples": len(X),
     }
 
     # Save JSON metadata file (mandatory)
@@ -54,4 +65,4 @@ def forward_pass(client_id, out_embedding_path, data_path=None):
 
 
 if __name__ == "__main__":
-    forward_pass(sys.argv[1], sys.argv[2]) # test with: python forward.py 1 . data/clients/1/diabetes.pt
+    forward_pass(sys.argv[1], sys.argv[2], sys.argv[3])  # test with: python forward.py 1 . "False" data/clients/1/diabetes.pt

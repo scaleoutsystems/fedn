@@ -18,14 +18,13 @@ Also install the following libraries into your virtual environment:
 
     pip install pandas torch scikit-learn
 
-
-Make sure a client.yaml file is available in the examples/splitlearning_diabetes folder with the following content:
+In your /etc/hosts file, add the following lines:
 
 .. code-block:: bash
-    network_id: fedn-network
-    api_url: http://api-server:8092
-    discover_host: api-server
-    discover_port: 8092
+    127.0.0.1    localhost
+    127.0.0.1    combiner
+    127.0.0.1    minio
+    127.0.0.1    mongo
 
 
 Data Preparation
@@ -84,15 +83,15 @@ To start the first client, run:
 
 .. code-block:: bash
 
-    export FEDN_DATA_PATH=./client/data/clients/1/diabetes.pt 
-    fedn client start --api-url http://localhost --api-port 8092 -in client.yaml --local-package
+    export FEDN_DATA_PATH=./data/clients/1/diabetes.pt 
+    fedn client start --api-url http://localhost:8092 --local-package
 
 and to start the second client, run:
 
 .. code-block:: bash
 
-    export FEDN_DATA_PATH=./client/data/clients/2/diabetes.pt 
-    fedn client start --api-url http://localhost --api-port 8092 -in client.yaml --local-package
+    export FEDN_DATA_PATH=./data/clients/2/diabetes.pt 
+    fedn client start --api-url http://localhost:8092 --local-package
 
 
 Starting the Split Learning Training

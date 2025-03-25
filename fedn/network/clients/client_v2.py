@@ -144,15 +144,13 @@ class Client:
         """Handle the validation callback."""
         return self._process_validation_request(in_model)
 
-    def on_forward(self, client_id):
-        out_embeddings, meta = self._process_forward_request(client_id)
+    def on_forward(self, client_id, is_validate):
+        out_embeddings, meta = self._process_forward_request(client_id, is_validate)
         return out_embeddings, meta
 
     def on_backward(self, in_gradients, client_id):
         meta = self._process_backward_request(in_gradients, client_id)
         return meta
-
-
 
     def _process_training_request(self, in_model: BytesIO, client_settings: dict) -> Tuple[Optional[BytesIO], dict]:
         """Process a training (model update) request."""
@@ -236,7 +234,7 @@ class Client:
 
         return metrics
 
-    def _process_forward_request(self, client_id) -> Tuple[BytesIO, dict]:
+    def _process_forward_request(self, client_id, is_validate) -> Tuple[BytesIO, dict]:
         """Process a forward request.
 
         :return: The embeddings, or None if forward failed.
@@ -247,7 +245,9 @@ class Client:
 
             tic = time.time()
 
-            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path}")
+            logger.info("debugging: _process_forward_request in client_v2.py: is_validate is {}".format(is_validate))
+
+            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_validate}")
 
             meta = {}
             embeddings = None

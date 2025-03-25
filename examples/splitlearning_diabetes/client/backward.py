@@ -15,6 +15,12 @@ abs_path = os.path.abspath(dir_path)
 HELPER_MODULE = "splitlearninghelper"
 helper = get_helper(HELPER_MODULE)
 
+seed = 42
+torch.manual_seed(seed)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
 
 def backward_pass(gradient_path, client_id):
     """Load gradients from in_gradients_path, load the embeddings, and perform a backward pass to update
@@ -26,6 +32,9 @@ def backward_pass(gradient_path, client_id):
     num_local_features = x_train.shape[1]
 
     client_model = load_client_model(client_id, num_local_features)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    client_model.to(device)
 
     # instantiate optimizer
     client_optimizer = optim.Adam(client_model.parameters(), lr=0.01)

@@ -57,7 +57,7 @@ class Helper(HelperBase):
             logger.error(f"Error in splitlearninghelper: loading data from {path}: {str(e)}")
             raise
 
-    def load_targets(self):
+    def load_targets(self, is_train=True):
         """Load target labels for split learning."""
         try:
             data_path = os.environ.get("FEDN_LABELS_PATH")
@@ -67,7 +67,10 @@ class Helper(HelperBase):
 
         try:
             data = torch.load(data_path, weights_only=True)
-            targets = data["y_train"]
+            if is_train:
+                targets = data["y_train"]
+            else:
+                targets = data["y_test"]
             return targets.reshape(-1, 1)  # Reshape to match model output shape
         except Exception as e:
             logger.error(f"Error loading labels from {data_path}: {str(e)}")

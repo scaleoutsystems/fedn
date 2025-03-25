@@ -373,8 +373,11 @@ class FednClient:
         self.send_model_prediction(prediction_message)
 
     def forward_embeddings(self, request):
-
         model_id = request.model_id
+        is_validate = json.loads(request.data).get("is_validate", False)
+
+        logger.info("debugging: forward_embeddings in fedn_client.py: is_validate is {}".format(is_validate))
+
         embedding_update_id = str(uuid.uuid4())
 
         if not self.forward_callback:
@@ -385,7 +388,7 @@ class FednClient:
 
         logger.info(f"Running forward callback with model ID: {model_id}")
         tic = time.time()
-        out_embeddings, meta = self.forward_callback(self.client_id)
+        out_embeddings, meta = self.forward_callback(self.client_id, is_validate)
         meta["processing_time"] = time.time() - tic
 
         tic = time.time()
@@ -412,7 +415,7 @@ class FednClient:
 
         try:
             tic = time.time()
-            in_gradients = self.get_model_from_combiner(id=model_id, client_id=self.client_id) # gets gradients
+            in_gradients = self.get_model_from_combiner(id=model_id, client_id=self.client_id)  # gets gradients
 
             if in_gradients is None:
                 logger.error("Could not retrieve gradients from combiner. Aborting backward request.")
@@ -436,11 +439,7 @@ class FednClient:
             meta["status"] = "success"
 
             logger.info("Creating and sending backward completion to combiner.")
-            completion = self.create_backward_completion_message(
-                gradient_id=model_id,
-                meta=meta,
-                request=request
-            )
+            completion = self.create_backward_completion_message(gradient_id=model_id, meta=meta, request=request)
             self.grpc_handler.send_backward_completion(completion)
 
             self.send_status(

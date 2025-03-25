@@ -217,7 +217,6 @@ class Control(ControlBase):
                 combiner.submit(config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
-
     def splitlearning_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
         """Execute a split learning session.
 
@@ -455,12 +454,7 @@ class Control(ControlBase):
 
         # 1) FORWARD PASS - specified through "task": "forward"
         forward_config = copy.deepcopy(session_config)
-        forward_config.update({
-            "rounds": 1,
-            "round_id": round_id,
-            "task": "forward",
-            "session_id": session_id
-        })
+        forward_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": False, "session_id": session_id})
 
         participating_combiners = self.get_participating_combiners(forward_config)
 
@@ -539,22 +533,31 @@ class Control(ControlBase):
 
         # 2) BACKWARD PASS
         backward_config = copy.deepcopy(session_config)
-        backward_config.update({
-            "rounds": 1,
-            "round_id": round_id,
-            "task": "backward",
-            "session_id": session_id,
-            "model_id": model_id
-        })
+        backward_config.update({"rounds": 1, "round_id": round_id, "task": "backward", "session_id": session_id, "model_id": model_id})
 
         participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
         _ = self.request_model_updates(participating_combiners)
 
         logger.info("CONTROLLER: Backward pass completed.")
 
-        # Record round completion
-        # round_data = {"status": "success"}
-        # self.set_round_data(round_id, round_data)
+        # # 3) Validation
+        validate = session_config["validate"]
+        if validate:
+            logger.info("CONTROLLER: Starting Split Learning Validation round")
+            validate_config = copy.deepcopy(session_config)
+            validate_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": True, "session_id": session_id})
+            validating_combiners = [(combiner, validate_config) for combiner, _ in participating_combiners]
+
+            # Submit validation requests
+            for combiner, config in validating_combiners:
+                try:
+                    logger.info("Submitting validation for split learning to combiner {}".format(combiner))
+                    combiner.submit(config)
+                except CombinerUnavailableError:
+                    self._handle_unavailable_combiner(combiner)
+                    pass
+            logger.info("Controller: Split Learning Validation completed")
+
         self.set_round_status(round_id, "Finished")
         return None, self.round_store.get(round_id)
 

@@ -228,6 +228,7 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
+        is_validate = config["is_validate"]  # determines whether it's a forward pass that calculates gradients ("training"), or just used for validation
 
         # Request forward pass from all active clients.
         self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
@@ -253,7 +254,7 @@ class RoundHandler:
             else:
                 delete_models = False
 
-            gradients, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models)
+            gradients, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_validate=is_validate)
         except Exception as e:
             logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
 
@@ -451,7 +452,7 @@ class RoundHandler:
         data["config"] = config
         data["round_id"] = config["round_id"]
 
-        data["model_id"] = None # TODO: checking
+        data["model_id"] = None  # TODO: checking
 
         clients = self._assign_round_clients(self.server.max_clients)
         gradients, meta = self._forward_pass(config, clients)
@@ -462,18 +463,22 @@ class RoundHandler:
             logger.warning("\t Failed to calculate gradients in forward pass {0}!".format(config["round_id"]))
 
         if gradients is not None:
-            helper = get_helper(config["helper_type"])
-            a = serialize_model_to_BytesIO(gradients, helper)
-            gradient_id = self.storage.set_model(a.read(), is_file=False) # uploads model to storage
-            logger.info("Gradient id: {}".format(gradient_id))
-            a.close()
-            data["model_id"] = gradient_id
+            if "test_loss" in gradients:  # in forward validation pass, no gradients are calculated. Skip in this case.
+                logger.info("FORWARD VALIDATION PASS COMPLETED. Job id: {}".format(config["_job_id"]))
+                return data
+            else:
+                helper = get_helper(config["helper_type"])
+                a = serialize_model_to_BytesIO(gradients, helper)
+                gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads model to storage
+                logger.info("Gradient id: {}".format(gradient_id))
+                a.close()
+                data["model_id"] = gradient_id
 
-            logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
+                logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
 
-        # Delete temp model
-        # self.modelservice.temp_model_storage.delete(config["model_id"])
-        return data
+                # Delete temp model
+                # self.modelservice.temp_model_storage.delete(config["model_id"])
+                return data
 
     def execute_backward_pass(self, config):
         """Coordinates clients to execute backward pass.
@@ -492,19 +497,18 @@ class RoundHandler:
         logger.info("roundhandler execute_backward_pass: downloading model/gradient with id: {}".format(config["model_id"]))
 
         # Download gradients and set in temp storage.
-        self.stage_model(config["model_id"]) # Download a model from persistent storage and set in modelservice
+        self.stage_model(config["model_id"])  # Download a model from persistent storage and set in modelservice
 
         clients = self._assign_round_clients(self.server.max_clients)
         meta = self._backward_pass(config, clients)
         data["data"] = meta
 
-        if meta is None: # if gradients is None:
+        if meta is None:  # if gradients is None:
             logger.warning("\t Failed to run backward pass in round {0}!".format(config["round_id"]))
 
         # Delete temp model
         self.modelservice.temp_model_storage.delete(config["model_id"])
         return data
-
 
     def run(self, polling_interval=1.0):
         """Main control loop. Execute rounds based on round config on the queue.
