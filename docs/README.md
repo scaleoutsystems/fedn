@@ -2,9 +2,9 @@ FEDn is using sphinx with reStructuredText.
 
 From repository root do
 in bash:
-sphinx-apidoc --ext-autodoc --module-first -o _source  ../fedn/fedn ../*tests* ../*exceptions* ../*common* ../ ../fedn/fedn/network/api/server.py ../fedn/fedn/network/controller/controlbase.py
+sphinx-apidoc --ext-autodoc --module-first -o _source  ../fedn ../*tests* ../*exceptions* ../*common* ../ ../fedn/network/api/server.py ../fedn/network/controller/controlbase.py
 in zsh:
-sphinx-apidoc --ext-autodoc --module-first -o _source ../fedn/fedn ../\*tests\* ../\*exceptions\* ../\*common\* ../ ../fedn/fedn/network/api/server.py ../fedn/fedn/network/controller/controlbase.py
+sphinx-apidoc --ext-autodoc --module-first -o _source ../fedn ../\*tests\* ../\*exceptions\* ../\*common\* ../ ../fedn/network/api/server.py ../fedn/network/controller/controlbase.py
 
 cd docs/
 sphinx-build . _build
