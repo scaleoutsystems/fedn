@@ -15,14 +15,14 @@ Pseudo-distributed sandbox
 
 During development on FEDn, and when working on own extentions including aggregators and helpers, it is 
 useful to have a local development setup of the core FEDn server-side services (controller, combiner, database, object store). 
-We provide Dockerfiles and docker-compose template for an all-in-one local sandbox for most examples::
+We provide Dockerfiles and docker-compose template for an all-in-one local sandbox:
 
 .. code-block::
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn
    docker compose up -d
 
-This starts up local services for MongoDB, Minio, the API Server, one Combiner. 
+This starts up local services for MongoDB, Minio, the API Server (Controller), one Combiner. 
 You can verify the deployment on localhost using these urls: 
 
 - API Server: http://localhost:8092/get_controller_status
