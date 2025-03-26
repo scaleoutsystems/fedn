@@ -1,5 +1,5 @@
 settings = {
-    "N_CLIENTS": 5,
+    "N_SPLITS": 20,
     "DISCOVER_HOST": "api-server",
     "DISCOVER_PORT": 8092,
     "SECURE": False,

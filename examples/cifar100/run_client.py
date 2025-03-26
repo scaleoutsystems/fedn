@@ -49,7 +49,7 @@ def on_train(in_model, client_settings):
 
     # Get data loader for trainset
     trainloader = get_data_loader(
-        num_splits=settings["N_CLIENTS"],
+        num_splits=settings["N_SPLITS"],
         balanced=settings["BALANCED"],
         iid=settings["IID"],
         is_train=True,
@@ -115,7 +115,7 @@ def on_validate(in_model):
 
     # Calculate training metrics
     trainloader = get_data_loader(
-        num_splits=settings["N_CLIENTS"],
+        num_splits=settings["N_SPLITS"],
         balanced=settings["BALANCED"],
         iid=settings["IID"],
         is_train=True,

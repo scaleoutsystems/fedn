@@ -136,7 +136,7 @@ class Aggregator(AggregatorBase):
             parameters = {}
         return {**default_parameters, **parameters}
 
-    def _apply_server_optimizer(self, helper: HelperBase, pseudo_gradient: Any, model_old: Any, parameters: Dict[str, Any]) -> Any:
+    def _apply_server_optimizer(self, helper: HelperBase, pseudo_gradient: Any, model_old: Any, parameters: Dict[str, Any]) -> Any:  # noqa: ANN401
         """Apply the selected server optimizer to compute the new model."""
         optimizer_map = {
             "adam": self.serveropt_adam,

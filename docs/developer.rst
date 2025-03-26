@@ -37,10 +37,12 @@ This can be accomplished by editing the  `/etc/hosts` file. Add the following li
    <host ip>      api-server
    <host ip>      combiner
 
+To connect to the api-server and set the package and seed model, you can use the following code snippet:
+
 .. code-block::
 
    from fedn import APIClient
-   client = APIClient(host="localhost", port=8092)
+   client = APIClient(host="api-server", port=8092)
    client.set_active_package("package.tgz", helper="numpyhelper", name="my-package")
    client.set_active_model("seed.npz")
 
@@ -48,7 +50,7 @@ This can be accomplished by editing the  `/etc/hosts` file. Add the following li
    For a secure and production-grade deployment solution over **public networks**, explore the FEDn Studio service at 
    **fedn.scaleoutsystems.com**. 
 
-Access message logs and validation data from MongoDB  
+Access logs and validation data in MongoDB  
 ------------------------------------------------------
 You can access and download event logs and validation data via the API, and you can also as a developer obtain 
 the MongoDB backend data using pymongo or via the MongoExpress interface: 
