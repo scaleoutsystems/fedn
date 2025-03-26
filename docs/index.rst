@@ -7,6 +7,7 @@
    projects
    apiclient
    serverfunctions
+   localcompute
 
 .. toctree::
    :maxdepth: 1
