@@ -1,0 +1,8 @@
+python_env: env.yaml
+entry_points:
+  startup: 
+    command: python startup.py
+  train:
+    command: python train.py
+  validate: 
+    command: python validate.py
