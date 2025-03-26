@@ -4,6 +4,7 @@
    
    introduction
    quickstart
+   examples
    projects
    apiclient
    serverfunctions
