@@ -1,48 +1,47 @@
 What is Federated Learning? 
 ===========================
 
-Federated learning (FL) is a decentralized approach to machine learning. It tackles the issues of centralized machine learning by allowing models to train on distributed data sources. Instead of moving the data, FL moves the computation to where the data is. The result is then combined into a globally-informed model, all this while preserving data privacy and security.
+Federated learning (FL) is a decentralized machine learning approach. Instead of collecting data in one place, FL sends the model to where the data is—training happens locally on distributed devices or systems. The results are then aggregated into a single global model, all while keeping raw data private and secure.
 
 Traditional machine learning
 -----------------------------
 
-Traditional machine learning utilizes a centralized approach. This  involves collecting data from various sources into one, centralized repository. This often being a cloud environment or a dedicated data center.  Then algorithms are used to train models on the dataset. The resulting models can be deployed to make decisions based on new incoming data.
+Traditional machine learning is centralized. Data from various sources is collected into a single location - typically a cloud platform or data center — and training models on that combined dataset.
 
-This often works well, but the centralized approach to machine learning is facing challenges. There has been a  rapid increase of connected devices, sensors and distributed data sources. This in turn has led to an exponential increase in the volume and complexity of data being generated. At the same time, privacy, security and compliance concerns have made it harder to move and combine data from different sources.
+This method works well in many cases, but it’s increasingly limited. The rapid growth of connected devices, sensors and distributed data sources has led to an exponential increase in data volume and complexity. Meanwhile, privacy regulations and security concerns make centralizing this data difficult and expensive.
 
-The data needed to train machine learning models is often distributed. It can exist across several organizations, devices, or clients. This makes centralization challenging due to privacy risks and high transfer costs.
+Often, the data needed for training exists across many devices, organizations, or locations. Centralizing it is challenging due to privacy risks and high transfer costs.
 
 .. image:: img/machine_learning_centralized_decentralized.svg
 
 How federated learning works
 -----------------------------
 
-In federated learning, AI models are trained across multiple devices or servers (called client nodes) without needing to move the data off those devices. Here’s a simplified breakdown of how it works:
+In federated learning, models are trained across multiple devices or servers (called client nodes) without moving the data. Here's how it works:
 
-1. **Starting the global model -** The process begins with a global model on a central server. This could be any type of machine learning model, like a neural network or decision tree.
-2. **Sending the model to clients -** The server sends the global model’s parameters to a group of selected client nodes. Each client uses its own local dataset, which stays securely on the device.
-3. **Local training -** Each client trains the model using its local data, adjusting the model’s parameters based on what it learns from the data. This training process is repeated for several rounds, rather than continuing until full accuracy is achieved.
-4. **Combining the updates -** The updated models from each client are sent back to the central server, where they are combined. A common approach is called Federated Averaging, where the server takes a weighted average of the updates from each client.
+1. **Initialize the global model -** A central server starts with an initial global model—like a neural network or decision tree.
+2. **Sending to clients -** The model's parameters are sent to selected clients. Each client keeps its local dataset private.
+3. **Local training -** Each client updates the model using its local data. This training is repeated in several rounds — not to completion.
+4. **Combining the updates -** The updated models from each client are sent back to the central server, where they are combined. 
 
-At last, the improved global model is sent back to the clients for further training. This cycle continues until the model reaches a satisfactory level of accuracy.
+This cycle repeats until the global model reaches the desired accuracy.
 
 The FEDn framework 
 --------------------
 
-The goal with FEDn is to provide a federated learning framework that is secure, scalable and easy-to-use. Our ambition is that FEDn supports the full journey from early
-testing/exploration, through pilot projects, to real-world depoyments and integration. We believe that that minimal code change should be needed to progress from early proof-of-concepts to production. This is reflected in our core design: 
+FEDn is a federated learning framework focused on security, scalability, and ease of use. It supports the full development lifecycle—from early experiments to production deployments—with minimal code changes. Key design goals include:
 
--  **Minimal server-side complexity for the end-user**. Running a proper distributed FL deployment is hard. With FEDn Studio we seek to handle all server-side complexity and provide a UI, REST API and a Python interface to help users manage FL experiments and track metrics in real time.
+-  **Minimal server-side complexity for the end-user**. FEDn Studio handles orchestration, providing a UI, REST API, and Python interface for managing experiments and tracking metrics in real time.
 
--  **Secure by design.** FL clients do not need to open any ingress ports. Industry-standard communication protocols (gRPC) and token-based authentication and RBAC (Jason Web Tokens) provides flexible integration in a range of production environments.  
+-  **Secure by design.** Clients never need to open inbound ports. gRPC, token-based authentication (JWT) and RBAC provides flexible and secure integration. 
 
--  **ML-framework agnostic**. A black-box client-side architecture lets data scientists interface with their framework of choice. 
+-  **ML-framework agnostic**. A black-box client-side architecture lets data scientists use any ML framework. 
 
--  **Cloud native.** By following cloud native design principles, we ensure a wide range of deployment options including private cloud and on-premise infrastructure. 
+-  **Cloud native.** Deploy on public cloud, private cloud, or on-prem infrastructure.
 
--  **Scalability and resilience.** Multiple aggregation servers (combiners) can share the workload. FEDn seamlessly recover from failures in all critical components and manages intermittent client-connections. 
+-  **Scalability and resilience.** Multiple combiners can balance load. FEDn handles failures in all critical components and manages intermittent client-connections. 
 
--  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
+-  **Developer and DevOps friendly.** Logging, tracing, and plugin architecture simplify monitoring, debugging, and extending the system.  
 
 Features
 --------
@@ -55,7 +54,7 @@ Federated learning:
 - Built-in federated algorithms (FedAvg, FedAdam, FedYogi, FedAdaGrad, etc.)
 - UI, CLI and Python API.
 - Implement clients in any language (Python, C++, Kotlin etc.)
-- No open ports needed client-side.
+- No inbound ports required on client devices
 
 
 From development to FL in production: 
