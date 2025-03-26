@@ -4,3 +4,7 @@ class EntityNotFound(Exception):
 
 class ValidationError(Exception):
     pass
+
+
+class MissingFieldError(Exception):
+    pass

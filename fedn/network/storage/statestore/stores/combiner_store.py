@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from typing import Dict, List
+from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto import CombinerDTO

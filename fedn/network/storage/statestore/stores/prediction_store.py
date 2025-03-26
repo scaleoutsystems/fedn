@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
@@ -55,7 +55,7 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
         return pred
 
 
-def _translate_key(key: str):
+def _translate_key_sql(key: str):
     if key == "sender.name":
         key = "sender_name"
     elif key == "sender.role":
@@ -76,12 +76,12 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionMode
         super().__init__(Session, PredictionModel)
 
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-        sort_key = _translate_key(sort_key)
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         return super().count(**kwargs)
 
     def _update_orm_model_from_dto(self, entity: PredictionModel, item: PredictionDTO):

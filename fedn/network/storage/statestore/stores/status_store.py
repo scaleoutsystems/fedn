@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple
+from typing import Dict
 
 import pymongo
 from pymongo.database import Database
@@ -42,7 +42,7 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
         item_dict = item.to_db(exclude_unset=False)
         return item_dict
 
-    def _dto_from_document(self, document: Dict[str, Any]) -> StatusDTO:
+    def _dto_from_document(self, document: Dict) -> StatusDTO:
         entity = from_document(document)
 
         if "logLevel" in entity:
@@ -58,7 +58,7 @@ class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
         return StatusDTO().patch_with(entity, throw_on_extra_keys=False)
 
 
-def _translate_key(key: str) -> str:
+def _translate_key_sql(key: str) -> str:
     if key == "_id":
         key = "id"
     elif key == "logLevel":
@@ -77,12 +77,12 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
         super().__init__(Session, StatusModel)
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-        sort_key: str = _translate_key(sort_key)
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key: str = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         return super().count(**kwargs)
 
     def _update_orm_model_from_dto(self, entity: StatusModel, item: StatusDTO):

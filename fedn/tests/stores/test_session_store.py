@@ -35,7 +35,7 @@ def test_session_and_model():
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
                       "clients_required":10, "validate":True, "helper_type":"test_helper_type", "model_id":model.model_id, "rounds": 10}
 
-    session = SessionDTO(session_id=str(uuid.uuid4()), name="sessionname",  session_config=SessionConfigDTO().patch_with(session_config))
+    session = SessionDTO(name="sessionname",  session_config=SessionConfigDTO().patch_with(session_config))
 
     return model, session
 
@@ -87,19 +87,15 @@ class TestSessionStore:
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_session_and_model: tuple[ModelDTO, SessionDTO]):
         model, session = test_session_and_model
         
-        session.verify()
-
-        
         db_connection.model_store.add(model)
         # Add a session and check that we get the added session back
         read_session1 = db_connection.session_store.add(session)
         assert isinstance(read_session1.session_id, str)
+        assert isinstance(read_session1.committed_at, datetime.datetime)
         read_session1_dict = read_session1.to_dict()
 
         assert read_session1_dict["name"] == session.name
-        assert read_session1_dict["session_id"] == session.session_id
-        assert read_session1_dict["committed_at"] is not None
-
+        
 
         session_config_dict = session.session_config.to_dict()
         assert read_session1_dict["session_config"] == session_config_dict

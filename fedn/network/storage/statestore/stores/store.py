@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
+from typing import Dict, Generic, List, Type, TypeVar
 
 import pymongo
 from pymongo.database import Database
@@ -132,6 +132,7 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         return self._dto_from_document(document)
 
     def add(self, item: DTO) -> DTO:
+        item.check_validity(exclude_primary_id=True)
         item_dict = self._document_from_dto(item)
 
         if self.primary_key not in item_dict or not item_dict[self.primary_key]:
@@ -147,6 +148,7 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         raise NotImplementedError("update not implemented for MongoDBStore by default. Use mongo_update in derived classes.")
 
     def mongo_update(self, item: DTO) -> DTO:
+        item.check_validity()
         item_dict = self._document_from_dto(item)
         id = item_dict[self.primary_key]
         result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
@@ -203,6 +205,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
             return self._dto_from_orm_model(entity)
 
     def add(self, item: DTO) -> DTO:
+        item.check_validity(exclude_primary_id=True)
         with self.Session() as session:
             newEntity = self.SQLModel()
             newEntity = self._update_orm_model_from_dto(newEntity, item)
@@ -222,6 +225,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
         raise NotImplementedError("update not implemented for SQLStore by default. Use sql_update in derived classes.")
 
     def sql_update(self, item: DTO) -> DTO:
+        item.check_validity()
         with self.Session() as session:
             stmt = select(self.SQLModel).where(self.SQLModel.id == item.primary_id)
             existing_item = session.scalars(stmt).first()

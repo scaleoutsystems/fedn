@@ -1,7 +1,7 @@
 import uuid
 from abc import abstractmethod
 from datetime import datetime
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
@@ -9,6 +9,7 @@ from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.dto import PackageDTO
+from fedn.network.storage.statestore.stores.dto.package import validate_helper
 from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -59,28 +60,6 @@ class PackageStore(Store[PackageDTO]):
         return: Whether the operation was successful
         """
         pass
-
-
-def allowed_file_extension(filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}) -> bool:
-    """Check if file extension is allowed.
-
-    :param filename: The filename to check.
-    :type filename: str
-    :return: True and extension str if file extension is allowed, else False and None.
-    :rtype: Tuple (bool, str)
-    """
-    if "." in filename:
-        extension = filename.rsplit(".", 1)[1].lower()
-        if extension in ALLOWED_EXTENSIONS:
-            return True
-
-    return False
-
-
-def validate_helper(helper: str) -> bool:
-    if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
-        return False
-    return True
 
 
 class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):

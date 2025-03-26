@@ -78,7 +78,7 @@ def options():
 class TestCombinerStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_combiner:CombinerDTO):
-        test_combiner.verify()
+        test_combiner.check_validity()
 
         # Add a combiner and check that we get the added combiner back
         name = test_combiner.name

@@ -79,7 +79,7 @@ class TestRoundStore:
 
         db_connection.model_store.add(test_model)
 
-        test_round.verify()
+        test_round.check_validity()
 
         # Add a round and check that we get the added round back
         read_round1 = db_connection.round_store.add(test_round)

@@ -1,8 +1,7 @@
-from typing import Any, Dict, List, Tuple
+from typing import Dict, Tuple
 
 import pymongo
 from pymongo.database import Database
-from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel, from_orm_model

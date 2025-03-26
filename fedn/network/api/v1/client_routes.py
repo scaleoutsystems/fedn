@@ -6,6 +6,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import client_store, control, get_checksum, package_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
@@ -515,6 +516,15 @@ def add_client():
             "helper_type": helper_type,
         }
         return jsonify(payload), 200
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": str(e)}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": str(e)}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500

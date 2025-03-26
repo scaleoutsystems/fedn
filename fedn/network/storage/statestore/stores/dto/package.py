@@ -1,6 +1,29 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID, validator
+from fedn.network.storage.statestore.stores.shared import ValidationError
+
+
+def allowed_file_extension(filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}) -> bool:
+    """Check if file extension is allowed.
+
+    :param filename: The filename to check.
+    :type filename: str
+    :return: True and extension str if file extension is allowed, else False and None.
+    :rtype: Tuple (bool, str)
+    """
+    if "." in filename:
+        extension = filename.rsplit(".", 1)[1].lower()
+        if extension in ALLOWED_EXTENSIONS:
+            return True
+
+    return False
+
+
+def validate_helper(helper: str) -> bool:
+    if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
+        return False
+    return True
 
 
 class PackageDTO(BaseDTO):
@@ -14,15 +37,13 @@ class PackageDTO(BaseDTO):
     storage_file_name: Optional[str] = Field(None)
     active: Optional[bool] = Field(False)
 
+    @validator
+    def validate(self):
+        if not self.file_name:
+            raise ValidationError("File name is required")
 
-# def validate(item: Dict) -> Tuple[bool, str]:
-#     if "file_name" not in item or not item["file_name"]:
-#         return False, "File name is required"
+        if not allowed_file_extension(self.file_name):
+            return ValidationError("File extension not allowed")
 
-#     if not allowed_file_extension(item["file_name"]):
-#         return False, "File extension not allowed"
-
-#     if "helper" not in item or not validate_helper(item["helper"]):
-#         return False, "Helper is required"
-
-#     return True, ""
+        if not self.helper or not validate_helper(self.helper):
+            return ValidationError("Helper is required or is invalid")

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
 import pymongo
 from bson import ObjectId

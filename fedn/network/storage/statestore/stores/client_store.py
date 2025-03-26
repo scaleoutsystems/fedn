@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
-import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
 
@@ -61,7 +60,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
     def _dto_from_document(self, document: Dict) -> ClientDTO:
         return ClientDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
-    def _document_from_dto(self, item):
+    def _document_from_dto(self, item: ClientDTO) -> Dict:
         return item.to_db(exclude_unset=False)
 
 

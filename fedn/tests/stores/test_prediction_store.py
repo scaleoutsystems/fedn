@@ -76,7 +76,7 @@ def options():
 class TestPredictionStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
-        test_prediction.verify()
+        test_prediction.check_validity()
 
         read_prediction1 = db_connection.prediction_store.add(test_prediction)
         assert isinstance(read_prediction1.prediction_id, str)

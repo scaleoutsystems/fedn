@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
@@ -43,7 +43,7 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
         item_dict = item.to_db(exclude_unset=False)
         return item_dict
 
-    def _dto_from_document(self, document: Dict[str, Any]) -> ValidationDTO:
+    def _dto_from_document(self, document: Dict) -> ValidationDTO:
         dto_dict = from_document(document)
 
         if "correlationId" in dto_dict:
@@ -56,7 +56,7 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
         return ValidationDTO().patch_with(dto_dict, throw_on_extra_keys=False, verify=True)
 
 
-def translate_key_sql(key: str) -> str:
+def _translate_key_sql(key: str) -> str:
     if key == "_id":
         key = "id"
     elif key == "sender.name":
@@ -82,12 +82,12 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
         super().__init__(Session, ValidationModel)
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        kwargs = {translate_key_sql(k): v for k, v in kwargs.items()}
-        sort_key = translate_key_sql(sort_key)
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = translate_key_sql(kwargs)
+        kwargs = _translate_key_sql(kwargs)
         return super().count(**kwargs)
 
     def _update_orm_model_from_dto(self, entity: ValidationModel, item: ValidationDTO):
