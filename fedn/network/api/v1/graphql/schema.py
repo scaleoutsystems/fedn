@@ -153,8 +153,8 @@ class Query(graphene.ObjectType):
             kwargs = {"name": name}
         else:
             kwargs = {}
-        all_models = model_store.list(**kwargs)
-        result = [model.to_dict() for model in all_models]
+        all_sessions = session_store.list(**kwargs)
+        result = [session.to_dict() for session in all_sessions]
         return result
 
     def resolve_model(root, info, id: str = None):
