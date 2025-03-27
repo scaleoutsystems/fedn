@@ -329,10 +329,10 @@ def get_combiner(id: str):
                         type: string
     """
     try:
-        response = combiner_store.get(id)
-        if response is None:
+        combiner = combiner_store.get(id)
+        if combiner is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response.to_dict()), 200
+        return jsonify(combiner.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
