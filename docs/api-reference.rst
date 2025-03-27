@@ -1,10 +1,10 @@
-API reference
-=============
+API Reference
+============
 
 .. toctree::
    :maxdepth: 4
 
-   fedn
+   api-reference/fedn
 
 .. meta::
    :description lang=en:
