@@ -461,21 +461,20 @@ class RoundHandler:
 
         if output["gradients"] is None and output["validation_data"] is None:
             logger.warning("\t Forward pass failed in round {0}!".format(config["round_id"]))
-        else:
-            if output["validation_data"] is not None:  # in forward validation pass, no gradients are calculated. Skip in this case.
-                logger.info("FORWARD VALIDATION PASS COMPLETED. Job id: {}".format(config["_job_id"]))
-                return data
-            elif output["gradients"] is not None:
-                gradients = output["gradients"]
-                helper = get_helper(config["helper_type"])
-                a = serialize_model_to_BytesIO(gradients, helper)
-                gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads gradients to storage
-                a.close()
-                data["model_id"] = gradient_id  # intended
+        elif output["validation_data"] is not None:  # in forward validation pass, no gradients are calculated. Skip in this case.
+            logger.info("FORWARD VALIDATION PASS COMPLETED. Job id: {}".format(config["_job_id"]))
+            return data
+        elif output["gradients"] is not None:
+            gradients = output["gradients"]
+            helper = get_helper(config["helper_type"])
+            a = serialize_model_to_BytesIO(gradients, helper)
+            gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads gradients to storage
+            a.close()
+            data["model_id"] = gradient_id  # intended
 
-                logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
+            logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
 
-                return data
+            return data
 
     def execute_backward_pass(self, config):
         """Coordinates clients to execute backward pass.
