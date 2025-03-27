@@ -11,7 +11,7 @@ from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
-from fedn.network.storage.statestore.stores.shared import ValidationError
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -582,8 +582,11 @@ def upload_package():
         package_store.set_active(package.package_id)
         return jsonify({"message": "Package uploaded"}), 200
     except ValidationError as e:
-        logger.error(f"ValidationError occured: {e}")
-        return jsonify({"message": f"Invalid object {e}"}), 400
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400
