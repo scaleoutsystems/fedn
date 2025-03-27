@@ -234,8 +234,12 @@ class Client:
         return metrics
 
     def _process_forward_request(self, client_id, is_validate) -> Tuple[BytesIO, dict]:
-        """Process a forward request.
+        """Process a forward request. is_validate determines whether the forward pass is used for gradient calculation or validation.
 
+        :param client_id: The client ID.
+        :type client_id: str
+        :param is_validate: Whether the request is for validation.
+        :type is_validate: str
         :return: The embeddings, or None if forward failed.
         :rtype: tuple
         """

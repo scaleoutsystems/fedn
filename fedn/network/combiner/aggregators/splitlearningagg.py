@@ -12,9 +12,6 @@ helper = get_helper(HELPER_MODULE)
 
 seed = 42
 torch.manual_seed(seed)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
 
 
 class ServerModel(nn.Module):
@@ -55,9 +52,6 @@ class Aggregator(AggregatorBase):
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        self.test_losses = []
-        self.test_accuracies = []
-
     def combine_models(self, helper=None, delete_models=True, is_validate=False):
         """Concatenates client embeddings in the queue by aggregating them.
 
@@ -77,7 +71,6 @@ class Aggregator(AggregatorBase):
 
         embeddings = None
         nr_aggregated_embeddings = 0
-        total_examples = 0
 
         logger.info("AGGREGATOR({}): Aggregating client embeddings... ".format(self.name))
 
@@ -91,9 +84,6 @@ class Aggregator(AggregatorBase):
                 embedding_next, metadata = self.update_handler.load_model_update(new_embedding, helper)
 
                 logger.info("AGGREGATOR({}): Processing embedding metadata: {}  ".format(self.name, metadata))
-
-                # Increment total number of examples
-                total_examples += metadata["num_examples"]
 
                 if nr_aggregated_embeddings == 0:
                     embeddings = embedding_next
@@ -109,7 +99,9 @@ class Aggregator(AggregatorBase):
                 logger.error(f"AGGREGATOR({self.name}): Error encoutered while processing embedding update: {e}")
                 logger.error(tb)
 
-        logger.info("splitlearning aggregator: starting calculation of gradients")
+        logger.info("splitlearning aggregator: Embeddings have been aggregated.")
+
+        result = {"gradients": None, "validation_data": None, "data": None}
 
         # order embeddings and change to tensor
         client_order = sorted(embeddings.keys())
@@ -126,64 +118,69 @@ class Aggregator(AggregatorBase):
             self.model = ServerModel(input_features)
             self.model.to(self.device)
 
-        logger.info("is_validate is {}".format(is_validate))
-        logger.info("type of is_validate is {}".format(type(is_validate)))
-
-        if is_validate == "False":  # forward training pass
+        if is_validate == "False":
+            # split learning forward pass with gradient calculation
             logger.info("Split Learning Aggregator: Executing forward training pass")
-            # gradient calculation
-            self.model.train()
-            criterion = nn.BCELoss()
-            optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
-            optimizer.zero_grad()
 
-            output = self.model(concatenated_embeddings)
-            targets = helper.load_targets(is_train=True)
+            gradients = self.calculate_gradients(concatenated_embeddings, client_order, ordered_embeddings)
 
-            logger.info("target shape: {}".format(targets.shape))
-            logger.info("output shape: {}".format(output.shape))
-
-            loss = criterion(output, targets)
-            logger.info("AGGREGATOR({}): Loss: {}".format(self.name, loss))
-
-            loss.backward()
-
-            optimizer.step()
-
-            # Split gradients by client
-            gradients = {}
-            for client_id, embedding in zip(client_order, ordered_embeddings):
-                gradients[str(client_id)] = embedding.grad.numpy()
+            result["gradients"] = gradients
+            result["data"] = data
 
             logger.info("AGGREGATOR({}): Gradients are calculated.".format(self.name))
 
-        else:  # split learning validation pass, we don't calculate gradients, only calculate & return test loss
+            return result
+        else:
+            # split learning validation pass, no gradient calculation.
             logger.info("Split Learning Aggregator: Executing forward validation pass")
-            self.model.eval()
-            with torch.no_grad():
-                criterion = nn.BCELoss()
-                output = self.model(concatenated_embeddings)
-                targets = helper.load_targets(is_train=False)
 
-                # TODO: potentially save metrics in validation store
+            validation_data = self.calculate_validation_metrics(concatenated_embeddings)
 
-                # test loss
-                test_loss = criterion(output, targets)
+            result["validation_data"] = validation_data
+            result["data"] = data
 
-                # test accuracy
-                predictions = (output > 0.5).float()
-                correct = (predictions == targets).sum().item()
-                total = targets.numel()  # Total number of predictions
-                test_accuracy = correct / total
+            logger.info("AGGREGATOR({}): Test Loss: {}, Test Accuracy: {}".format(self.name, validation_data["test_loss"], validation_data["test_accuracy"]))
 
-                logger.info("AGGREGATOR({}): Test Loss: {}, Test Accuracy: {}".format(self.name, test_loss, test_accuracy))
+            return result
 
-                validation_data = {"test_loss": test_loss, "test_accuracy": test_accuracy}
+    def calculate_gradients(self, concatenated_embeddings, client_order, ordered_embeddings):
+        self.model.train()
+        criterion = nn.BCELoss()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer.zero_grad()
 
-                self.test_losses.append(test_loss.item())
-                self.test_accuracies.append(test_accuracy)
-                logger.info("AGGREGATOR({}): Test Losses: {}, Test Accuracies: {}".format(self.name, self.test_losses, self.test_accuracies))
+        output = self.model(concatenated_embeddings)
+        targets = helper.load_targets(is_train=True)
 
-                return validation_data, data
+        loss = criterion(output, targets)
+        logger.info("AGGREGATOR({}): Train Loss: {}".format(self.name, loss))
 
-        return gradients, data
+        loss.backward()
+
+        optimizer.step()
+
+        # Split gradients by client
+        gradients = {}
+        for client_id, embedding in zip(client_order, ordered_embeddings):
+            gradients[str(client_id)] = embedding.grad.numpy()
+
+        return gradients
+
+    def calculate_validation_metrics(self, concatenated_embeddings):
+        self.model.eval()
+        with torch.no_grad():
+            criterion = nn.BCELoss()
+            output = self.model(concatenated_embeddings)
+            targets = helper.load_targets(is_train=False)
+
+            # metric calculation
+            test_loss = criterion(output, targets)
+
+            predictions = (output > 0.5).float()
+            correct = (predictions == targets).sum().item()
+            total = targets.numel()  # Total number of predictions
+            test_accuracy = correct / total
+
+            validation_data = {"test_loss": test_loss, "test_accuracy": test_accuracy}
+
+            return validation_data

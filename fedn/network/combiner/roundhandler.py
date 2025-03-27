@@ -244,9 +244,7 @@ class RoundHandler:
         self.update_handler.waitforit(config, buffer_size=buffer_size)
 
         tic = time.time()
-        gradients = None
-        data = None
-
+        output = None
         try:
             helper = get_helper(config["helper_type"])
             logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
@@ -255,13 +253,14 @@ class RoundHandler:
             else:
                 delete_models = False
 
-            gradients, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_validate=is_validate)
+            output = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_validate=is_validate)
+
         except Exception as e:
             logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
 
         meta["time_combination"] = time.time() - tic
-        meta["aggregation_time"] = data
-        return gradients, meta
+        meta["aggregation_time"] = output["data"]
+        return output, meta
 
     def _backward_pass(self, config: dict, clients: list):
         """Send backward pass requests to clients.
@@ -453,32 +452,29 @@ class RoundHandler:
         data["config"] = config
         data["round_id"] = config["round_id"]
 
-        data["model_id"] = None  # TODO: checking
+        data["model_id"] = None
 
         clients = self._assign_round_clients(self.server.max_clients)
-        gradients, meta = self._forward_pass(config, clients)
+        output, meta = self._forward_pass(config, clients)
 
         data["data"] = meta
 
-        if gradients is None:
-            logger.warning("\t Failed to calculate gradients in forward pass {0}!".format(config["round_id"]))
-
-        if gradients is not None:
-            if "test_loss" in gradients:  # in forward validation pass, no gradients are calculated. Skip in this case.
+        if output["gradients"] is None and output["validation_data"] is None:
+            logger.warning("\t Forward pass failed in round {0}!".format(config["round_id"]))
+        else:
+            if output["validation_data"] is not None:  # in forward validation pass, no gradients are calculated. Skip in this case.
                 logger.info("FORWARD VALIDATION PASS COMPLETED. Job id: {}".format(config["_job_id"]))
                 return data
-            else:
+            elif output["gradients"] is not None:
+                gradients = output["gradients"]
                 helper = get_helper(config["helper_type"])
                 a = serialize_model_to_BytesIO(gradients, helper)
-                gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads model to storage
-                logger.info("Gradient id: {}".format(gradient_id))
+                gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads gradients to storage
                 a.close()
-                data["model_id"] = gradient_id
+                data["model_id"] = gradient_id  # intended
 
                 logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
 
-                # Delete temp model
-                # self.modelservice.temp_model_storage.delete(config["model_id"])
                 return data
 
     def execute_backward_pass(self, config):
@@ -495,7 +491,7 @@ class RoundHandler:
         data["config"] = config
         data["round_id"] = config["round_id"]
 
-        logger.info("roundhandler execute_backward_pass: downloading model/gradient with id: {}".format(config["model_id"]))
+        logger.info("roundhandler execute_backward_pass: downloading gradients with id: {}".format(config["model_id"]))
 
         # Download gradients and set in temp storage.
         self.stage_model(config["model_id"])  # Download a model from persistent storage and set in modelservice
@@ -504,7 +500,7 @@ class RoundHandler:
         meta = self._backward_pass(config, clients)
         data["data"] = meta
 
-        if meta is None:  # if gradients is None:
+        if meta is None:
             logger.warning("\t Failed to run backward pass in round {0}!".format(config["round_id"]))
 
         # Delete temp model

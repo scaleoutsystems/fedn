@@ -394,6 +394,7 @@ class GrpcHandler:
         return completion
 
     def send_backward_completion(self, update: fedn.BackwardCompletion):
+        """Send a backward completion message to the combiner."""
         try:
             logger.info("Sending backward completion to combiner.")
             _ = self.combinerStub.SendBackwardCompletion(update, metadata=self.metadata)

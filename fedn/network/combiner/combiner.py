@@ -229,8 +229,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model prediction request for model {} to {} clients".format(model_id, len(clients)))
 
-    # def request_forward_pass(self, session_id: str, config: dict, clients=[]) -> None:
-    def request_forward_pass(self, session_id, model_id, config, clients=[]) -> None:
+    def request_forward_pass(self, session_id: str, model_id: str, config: dict, clients=[]) -> None:
         """Ask clients to perform forward pass.
 
         :param config: the model configuration to send to clients
@@ -239,16 +238,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        #  _send_request_type(self, request_type, session_id, model_id=None, config=None, clients=[]
-
-        # clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id=None, config=config, clients=clients)
         clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
 
         if len(clients) < 20:
             logger.info("Sent forward request to clients {}".format(clients))
         else:
             logger.info("Sent forward request to {} clients".format(len(clients)))
-
 
     def request_backward_pass(self, session_id: str, gradient_id: str, config: dict, clients=[]) -> None:
         """Ask clients to perform backward pass.
@@ -264,7 +259,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             logger.info("Sent backward request for gradients {} to clients {}".format(gradient_id, clients))
         else:
             logger.info("Sent backward request for gradients {} to {} clients".format(gradient_id, len(clients)))
-
 
     def _send_request_type(self, request_type, session_id, model_id=None, config=None, clients=[]):
         """Send a request of a specific type to clients.
@@ -290,20 +284,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             elif request_type == fedn.StatusType.MODEL_PREDICTION:
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
-            # elif request_type == fedn.StatusType.FORWARD or request_type == fedn.StatusType.BACKWARD:
-            #     clients = self.get_active_trainers()
 
         for client in clients:
-            # request = fedn.TaskRequest()
-            # request.timestamp = str(datetime.now())
-            # request.type = request_type
-            # request.session_id = session_id
-
-            # request.sender.name = self.id
-            # request.sender.role = fedn.COMBINER
-            # request.receiver.client_id = client
-            # request.receiver.role = fedn.CLIENT
-
             request = fedn.TaskRequest()
             request.model_id = model_id
             request.correlation_id = str(uuid.uuid4())
@@ -316,23 +298,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
 
-
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
-            elif request_type == fedn.StatusType.MODEL_UPDATE:
-                # request.model_id = model_id
-                # request.correlation_id = str(uuid.uuid4())
-                request.data = json.dumps(config)
-            elif request_type == fedn.StatusType.FORWARD:
-                # request.model_id = model_id
-                # request.correlation_id = str(uuid.uuid4()) # NOTE: necessary or not? TODO: rename model_id
-                request.data = json.dumps(config)
-            elif request_type == fedn.StatusType.BACKWARD:
-                # request.model_id = model_id
-                # request.correlation_id = str(uuid.uuid4())
+            elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 request.data = json.dumps(config)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
         return clients
@@ -892,14 +863,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.type = fedn.StatusType.BACKWARD
         status.session_id = request.session_id
 
-
         logger.info(f"Creating status message with session_id: {request.session_id}")
         self._send_status(status)
         logger.info("Status message sent to MongoDB")
 
-
         ###########
-
 
         response = fedn.Response()
         response.response = "RECEIVED BackwardCompletion from client {}".format(request.sender.name)

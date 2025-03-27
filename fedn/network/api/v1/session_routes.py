@@ -296,7 +296,7 @@ def get_session(id: str):
     try:
         response = session_store.get(id)
         if response is None:
-           return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -420,7 +420,6 @@ def start_splitlearning_session():
         session = session_store.get(session_id)
 
         session_config = session["session_config"]
-        # model_id = session_config["model_id"]
         min_clients = session_config["clients_required"]
 
         if control.state() == ReducerState.monitoring:
@@ -432,8 +431,6 @@ def start_splitlearning_session():
 
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
-
-        # _ = model_store.get(model_id)
 
         threading.Thread(target=control.splitlearning_session, args=(session_id, rounds, round_timeout)).start()
 

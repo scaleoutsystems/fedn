@@ -540,7 +540,7 @@ class Control(ControlBase):
 
         logger.info("CONTROLLER: Backward pass completed.")
 
-        # # 3) Validation
+        # 3) Validation
         validate = session_config["validate"]
         if validate:
             logger.info("CONTROLLER: Starting Split Learning Validation round")

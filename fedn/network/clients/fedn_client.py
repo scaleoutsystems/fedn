@@ -374,6 +374,7 @@ class FednClient:
         self.send_model_prediction(prediction_message)
 
     def forward_embeddings(self, request):
+        """Forward pass for split learning gradient calculation or validation."""
         model_id = request.model_id
         is_validate = json.loads(request.data).get("is_validate", False)
 
@@ -412,6 +413,7 @@ class FednClient:
         )
 
     def backward_gradients(self, request):
+        """Split learning backward pass to update the local client models."""
         model_id = request.model_id
 
         try:
@@ -447,7 +449,6 @@ class FednClient:
                 "Backward pass completed. Status: finished_backward",
                 log_level=fedn.LogLevel.AUDIT,
                 type=fedn.StatusType.BACKWARD,
-                # request=update,
                 session_id=request.session_id,
                 sender_name=self.name,
             )
@@ -455,6 +456,7 @@ class FednClient:
             logger.error(f"Error in backward pass: {str(e)}")
 
     def create_backward_completion_message(self, gradient_id: str, meta: dict, request: fedn.TaskRequest):
+        """Create a backward completion message."""
         return self.grpc_handler.create_backward_completion_message(
             sender_name=self.name,
             receiver_name=request.sender.name,
