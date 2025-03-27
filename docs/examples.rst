@@ -12,7 +12,13 @@ FEDn Examples
           :align: center
           :alt: Computer Vision Attacks
        
-       **Computer Vision**
+       .. raw:: html
+
+           <p style="margin-top: 0.5em;">
+             <a href="https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch" style="font-weight: bold; text-decoration: none;">
+               Computer Vision Attacks
+             </a>
+           </p>
        
 
        - Model poisoning: 92% detection
