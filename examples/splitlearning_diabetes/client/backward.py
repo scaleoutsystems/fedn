@@ -40,6 +40,7 @@ def backward_pass(gradient_path, client_id):
     client_optimizer = optim.Adam(client_model.parameters(), lr=0.01)
     client_optimizer.zero_grad()
 
+    # recomputing the computational graph
     embedding = client_model(x_train)
 
     gradients = helper.load(gradient_path)
@@ -51,6 +52,7 @@ def backward_pass(gradient_path, client_id):
 
     client_optimizer.step()
 
+    # save the updated model
     save_client_model(client_model, client_id)
 
 

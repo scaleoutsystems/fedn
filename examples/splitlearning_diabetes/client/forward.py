@@ -35,11 +35,9 @@ def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
     if is_validate == "True":
         logger.info(f"Client-side validation forward pass for client {client_id}")
         X = load_data(data_path, is_train=False)
-        logger.info("len of data is {}".format(len(X)))
     else:
         logger.info(f"Client-side training forward pass for client {client_id}")
         X = load_data(data_path, is_train=True)
-        logger.info("len of data is {}".format(len(X)))
 
     num_local_features = X.shape[1]
 

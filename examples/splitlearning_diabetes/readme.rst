@@ -20,7 +20,8 @@ Also install the following libraries into your virtual environment:
 
 In your /etc/hosts file, add the following lines:
 
-.. code-block:: bash
+.. code-block:: text
+
     127.0.0.1    localhost
     127.0.0.1    combiner
     127.0.0.1    minio
@@ -98,7 +99,7 @@ Starting the Split Learning Training
 -------------------------------------
 
 We are going to start the training through the API Client. 
-Go to the api.ipynb file in the splitlearning_diabetes folder and execute the cells. 
+Go to the *run_splitlearning.ipynb* file in the *splitlearning_diabetes* folder and execute the cells. 
 The splitlearning session should start running. 
 
 Modifying the example
@@ -107,6 +108,8 @@ Modifying the example
 In order to change the split learning model architecture, you need to modify two files: 
 The *model.py* file to change the client-side model, and the *splitlearningagg.py* file 
 in the *combiner* folder to change the server-side model. 
+
+Update the *data.py* file if you want to change the dataset. 
 
 
 
