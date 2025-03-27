@@ -41,10 +41,10 @@ def add_analytics():
         return jsonify(response), status_code
     except ValidationError as e:
         logger.error(f"Validation error: {e}")
-        return jsonify({"message": "Validation failed for field '{}' with message: {}".format(e.field, e.validation_message)}), 400
+        return jsonify({"message": e.user_message()}), 400
     except MissingFieldError as e:
         logger.error(f"Missing field error: {e}")
-        return jsonify({"message": "Class '{}' is missing field {}".format(e.class_name, e.field)}), 400
+        return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400
