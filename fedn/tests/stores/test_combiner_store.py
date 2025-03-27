@@ -78,13 +78,12 @@ def options():
 class TestCombinerStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_combiner:CombinerDTO):
-        test_combiner.verify()
+        test_combiner.check_validity()
 
         # Add a combiner and check that we get the added combiner back
         name = test_combiner.name
 
-        success, read_combiner1 = db_connection.combiner_store.add(test_combiner)
-        assert success == True
+        read_combiner1 = db_connection.combiner_store.add(test_combiner)
         assert isinstance(read_combiner1.combiner_id, str)
         read_combiner1_dict = read_combiner1.to_dict()
         combiner_id = read_combiner1_dict["combiner_id"]

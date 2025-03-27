@@ -65,11 +65,10 @@ def options():
 class TestClientStore:
 
     def test_add_get_update_delete(self, db_connection:DatabaseConnection, test_client: ClientDTO): 
-        test_client.verify()
+        test_client.check_validity()
 
         # Add a client and check that we get the added client back
-        success, read_client1 = db_connection.client_store.add(test_client)
-        assert success == True
+        read_client1 = db_connection.client_store.add(test_client)
         assert isinstance(read_client1.client_id, str)
         read_client1_dict = read_client1.to_dict()
         client_id = read_client1_dict["client_id"]
@@ -89,25 +88,13 @@ class TestClientStore:
         
         # Update the client and check that we get the updated client back
         read_client2.name = "new_name"         
-        success, read_client3 = db_connection.client_store.update(read_client2)
-        assert success == True
+        read_client3 = db_connection.client_store.update(read_client2)
         assert read_client3.name == "new_name"
 
         # Assert we get the same client back
         read_client4 = db_connection.client_store.get(client_id)
         assert read_client4 is not None
         assert read_client3.to_dict() == read_client4.to_dict()
-
-        # Partial update the client and check that we get the updated client back
-        update_client = ClientDTO(client_id=client_id, combiner="new_combiner")
-        success, read_client5 = db_connection.client_store.update(update_client)
-        assert success == True
-        assert read_client5.combiner == "new_combiner"
-
-        # Assert we get the same client back
-        read_client6 = db_connection.client_store.get(client_id)
-        assert read_client6 is not None
-        assert read_client6.to_dict() == read_client5.to_dict()
 
         # Delete the client and check that it is deleted
         success = db_connection.client_store.delete(client_id)

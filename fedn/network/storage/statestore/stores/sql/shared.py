@@ -56,7 +56,7 @@ class SessionModel(MyAbstractBase):
     name: Mapped[Optional[str]] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(255))
     session_config_id: Mapped[str] = mapped_column(ForeignKey("session_configs.id"))
-    session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session")
+    session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session", cascade="all, delete-orphan", single_parent=True)
     models: Mapped[List["ModelModel"]] = relationship(back_populates="session")
 
 
@@ -113,7 +113,7 @@ class RoundCombinerModel(MyAbstractBase):
     time_exec_training: Mapped[float]
 
     round_config_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_configs.id"))
-    round_config: Mapped[Optional["RoundConfigModel"]] = relationship(cascade="all, delete", foreign_keys=[round_config_id])
+    round_config: Mapped[Optional["RoundConfigModel"]] = relationship(cascade="all, delete-orphan", single_parent=True)
 
     data_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_combiner_data.id"))
     data: Mapped[Optional["RoundCombinerDataModel"]] = relationship(back_populates="round_combiner", cascade="all, delete")
@@ -139,9 +139,9 @@ class RoundModel(MyAbstractBase):
     __tablename__ = "rounds"
     status: Mapped[str] = mapped_column()
 
-    round_config_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_configs.id"))
-    round_config: Mapped[Optional["RoundConfigModel"]] = relationship(cascade="all, delete")
-    round_data_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_data.id"))
+    round_config_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_configs.id", ondelete="cascade"))
+    round_config: Mapped[Optional["RoundConfigModel"]] = relationship(cascade="all, delete-orphan", single_parent=True)
+    round_data_id: Mapped[Optional[str]] = mapped_column(ForeignKey("round_data.id", ondelete="cascade"))
     round_data: Mapped[Optional["RoundDataModel"]] = relationship(back_populates="round", cascade="all, delete")
     combiners: Mapped[List["RoundCombinerModel"]] = relationship(back_populates="round", cascade="all, delete-orphan")
 

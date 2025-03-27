@@ -9,6 +9,7 @@ from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
 
 bp = Blueprint("session", __name__, url_prefix=f"/api/{api_version}/sessions")
 
@@ -357,11 +358,18 @@ def post():
         session.session_config = session_config
         session.populate_with(data)
 
-        successful, result = session_store.add(session)
+        result = session_store.add(session)
+
         response = result.to_dict()
-        status_code: int = 201 if successful else 400
+        status_code: int = 201
 
         return jsonify(response), status_code
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400
@@ -479,13 +487,23 @@ def patch_session(id: str):
 
         session.patch_with(data, throw_on_extra_keys=False)
 
-        success, message = session_store.update(session)
+        updated_session = session_store.update(session)
 
-        if success:
-            response = session
-            return jsonify(response), 200
+        response = updated_session.to_dict()
+        return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {message}"}), 400
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -539,13 +557,20 @@ def put_session(id: str):
         data["session_id"] = id
         session.populate_with(data)
 
-        success, msg_obj = session_store.update(session)
+        updated_session = session_store.update(session)
 
-        if success:
-            response = msg_obj.to_dict()
-            return jsonify(response), 200
+        response = updated_session.to_dict()
+        return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update session: {msg_obj}"}), 400
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400

@@ -135,9 +135,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Updating previous clients status to offline")
         for client in previous_clients:
             client.status = "offline"
-            success, msg = client_store.update(client)
-            if not success:
-                logger.error(f"Failed to update previous client status: {msg}")
+            try:
+                client_store.update(client)
+            except Exception as e:
+                logger.error(f"Failed to update previous client status: {e}")
 
         # Set up gRPC server configuration
         if config["secure"]:
@@ -427,7 +428,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         data = MessageToDict(status, preserving_proto_field_name=True)
         status = StatusDTO().populate_with(data)
-        _ = status_store.add(status)
+        status_store.add(status)
 
     def _flush_model_update_queue(self):
         """Clear the model update queue (aggregator).
@@ -656,10 +657,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                     "memory_utilisation": heartbeat.memory_utilisation,
                 }
             )
-            success, msg = analytic_store.add(analytic)
-
-            if not success:
-                logger.error(f"GRPC: SendHeartbeat error: {msg}")
+            try:
+                analytic_store.add(analytic)
+            except Exception as e:
+                logger.error(f"GRPC: SendHeartbeat error: {e}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -703,13 +704,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             if client_to_update is not None:
                 client_to_update.status = "online"
                 client_to_update.last_seen = datetime.now()
-                success, result = client_store.update(client_to_update)
+                client_store.update(client_to_update)
             else:
                 new_client = ClientDTO(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
-                success, result = client_store.add(new_client)
+                client_store.add(new_client)
 
-            if not success:
-                logger.error(result)
         except Exception as e:
             logger.error(f"Failed to update client status: {str(e)}")
 
@@ -759,11 +758,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         data = MessageToDict(validation, preserving_proto_field_name=True)
         validationdto = ValidationDTO(**data)
-        success, result = validation_store.add(validationdto)
-        if not success:
-            logger.error(result)
-        else:
+        try:
+            result = validation_store.add(validationdto)
             logger.info("Model validation registered: {}".format(result))
+        except Exception as e:
+            logger.error(f"Failed to register model validation: {e}")
 
     def SendModelValidation(self, request, context):
         """Send a model validation response.

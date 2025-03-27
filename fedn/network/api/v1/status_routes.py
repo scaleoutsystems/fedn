@@ -387,10 +387,10 @@ def get_status(id: str):
                         type: string
     """
     try:
-        response = status_store.get(id)
-        if response is None:
+        status = status_store.get(id)
+        if status is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response.to_dict()), 200
+        return jsonify(status.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

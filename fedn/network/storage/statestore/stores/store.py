@@ -1,14 +1,19 @@
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar, Union
+from typing import Dict, Generic, List, Type, TypeVar
 
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session as SessionClass
 
-T = TypeVar("T")
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO
+from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
+
+MODEL = TypeVar("MODEL", bound=MyAbstractBase)
+DTO = TypeVar("DTO", bound=BaseDTO)
 
 
 def from_document(document: dict) -> dict:
@@ -16,37 +21,52 @@ def from_document(document: dict) -> dict:
     return document
 
 
-class Store(ABC, Generic[T]):
+class Store(ABC, Generic[DTO]):
     """Abstract class for a store."""
 
     @abstractmethod
-    def get(self, id: str) -> T:
+    def get(self, id: str) -> DTO:
         """Get an entity by id.
 
-        param id: The id of the entity
-            type: str
-        return: The entity
+        Args:
+            id (str): Entity id
+
+        Returns:
+            DTO: The entity or null if not found
+
         """
         pass
 
     @abstractmethod
-    def update(self, item: T) -> Tuple[bool, Union[T, str]]:
+    def update(self, item: DTO) -> DTO:
         """Update an existing entity.
 
-        Will do a patch if fields in T are left unset
-        param item: The entity to update
-            type: T
-        return: A tuple with a boolean and a message if failure or the updated entity if success
+        Args:
+            item (DTO): The entity to update.
+
+        Returns:
+            DTO: The updated entity.
+
+        Raises:
+            EntityNotFound: If the entity is not found.
+            ValidationError: If validation fails.
+
         """
         pass
 
     @abstractmethod
-    def add(self, item: T) -> Tuple[bool, Union[T, str]]:
+    def add(self, item: DTO) -> DTO:
         """Add an entity.
 
-        param item: The entity to add
-              type: T
-        return: A tuple with a boolean and a message if failure or the added entity if success
+        Args:
+            item (DTO): The entity to update.
+
+        Returns:
+            DTO: The updated entity.
+
+        Raises:
+            ValidationError: If validation fails.
+
         """
         pass
 
@@ -54,28 +74,29 @@ class Store(ABC, Generic[T]):
     def delete(self, id: str) -> bool:
         """Delete an entity.
 
-        param id: The id of the entity
-            type: str
-        return: A boolean indicating success or failure
+        Args:
+          id (str): The id of the entity
+
+        Returns:
+            Bool: success or failure
+
         """
         pass
 
     @abstractmethod
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         """Select entities.
 
-        param limit: The maximum number of entities to return
-            type: int
-        param skip: The number of entities to skip
-            type: int
-        param sort_key: The key to sort by
-            type: str
-        param sort_order: The order to sort by
-            type: pymongo.DESCENDING | pymongo.ASCENDING
-        param kwargs: Additional query parameters
-            type: dict
-            example: {"key": "models"}
-        return: A list of entities
+        Args:
+            limit (int): The maximum number of entities to return
+            skip (int): The number of entities to skip
+            sort_key (str): The key to sort by
+            sort_order (pymongo.DESCENDING | pymongo.ASCENDING): The order to sort by
+            kwargs (dict): Additional query parameters
+
+        Returns:
+            List[DTO]: The list of entities
+
         """
         pass
 
@@ -83,15 +104,18 @@ class Store(ABC, Generic[T]):
     def count(self, **kwargs) -> int:
         """Count entities.
 
-        param kwargs: Additional query parameters
-            type: dict
-            example: {"key": "models"}
-        return: The count of entities
+
+        Args:
+            kwargs (dict): Additional query parameters, example: {"key": "models"}
+
+        Returns:
+            int: The number of entities
+
         """
         pass
 
 
-class MongoDBStore(Store):
+class MongoDBStore(Store[DTO], Generic[DTO]):
     """Base MongoDB store implementation."""
 
     def __init__(self, database: Database, collection: str, primary_key: str) -> None:
@@ -101,48 +125,43 @@ class MongoDBStore(Store):
         self.primary_key = primary_key
         self.database[self.collection].create_index([(self.primary_key, pymongo.DESCENDING)])
 
-    def mongo_get(self, id: str) -> Dict:
+    def get(self, id):
         document = self.database[self.collection].find_one({self.primary_key: id})
         if document is None:
             return None
-        return document
+        return self._dto_from_document(document)
 
-    def mongo_add(self, item: Dict) -> Tuple[bool, Any]:
-        try:
-            if self.primary_key not in item or not item[self.primary_key]:
-                item[self.primary_key] = str(uuid.uuid4())
+    def add(self, item: DTO) -> DTO:
+        item.check_validity(exclude_primary_id=True)
+        item_dict = self._document_from_dto(item)
 
-            item["committed_at"] = datetime.now()
+        if self.primary_key not in item_dict or not item_dict[self.primary_key]:
+            item_dict[self.primary_key] = str(uuid.uuid4())
+        item_dict["committed_at"] = datetime.now()
 
-            self.database[self.collection].insert_one(item)
-            document = self.database[self.collection].find_one({self.primary_key: item[self.primary_key]})
-            return True, document
-        except Exception as e:
-            return False, str(e)
+        self.database[self.collection].insert_one(item_dict)
+        document = self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]})
 
-    def mongo_update(self, item: Dict) -> Tuple[bool, Any]:
-        try:
-            id = item[self.primary_key]
-            result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item})
-            if result.modified_count == 1:
-                document = self.database[self.collection].find_one({self.primary_key: id})
-                return True, document
-            return False, "Entity not found"
-        except Exception as e:
-            return False, str(e)
+        return self._dto_from_document(document)
 
-    def mongo_delete(self, id: str) -> bool:
+    def update(self, item: DTO) -> DTO:
+        raise NotImplementedError("update not implemented for MongoDBStore by default. Use mongo_update in derived classes.")
+
+    def mongo_update(self, item: DTO) -> DTO:
+        item.check_validity()
+        item_dict = self._document_from_dto(item)
+        id = item_dict[self.primary_key]
+        result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
+        if result.modified_count == 1:
+            document = self.database[self.collection].find_one({self.primary_key: id})
+            return self._dto_from_document(document)
+        raise EntityNotFound(f"Entity with id {id} not found")
+
+    def delete(self, id: str) -> bool:
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def mongo_select(
-        self,
-        limit: int = 0,
-        skip: int = 0,
-        sort_key: str = None,
-        sort_order=pymongo.DESCENDING,
-        **kwargs,
-    ) -> List[Dict]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
         _sort_order = sort_order or pymongo.DESCENDING
         if sort_key and sort_key != self.primary_key:
             cursor = (
@@ -155,46 +174,71 @@ class MongoDBStore(Store):
         else:
             cursor = self.database[self.collection].find(kwargs).sort(self.primary_key, pymongo.DESCENDING).skip(skip or 0).limit(limit or 0)
 
-        return [document for document in cursor]
+        return [self._dto_from_document(document) for document in cursor]
 
-    def mongo_count(self, **kwargs) -> int:
+    def count(self, **kwargs) -> int:
         return self.database[self.collection].count_documents(kwargs)
 
+    @abstractmethod
+    def _dto_from_document(self, document: Dict) -> DTO:
+        pass
 
-class SQLStore(Generic[T]):
+    @abstractmethod
+    def _document_from_dto(self, item: DTO) -> Dict:
+        pass
+
+
+class SQLStore(Store[DTO], Generic[DTO, MODEL]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session: Type[SessionClass], SQLModel: Type[T]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL]) -> None:
         """Initialize SQLStore."""
         self.SQLModel = SQLModel
         self.Session = Session
 
-    def sql_get(self, session: SessionClass, id: str) -> T:
-        stmt = select(self.SQLModel).where(self.SQLModel.id == id)
-        return session.scalars(stmt).first()
+    def get(self, id: str) -> DTO:
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == id)
+            entity = session.scalars(stmt).first()
+            if entity is None:
+                return None
+            return self._dto_from_orm_model(entity)
 
-    def sql_add(self, session, entity: T) -> Tuple[bool, Any]:
-        if not entity.id:
-            entity.id = str(uuid.uuid4())
-        session.add(entity)
-        session.commit()
+    def add(self, item: DTO) -> DTO:
+        item.check_validity(exclude_primary_id=True)
+        with self.Session() as session:
+            newEntity = self.SQLModel()
+            newEntity = self._update_orm_model_from_dto(newEntity, item)
 
-        return True, entity
+            if not item.primary_id:
+                newEntity.id = str(uuid.uuid4())
+            else:
+                newEntity.id = item.primary_id
+            newEntity.committed_at = datetime.now()
 
-    def sql_update(self, session: SessionClass, item: Dict) -> Tuple[bool, Any]:
-        stmt = select(self.SQLModel).where(self.SQLModel.id == item["id"])
-        existing_item = session.scalars(stmt).first()
+            session.add(newEntity)
+            session.commit()
 
-        if existing_item is None:
-            return False, "Item not found"
-        for key, value in item.items():
-            setattr(existing_item, key, value)
+            return self._dto_from_orm_model(newEntity)
 
-        session.commit()
+    def update(self, item: DTO) -> DTO:
+        raise NotImplementedError("update not implemented for SQLStore by default. Use sql_update in derived classes.")
 
-        return True, existing_item
+    def sql_update(self, item: DTO) -> DTO:
+        item.check_validity()
+        with self.Session() as session:
+            stmt = select(self.SQLModel).where(self.SQLModel.id == item.primary_id)
+            existing_item = session.scalars(stmt).first()
 
-    def sql_delete(self, id: str) -> bool:
+            if existing_item is None:
+                raise EntityNotFound(f"Entity with id {item.primary_id} not found")
+
+            self._update_orm_model_from_dto(existing_item, item)
+            session.commit()
+
+            return self._dto_from_orm_model(existing_item)
+
+    def delete(self, id: str) -> bool:
         with self.Session() as session:
             stmt = select(self.SQLModel).where(self.SQLModel.id == id)
             item = session.scalars(stmt).first()
@@ -207,32 +251,34 @@ class SQLStore(Generic[T]):
 
             return True
 
-    def sql_select(self, session: SessionClass, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[T]:
-        stmt = select(self.SQLModel)
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
+        with self.Session() as session:
+            stmt = select(self.SQLModel)
 
-        for key, value in kwargs.items():
-            stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            for key, value in kwargs.items():
+                stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-        _sort_order = sort_order or pymongo.DESCENDING
+            _sort_order = sort_order or pymongo.DESCENDING
 
-        secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
-        if sort_key and sort_key in self.SQLModel.__table__.columns:
-            sort_obj = self.SQLModel.__table__.columns.get(sort_key)
-            if _sort_order == pymongo.DESCENDING:
-                sort_obj = sort_obj.desc()
+            secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
+            if sort_key and sort_key in self.SQLModel.__table__.columns:
+                sort_obj = self.SQLModel.__table__.columns.get(sort_key)
+                if _sort_order == pymongo.DESCENDING:
+                    sort_obj = sort_obj.desc()
 
-            stmt = stmt.order_by(sort_obj, secondary_sort_obj)
-        else:
-            stmt = stmt.order_by(secondary_sort_obj)
+                stmt = stmt.order_by(sort_obj, secondary_sort_obj)
+            else:
+                stmt = stmt.order_by(secondary_sort_obj)
 
-        if limit:
-            stmt = stmt.offset(skip or 0).limit(limit)
-        elif skip:
-            stmt = stmt.offset(skip)
+            if limit:
+                stmt = stmt.offset(skip or 0).limit(limit)
+            elif skip:
+                stmt = stmt.offset(skip)
 
-        return session.scalars(stmt).all()
+            entities = session.scalars(stmt).all()
+            return [self._dto_from_orm_model(entity) for entity in entities]
 
-    def sql_count(self, **kwargs) -> int:
+    def count(self, **kwargs) -> int:
         with self.Session() as session:
             stmt = select(func.count()).select_from(self.SQLModel)
 
@@ -240,3 +286,11 @@ class SQLStore(Generic[T]):
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
             return session.scalar(stmt)
+
+    @abstractmethod
+    def _dto_from_orm_model(self, item: MODEL) -> DTO:
+        pass
+
+    @abstractmethod
+    def _update_orm_model_from_dto(self, entity: MODEL, item: DTO) -> MODEL:
+        pass

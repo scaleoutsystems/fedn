@@ -5,6 +5,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import analytic_store
 from fedn.network.api.v1.shared import api_version, get_typed_list_headers
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("analytic", __name__, url_prefix=f"/api/{api_version}/analytics")
 
@@ -33,11 +34,20 @@ def add_analytics():
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
 
         analytic = AnalyticDTO().patch_with(data)
-        successful, result = analytic_store.add(analytic)
-        response = result
-        status_code: int = 201 if successful else 400
+        result = analytic_store.add(analytic)
+        response = result.to_dict()
+        status_code: int = 201
 
         return jsonify(response), status_code
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500

@@ -63,10 +63,9 @@ def options():
 class TestValidationStore:
 
     def test_add_update_delete(self, db_connection:DatabaseConnection, test_validation:ValidationDTO):
-        test_validation.verify()
+        test_validation.check_validity()
 
-        success, read_validation1 = db_connection.validation_store.add(test_validation)
-        assert success == True
+        read_validation1 = db_connection.validation_store.add(test_validation)
         assert isinstance(read_validation1.validation_id, str)
         assert isinstance(read_validation1.committed_at, datetime.datetime)
 

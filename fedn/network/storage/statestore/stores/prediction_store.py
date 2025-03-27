@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
@@ -20,39 +20,21 @@ def _translate_key_mongo(key: str):
     return key
 
 
-class MongoDBPredictionStore(PredictionStore, MongoDBStore):
+class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "prediction_id")
 
-    def get(self, id: str) -> PredictionDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
-
-    def update(self, id: str, item: PredictionDTO) -> bool:
-        raise NotImplementedError("Update not implemented for PredictionStore")
-
-    def add(self, item: PredictionDTO) -> Tuple[bool, Any]:
-        item_dict = self._document_from_dto(item)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
+        return entites
 
     def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
+        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
     def _document_from_dto(self, item: PredictionDTO) -> Dict:
         doc = item.to_db()
@@ -73,7 +55,7 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore):
         return pred
 
 
-def _translate_key(key: str):
+def _translate_key_sql(key: str):
     if key == "sender.name":
         key = "sender_name"
     elif key == "sender.role":
@@ -89,53 +71,35 @@ def _translate_key(key: str):
     return key
 
 
-class SQLPredictionStore(PredictionStore, SQLStore[PredictionModel]):
+class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionModel]):
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
 
-    def get(self, id: str) -> PredictionDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
-    def update(self, id: str, item: PredictionDTO) -> bool:
-        raise NotImplementedError("Update not implemented for PredictionStore")
-
-    def add(self, item: PredictionDTO) -> Tuple[bool, Union[str, PredictionDTO]]:
-        with self.Session() as session:
-            item_dict = self._to_orm_dict(item)
-            prediction = PredictionModel(**item_dict)
-            self.sql_add(session, prediction)
-            return True, self._dto_from_orm_model(prediction)
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        with self.Session() as session:
-            kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-            sort_key = _translate_key(sort_key)
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key = _translate_key_sql(sort_key)
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-        return self.sql_count(**kwargs)
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
-    def _to_orm_dict(self, prediction: PredictionDTO) -> Dict:
-        item_dict = prediction.to_db()
-        item_dict["id"] = item_dict.pop("prediction_id")
+    def _update_orm_model_from_dto(self, entity: PredictionModel, item: PredictionDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("prediction_id", None)
+
         if "sender" in item_dict:
-            sender = item_dict.pop("sender")
+            sender: Dict = item_dict.pop("sender")
             item_dict["sender_name"] = sender.get("name")
             item_dict["sender_role"] = sender.get("role")
         if "receiver" in item_dict:
-            receiver = item_dict.pop("receiver")
+            receiver: Dict = item_dict.pop("receiver")
             item_dict["receiver_name"] = receiver.get("name")
             item_dict["receiver_role"] = receiver.get("role")
-        return item_dict
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: PredictionModel) -> PredictionDTO:
         orm_dict = from_orm_model(item, PredictionModel)

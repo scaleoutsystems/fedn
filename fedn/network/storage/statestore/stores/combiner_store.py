@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from typing import Dict, List
+from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto import CombinerDTO
@@ -15,38 +14,9 @@ class CombinerStore(Store[CombinerDTO]):
         pass
 
 
-class MongoDBCombinerStore(CombinerStore, MongoDBStore):
+class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "combiner_id")
-
-    def get(self, id: str) -> CombinerDTO:
-        obj = self.mongo_get(id)
-        if obj is None:
-            return None
-        return self._dto_from_document(obj)
-
-    def update(self, item: CombinerDTO):
-        raise NotImplementedError("Update not implemented for CombinerStore")
-
-    def add(self, item: CombinerDTO):
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[CombinerDTO]:
-        entities = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        result = []
-        for entity in entities:
-            result.append(self._dto_from_document(entity))
-        return result
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
 
     def get_by_name(self, name: str) -> CombinerDTO:
         document = self.database[self.collection].find_one({"name": name})
@@ -54,44 +24,17 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore):
             return None
         return self._dto_from_document(document)
 
+    def _document_from_dto(self, item: CombinerDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
+
     def _dto_from_document(self, document: Dict) -> CombinerDTO:
         return CombinerDTO().patch_with(from_document(document), throw_on_extra_keys=False)
 
 
-class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
+class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
         super().__init__(Session, CombinerModel)
-
-    def get(self, id: str) -> CombinerDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
-    def update(self, item):
-        raise NotImplementedError
-
-    def add(self, item):
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            entity = CombinerModel(**item_dict)
-            success, obj = self.sql_add(session, entity)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
-
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
 
     def get_by_name(self, name: str) -> CombinerDTO:
         with self.Session() as session:
@@ -100,9 +43,12 @@ class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO]):
                 return None
             return self._dto_from_orm_model(entity)
 
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("combiner_id")
-        return item_dict
+    def _update_orm_model_from_dto(self, entity: CombinerModel, item: CombinerDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("combiner_id", None)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: CombinerModel) -> CombinerDTO:
         orm_dict = from_orm_model(item, CombinerModel)

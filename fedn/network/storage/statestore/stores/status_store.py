@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple
+from typing import Dict
 
 import pymongo
 from pymongo.database import Database
@@ -22,41 +22,27 @@ def _translate_key_mongo(key: str) -> str:
     return key
 
 
-class MongoDBStatusStore(StatusStore, MongoDBStore):
+class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
 
-    def get(self, id: str) -> StatusDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
-
-    def update(self, item: StatusDTO):
-        raise NotImplementedError("Update not implemented for StatusStore")
-
-    def add(self, item: StatusDTO):
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return success, obj
-        return success, self._dto_from_document(obj)
-
-    def delete(self, id: str):
-        return self.mongo_delete(id)
-
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = _translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
+        return entites
 
-    def count(self, **kwargs):
-        return self.mongo_count(**kwargs)
+    def count(self, **kwargs) -> int:
+        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
-    def _dto_from_document(self, document: Dict[str, Any]) -> StatusDTO:
+    def _document_from_dto(self, item: StatusDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
+
+    def _dto_from_document(self, document: Dict) -> StatusDTO:
         entity = from_document(document)
 
         if "logLevel" in entity:
@@ -72,7 +58,7 @@ class MongoDBStatusStore(StatusStore, MongoDBStore):
         return StatusDTO().patch_with(entity, throw_on_extra_keys=False)
 
 
-def _translate_key(key: str) -> str:
+def _translate_key_sql(key: str) -> str:
     if key == "_id":
         key = "id"
     elif key == "logLevel":
@@ -86,51 +72,31 @@ def _translate_key(key: str) -> str:
     return key
 
 
-class SQLStatusStore(StatusStore, SQLStore[StatusModel]):
+class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
-    def get(self, id: str) -> StatusDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
-    def update(self, item: StatusDTO):
-        raise NotImplementedError
-
-    def add(self, item: StatusDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            status = StatusModel(**item_dict)
-            success, obj = self.sql_add(session, status)
-            if not success:
-                return success, obj
-            return True, self._dto_from_orm_model(obj)
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-            sort_key: str = _translate_key(sort_key)
-            items = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in items]
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key: str = _translate_key_sql(sort_key)
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = {_translate_key(k): v for k, v in kwargs.items()}
-        return self.sql_count(**kwargs)
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        return super().count(**kwargs)
 
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
+    def _update_orm_model_from_dto(self, entity: StatusModel, item: StatusDTO):
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("status_id", None)
-        sender = item_dict.pop("sender", None)
-        if sender:
-            item_dict["sender_name"] = sender.get("name")
-            item_dict["sender_role"] = sender.get("role")
-        return item_dict
+
+        sender: Dict = item_dict.pop("sender", {})
+
+        item_dict["sender_name"] = sender.get("name")
+        item_dict["sender_role"] = sender.get("role")
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: StatusModel) -> StatusDTO:
         orm_dict = from_orm_model(item, StatusModel)

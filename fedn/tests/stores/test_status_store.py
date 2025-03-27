@@ -61,10 +61,9 @@ def options():
 class TestStatusStore:
 
     def test_add_update_delete(self, db_connection: DatabaseConnection, test_status: StatusDTO):
-        test_status.verify()
+        test_status.check_validity()
 
-        success, read_status1 = db_connection.status_store.add(test_status)
-        assert success == True
+        read_status1 = db_connection.status_store.add(test_status)
         assert isinstance(read_status1.status_id, str)
         assert isinstance(read_status1.committed_at, datetime.datetime)
 

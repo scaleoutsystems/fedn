@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
 import pymongo
 from bson import ObjectId
@@ -55,7 +55,7 @@ class ModelStore(Store[ModelDTO]):
         pass
 
 
-class MongoDBModelStore(ModelStore, MongoDBStore):
+class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "model")
 
@@ -64,35 +64,18 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         document = self.database[self.collection].find_one(kwargs)
         if document is None:
             return None
-
         return self._dto_from_document(document)
 
-    def update(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=True)
-        item_dict = self._complement(item_dict)
-        item_dict = self._to_document(item_dict)
-
-        success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def add(self, item: ModelDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        item_dict = self._complement(item_dict)
-        item_dict = self._to_document(item_dict)
-        success, obj = self.mongo_add(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
+    def update(self, item: ModelDTO) -> ModelDTO:
+        return self.mongo_update(item)
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         kwargs["key"] = "models"
-        entites = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
-        return [self._dto_from_document(entity) for entity in entites]
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
+
+    def count(self, **kwargs) -> int:
+        kwargs["key"] = "models"
+        return super().count(**kwargs)
 
     def list_descendants(self, id: str, limit: int) -> List[ModelDTO]:
         kwargs = {"key": "models", "model": id}
@@ -155,10 +138,6 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
 
         return result
 
-    def count(self, **kwargs) -> int:
-        kwargs["key"] = "models"
-        return self.mongo_count(**kwargs)
-
     def get_active(self) -> str:
         active_model = self.database[self.collection].find_one({"key": "current_model"})
 
@@ -184,13 +163,10 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
 
         return True
 
-    def _complement(self, item: Dict) -> Dict:
-        if "key" not in item or item["key"] is None:
-            item["key"] = "models"
-        return item
-
-    def _to_document(self, item_dict: Dict) -> Dict:
+    def _document_from_dto(self, item: ModelDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["model"] = item_dict.pop("model_id")
+        item_dict["key"] = "models"
         return item_dict
 
     def _dto_from_document(self, document: Dict) -> ModelDTO:
@@ -200,46 +176,12 @@ class MongoDBModelStore(ModelStore, MongoDBStore):
         return ModelDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
-class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
+class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
     def __init__(self, Session):
         super().__init__(Session, ModelModel)
 
-    def get(self, id: str) -> ModelDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
-            return self._dto_from_orm_model(entity)
-
-    def update(self, item: ModelDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=True)
-            item_dict = self._to_orm_dict(item_dict)
-            success, obj = self.sql_update(session, item_dict)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
-
-    def add(self, item: ModelDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            entity = ModelModel(**item_dict)
-            success, obj = self.sql_add(session, entity)
-            if success:
-                return success, self._dto_from_orm_model(obj)
-            return success, obj
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(entity) for entity in entities]
-
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
+    def update(self, item: ModelDTO) -> ModelDTO:
+        return self.sql_update(item)
 
     def list_descendants(self, id: str, limit: int):
         with self.Session() as session:
@@ -308,9 +250,12 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO]):
             session.commit()
         return True
 
-    def _to_orm_dict(self, item_dict: Dict) -> Dict:
-        item_dict["id"] = item_dict.pop("model_id")
-        return item_dict
+    def _update_orm_model_from_dto(self, entity: ModelModel, item: ModelDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("model_id", None)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: ModelModel) -> ModelDTO:
         orm_dict = from_orm_model(item, ModelModel)

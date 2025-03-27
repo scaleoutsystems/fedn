@@ -79,11 +79,10 @@ class TestRoundStore:
 
         db_connection.model_store.add(test_model)
 
-        test_round.verify()
+        test_round.check_validity()
 
         # Add a round and check that we get the added round back
-        success, read_round1 = db_connection.round_store.add(test_round)
-        assert success == True
+        read_round1 = db_connection.round_store.add(test_round)
         assert isinstance(read_round1.round_id, str)
         read_round1_dict = read_round1.to_dict()
         round_id = read_round1_dict["round_id"]
@@ -103,8 +102,7 @@ class TestRoundStore:
         
         # Update the round and check that we get the updated round back
         read_round2.round_config.aggregator = "new_aggregator"         
-        success, read_round3 = db_connection.round_store.update(read_round2)
-        assert success == True
+        read_round3 = db_connection.round_store.update(read_round2)
         assert read_round3.round_config.aggregator == "new_aggregator"
 
         # Assert we get the same round back
@@ -116,8 +114,7 @@ class TestRoundStore:
         combiner = read_round4.combiners[0]
         combiner.status = "new_status"
         read_round4.combiners.append(combiner)
-        success, read_round5 = db_connection.round_store.update(read_round4)
-        assert success == True
+        read_round5 = db_connection.round_store.update(read_round4)
         assert len(read_round5.combiners) == 2
         assert read_round5.combiners[1].status == "new_status"
 
@@ -129,8 +126,7 @@ class TestRoundStore:
 
         # Remove config from round and check that we get the updated round back
         read_round6.round_config = None
-        success, read_round7 = db_connection.round_store.update(read_round6)
-        assert success == True
+        read_round7 = db_connection.round_store.update(read_round6)
         assert read_round7.to_dict()["round_config"] == None
 
         # Assert we get the same round back
@@ -140,8 +136,7 @@ class TestRoundStore:
 
         #Remove all combiners from round and check that we get the updated round back
         read_round8.combiners = []
-        success, read_round9 = db_connection.round_store.update(read_round8)
-        assert success == True
+        read_round9 = db_connection.round_store.update(read_round8)
         assert len(read_round9.combiners) == 0
 
         # Assert we get the same round back

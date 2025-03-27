@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple
+from typing import Dict, List
 
 import pymongo
 from pymongo.database import Database
@@ -23,42 +23,27 @@ def translate_key_mongo(key: str):
     return key
 
 
-class MongoDBValidationStore(ValidationStore, MongoDBStore):
+class MongoDBValidationStore(ValidationStore, MongoDBStore[ValidationDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "validation_id")
 
-    def get(self, id: str) -> ValidationDTO:
-        item = self.mongo_get(id)
-        if item is None:
-            return None
-        return self._dto_from_document(item)
-
-    def update(self, item: ValidationDTO) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationStore")
-
-    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        success, obj = self.mongo_add(item_dict)
-        if not success:
-            return success, obj
-        return success, self._dto_from_document(obj)
-
-    def delete(self, id: str) -> bool:
-        return self.mongo_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[ValidationDTO]:
-        items = self.mongo_select(limit, skip, sort_key, sort_order, **kwargs)
+        items = super().list(limit, skip, sort_key, sort_order, **kwargs)
         _kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
         _sort_key = translate_key_mongo(sort_key)
         if _kwargs != kwargs or _sort_key != sort_key:
-            items = self.mongo_select(limit, skip, _sort_key, sort_order, **_kwargs) + items
-        return [self._dto_from_document(item) for item in items]
+            items = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + items
+        return items
 
     def count(self, **kwargs) -> int:
         kwargs = {translate_key_mongo(k): v for k, v in kwargs.items()}
-        return self.mongo_count(**kwargs)
+        return super().count(**kwargs)
 
-    def _dto_from_document(self, document: Dict[str, Any]) -> ValidationDTO:
+    def _document_from_dto(self, item: ValidationDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        return item_dict
+
+    def _dto_from_document(self, document: Dict) -> ValidationDTO:
         dto_dict = from_document(document)
 
         if "correlationId" in dto_dict:
@@ -71,7 +56,7 @@ class MongoDBValidationStore(ValidationStore, MongoDBStore):
         return ValidationDTO().patch_with(dto_dict, throw_on_extra_keys=False, verify=True)
 
 
-def translate_key_sql(key: str) -> str:
+def _translate_key_sql(key: str) -> str:
     if key == "_id":
         key = "id"
     elif key == "sender.name":
@@ -92,57 +77,34 @@ def translate_key_sql(key: str) -> str:
     return key
 
 
-class SQLValidationStore(ValidationStore, SQLStore[ValidationModel]):
+class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationModel]):
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
-    def get(self, id: str) -> ValidationDTO:
-        with self.Session() as session:
-            item = self.sql_get(session, id)
-
-            if item is None:
-                return None
-
-            return self._dto_from_orm_model(item)
-
-    def update(self, item: ValidationDTO) -> bool:
-        raise NotImplementedError("Update not implemented for ValidationStore")
-
-    def add(self, item: ValidationDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-            model = ValidationModel(**item_dict)
-            success, obj = self.sql_add(session, model)
-            if not success:
-                return success, obj
-            return success, self._dto_from_orm_model(obj)
-
-    def delete(self, id: str) -> bool:
-        return self.sql_delete(id)
-
     def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        kwargs = {translate_key_sql(k): v for k, v in kwargs.items()}
-        sort_key = translate_key_sql(sort_key)
-        with self.Session() as session:
-            items = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in items]
+        kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
+        sort_key = _translate_key_sql(sort_key)
+        return super().list(limit, skip, sort_key, sort_order, **kwargs)
 
     def count(self, **kwargs):
-        kwargs = translate_key_sql(kwargs)
-        return self.sql_count(**kwargs)
+        kwargs = _translate_key_sql(kwargs)
+        return super().count(**kwargs)
 
-    def _to_orm_dict(self, item_dict: Dict[str, Any]) -> Dict[str, Any]:
+    def _update_orm_model_from_dto(self, entity: ValidationModel, item: ValidationDTO):
+        item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("validation_id")
-        sender = item_dict.pop("sender", None)
-        if sender:
-            item_dict["sender_name"] = sender.get("name")
-            item_dict["sender_role"] = sender.get("role")
-        receiver = item_dict.pop("receiver", None)
-        if receiver:
-            item_dict["receiver_name"] = receiver.get("name")
-            item_dict["receiver_role"] = receiver.get("role")
-        return item_dict
+
+        sender: Dict = item_dict.pop("sender", {})
+        item_dict["sender_name"] = sender.get("name")
+        item_dict["sender_role"] = sender.get("role")
+
+        receiver: Dict = item_dict.pop("receiver", {})
+        item_dict["receiver_name"] = receiver.get("name")
+        item_dict["receiver_role"] = receiver.get("role")
+
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: ValidationModel) -> ValidationDTO:
         orm_dict = from_orm_model(item, ValidationModel)

@@ -1,8 +1,7 @@
-from typing import Any, Dict, List, Tuple
+from typing import Dict, Tuple
 
 import pymongo
 from pymongo.database import Database
-from sqlalchemy import select
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.sql.shared import SessionConfigModel, SessionModel, from_orm_model
@@ -78,50 +77,17 @@ def validate(item: dict) -> Tuple[bool, str]:
     return validate_session_config(session_config)
 
 
-class MongoDBSessionStore(SessionStore, MongoDBStore):
+class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "session_id")
         self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
-    def get(self, id: str) -> SessionDTO:
-        entity = self.mongo_get(id)
-        if entity is None:
-            return None
-        return self._dto_from_document(entity)
+    def update(self, item: SessionDTO) -> SessionDTO:
+        return self.mongo_update(item)
 
-    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
+    def _document_from_dto(self, item: SessionDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
-        valid, message = validate(item_dict)
-        if not valid:
-            return False, message
-
-        success, obj = self.mongo_update(item_dict)
-        if success:
-            return success, self._dto_from_document(obj)
-
-        return success, obj
-
-    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        item_dict = item.to_db(exclude_unset=False)
-        success, msg = validate(item_dict)
-        if not success:
-            return success, msg
-
-        success, obj = self.mongo_add(item_dict)
-
-        if success:
-            return success, self._dto_from_document(obj)
-        return success, obj
-
-    def delete(self, session_id: str) -> bool:
-        return self.mongo_delete(session_id)
-
-    def count(self, **kwargs) -> int:
-        return self.mongo_count(**kwargs)
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **filter_kwargs) -> List[SessionDTO]:
-        entites = self.mongo_select(limit, skip, sort_key, sort_order, **filter_kwargs)
-        return [self._dto_from_document(entity) for entity in entites]
+        return item_dict
 
     def _dto_from_document(self, document: Dict) -> SessionDTO:
         session = from_document(document)
@@ -131,91 +97,27 @@ class MongoDBSessionStore(SessionStore, MongoDBStore):
         return SessionDTO().patch_with(session, throw_on_extra_keys=False)
 
 
-class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
+class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
         super().__init__(Session, SessionModel)
 
-    def get(self, id: str) -> SessionDTO:
-        with self.Session() as session:
-            entity = self.sql_get(session, id)
-            if entity is None:
-                return None
+    def update(self, item: SessionDTO) -> SessionDTO:
+        return self.sql_update(item)
 
-            return self._dto_from_orm_model(entity)
+    def _update_orm_model_from_dto(self, entity: SessionModel, item: SessionDTO) -> SessionModel:
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("session_id", None)
 
-    def update(self, item: SessionDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=True)
-            item_dict = self._to_orm_dict(item_dict)
-            valid, message = validate(item_dict)
-            if not valid:
-                return False, message
-
-            session_config_dict = item_dict.pop("session_config")
-
-            stmt = select(SessionModel).where(SessionModel.id == item_dict["id"])
-            existing_item = session.scalars(stmt).first()
-
-            if existing_item is None:
-                return False, "Item not found"
-
-            for key, value in item_dict.items():
-                setattr(existing_item, key, value)
-
-            exsisting_session_config = existing_item.session_config
-
+        session_config_dict = item_dict.pop("session_config")
+        if entity.session_config is None:
+            entity.session_config = SessionConfigModel(**session_config_dict)
+        else:
             for key, value in session_config_dict.items():
-                setattr(exsisting_session_config, key, value)
+                setattr(entity.session_config, key, value)
 
-            session.commit()
-
-            return True, self._dto_from_orm_model(existing_item)
-
-    def add(self, item: SessionDTO) -> Tuple[bool, Any]:
-        with self.Session() as session:
-            item_dict = item.to_db(exclude_unset=False)
-            item_dict = self._to_orm_dict(item_dict)
-
-            valid, message = validate(item_dict)
-            if not valid:
-                return False, message
-
-            session_config_dict = item_dict.pop("session_config")
-
-            parent_entity = SessionModel(**item_dict)
-            child_entity = SessionConfigModel(**session_config_dict)
-            parent_entity.session_config = child_entity
-
-            session.add(child_entity)
-            session.add(parent_entity)
-
-            session.commit()
-
-            return True, self._dto_from_orm_model(parent_entity)
-
-    def delete(self, id: str) -> bool:
-        with self.Session() as session:
-            stmt = select(SessionModel).where(SessionModel.id == id)
-            item = session.scalars(stmt).first()
-
-            if item is None:
-                return False
-
-            session_config = item.session_config
-
-            session.delete(item)
-            session.delete(session_config)
-            session.commit()
-
-            return True
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[SessionDTO]:
-        with self.Session() as session:
-            entities = self.sql_select(session, limit, skip, sort_key, sort_order, **kwargs)
-            return [self._dto_from_orm_model(item) for item in entities]
-
-    def count(self, **kwargs):
-        return self.sql_count(**kwargs)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
 
     def _dto_from_orm_model(self, item: SessionModel) -> SessionDTO:
         session_dict = from_orm_model(item, SessionModel)
@@ -227,6 +129,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionModel]):
         session_config_dict.pop("id")
         session_config_dict.pop("committed_at")
         session_dict.pop("session_config_id")
+
         return SessionDTO().populate_with(session_dict)
 
     def _to_orm_dict(self, item_dict: Dict) -> Dict:

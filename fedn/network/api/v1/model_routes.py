@@ -10,6 +10,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
 from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
 
 # from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -403,13 +404,23 @@ def patch_model(id: str):
         data.pop("model_id", None)
         model.patch_with(data, throw_on_extra_keys=False)
 
-        success, msg_obj = model_store.update(model)
+        updated_model = model_store.update(model)
 
-        if success:
-            response = msg_obj.to_dict()
-            return jsonify(response), 200
+        response = updated_model.to_dict()
+        return jsonify(response), 200
 
-        return jsonify({"message": f"Failed to update model: {msg_obj}"}), 500
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -463,13 +474,19 @@ def put_model(id: str):
         data["model_id"] = id
 
         model.populate_with(data)
-        success, msg_obj = model_store.update(model)
+        new_model = model_store.update(model)
+        response = new_model.to_dict()
+        return jsonify(response), 200
 
-        if success:
-            response = msg_obj.to_dict()
-            return jsonify(response), 200
-
-        return jsonify({"message": f"Failed to update model: {msg_obj}"}), 400
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400

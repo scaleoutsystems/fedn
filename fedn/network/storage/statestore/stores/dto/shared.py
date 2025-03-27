@@ -5,6 +5,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Dict, Generic, List, TypeVar, Union, get_args, get_origin
 
+from fedn.network.storage.statestore.stores.shared import MissingFieldError
+
 T = TypeVar("T")
 
 
@@ -19,9 +21,17 @@ class Field:
         return self.__class__(copy.deepcopy(self.default_value))
 
 
+class validator:  # noqa: N801
+    def __init__(self, func):
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+
 class DTO(ABC):
     @abstractmethod
-    def is_modified(self) -> bool:
+    def has_modifications(self) -> bool:
         """Check if DTO has any modifications."""
         pass
 
@@ -42,8 +52,8 @@ class DTO(ABC):
         return self.model_dump(exclude_unset=exclude_unset)
 
     @abstractmethod
-    def verify(self):
-        """Verify DTO and raise exception a if required field is missing."""
+    def check_validity(self):
+        """Verify DTO and raise ValidationError a if required field is missing or invalid."""
         pass
 
     @abstractmethod
@@ -57,7 +67,7 @@ class DTO(ABC):
         pass
 
     @abstractmethod
-    def clear(self):
+    def clear_all_changes(self):
         """Reset DTO to initial values."""
         pass
 
@@ -109,7 +119,7 @@ class DictDTO(DTO):
         super().__setattr__(fieldname, copy.deepcopy(v))
         self._modified_fields.discard(fieldname)
 
-    def clear(self):
+    def clear_all_changes(self):
         """Clear all modified fields."""
         for field_name in self.get_all_fieldnames():
             self.clear_field(field_name)
@@ -143,7 +153,7 @@ class DictDTO(DTO):
                 raise ValueError(f"Invalid key: {key} for {self.__class__.__name__}")
 
         if verify:
-            self.verify()
+            self.check_validity()
 
         return self
 
@@ -157,28 +167,46 @@ class DictDTO(DTO):
         """
         return self.patch_with(value_dict, throw_on_extra_keys, verify=True)
 
-    def is_modified(self):
+    def has_modifications(self):
         if bool(self._modified_fields):
             return True
-        return any(isinstance(getattr(self, field_name), DTO) and getattr(self, field_name).is_modified() for field_name in self.get_all_fieldnames())
+        return any(isinstance(getattr(self, field_name), DTO) and getattr(self, field_name).has_modifications() for field_name in self.get_all_fieldnames())
 
-    def verify(self):
+    def check_validity(self, exclude_primary_id=False):
         for field_name in self.get_all_fieldnames():
             field_value = getattr(self, field_name)
             if isinstance(field_value, DTO):
-                if not self._is_field_optional(field_name) or field_value.is_modified():
-                    field_value.verify()
+                if not self._is_field_optional(field_name) or field_value.has_modifications():
+                    field_value.check_validity()
             elif not self._is_field_optional(field_name) and not self._is_field_modified(field_name):
-                raise ValueError(f"Missing key: {field_name} for {self.__class__.__name__}")
+                if not (self._is_primary_id(field_name) and exclude_primary_id):
+                    raise MissingFieldError(field_name, self.__class__.__name__)
+        self._run_validators()
+
+    def _run_validators(self):
+        for field_name in self.get_all_validators():
+            validator = getattr(self, field_name)
+            validator(self)
 
     @classmethod
-    def get_all_fieldnames(cls) -> Dict[str, Any]:
+    def get_all_fieldnames(cls) -> List[str]:
         """Get all fields of the class and its superclasses."""
         keys = []
         for base in cls.__mro__:
             if hasattr(base, "__dict__"):
                 for key in base.__dict__.keys():
                     if cls._is_field(key):
+                        keys.append(key)
+        return keys
+
+    @classmethod
+    def get_all_validators(cls) -> List[str]:
+        """Get all validators of the class and its superclasses."""
+        keys = []
+        for base in cls.__mro__:
+            if hasattr(base, "__dict__"):
+                for key in base.__dict__.keys():
+                    if cls._is_validator(key):
                         keys.append(key)
         return keys
 
@@ -189,13 +217,23 @@ class DictDTO(DTO):
             return True
         field_value = getattr(self, field_name)
         if isinstance(field_value, DTO):
-            return field_value.is_modified()
+            return field_value.has_modifications()
         return False
 
     @classmethod
     def _is_field(cls, field_name: str) -> bool:
-        """Check if a field is a DTO."""
+        """Check if a attribute is a Field."""
         return hasattr(cls, field_name) and isinstance(getattr(cls, field_name), Field)
+
+    @classmethod
+    def _is_primary_id(cls, field_name: str) -> bool:
+        """Check if a attribute is a PrimaryID."""
+        return hasattr(cls, field_name) and isinstance(getattr(cls, field_name), PrimaryID)
+
+    @classmethod
+    def _is_validator(cls, field_name: str) -> bool:
+        """Check if a attribute is a validator."""
+        return hasattr(cls, field_name) and isinstance(getattr(cls, field_name), validator)
 
     @classmethod
     def _is_field_optional(cls, field_name: str) -> bool:
@@ -226,25 +264,14 @@ class DictDTO(DTO):
         return self.__class__(**copy.deepcopy(self.model_dump(exclude_unset=True)))
 
 
-class BaseDTO(DictDTO):
-    """BaseDTO for Data Transfer Objects."""
-
-    committed_at: datetime = Field(None)
-
-    def _is_field_optional(self, key):
-        return super()._is_field_optional(key) or key == "committed_at"
-
-
 class ListDTO(DTO, Generic[T]):
     """ListDTO for Data Transfer Objects."""
-
-    items: List[T]
 
     def __init__(self, ListClass, *values) -> None:
         """Initialize ListDTO."""
         super().__init__()
         self._ListClass = ListClass
-        self.items = []
+        self.items: List[T] = []
         self._modified = False
         if values:
             self.patch_with(values)
@@ -271,21 +298,21 @@ class ListDTO(DTO, Generic[T]):
                 self.items.append(item)
 
         if verify:
-            self.verify()
+            self.check_validity()
 
         return self
 
-    def verify(self):
+    def check_validity(self):
         if issubclass(self._ListClass, DTO):
             for item in self.items:
-                item.verify()
+                item.check_validity()
 
-    def clear(self):
+    def clear_all_changes(self):
         self.items.clear()
         self._modified = False
 
-    def is_modified(self) -> bool:
-        return self._modified or any(item.is_modified() for item in self.items)
+    def has_modifications(self) -> bool:
+        return self._modified or any(isinstance(item, DTO) and item.has_modifications() for item in self.items)
 
     def __len__(self):
         return len(self.items)
@@ -309,6 +336,31 @@ class ListDTO(DTO, Generic[T]):
 
     def __deepcopy__(self, memo):
         return self.__class__(self._ListClass, *copy.deepcopy(self.model_dump(exclude_unset=True)))
+
+
+class PrimaryID(Field):
+    """PrimaryID field for DTOs."""
+
+    pass
+
+
+class BaseDTO(DictDTO):
+    """BaseDTO for Data Transfer Objects."""
+
+    committed_at: datetime = Field(None)
+
+    @property
+    def primary_id(self) -> str:
+        """Get the id of the DTO."""
+        for base in self.__class__.__mro__:
+            if hasattr(base, "__dict__"):
+                for key in base.__dict__.keys():
+                    if isinstance(getattr(self.__class__, key), PrimaryID):
+                        return getattr(self, key)
+        raise AttributeError(f"{self.__class__.__name__} has no field of type PrimaryID")
+
+    def _is_field_optional(self, key):
+        return super()._is_field_optional(key) or key == "committed_at"
 
 
 class AgentDTO(DictDTO):

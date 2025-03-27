@@ -154,9 +154,7 @@ class ControlBase(ABC):
         """
         session = self.session_store.get(session_id)
         session.status = status
-        updated, msg = self.session_store.update(session)
-        if not updated:
-            raise Exception(msg)
+        self.session_store.update(session)
 
     def get_session_status(self, session_id: str):
         """Get the status of a session.
@@ -180,9 +178,7 @@ class ControlBase(ABC):
         session = self.session_store.get(session_id)
         session.session_config.patch_with(config)
 
-        updated, msg = self.session_store.update(session)
-        if not updated:
-            raise Exception(msg)
+        self.session_store.update(session)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
@@ -199,9 +195,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round.round_data = round_data
-        updated, _ = self.round_store.update(round)
-        if not updated:
-            raise Exception("Failed to update round")
+        self.round_store.update(round)
 
     def set_round_status(self, round_id: str, status: str):
         """Set the round round stats.
@@ -213,9 +207,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round.status = status
-        updated, _ = self.round_store.update(round)
-        if not updated:
-            raise Exception("Failed to update round")
+        self.round_store.update(round)
 
     def set_round_config(self, round_id: str, round_config: RoundConfig):
         """Upate round in backend db.
@@ -227,9 +219,7 @@ class ControlBase(ABC):
         """
         round = self.round_store.get(round_id)
         round.round_config = round_config
-        updated, _ = self.round_store.update(round)
-        if not updated:
-            raise Exception("Failed to update round")
+        self.round_store.update(round)
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.
@@ -282,9 +272,10 @@ class ControlBase(ABC):
         new_model.session_id = session_id
         new_model.name = name
 
-        updated, _ = self.model_store.add(new_model)
-
-        if not updated:
+        try:
+            self.model_store.add(new_model)
+        except Exception as e:
+            logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")
 
         self.model_store.set_active(model_id)
