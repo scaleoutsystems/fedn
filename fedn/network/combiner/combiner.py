@@ -25,7 +25,6 @@ from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
-from fedn.network.storage.statestore.stores.shared import ValidationError
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
