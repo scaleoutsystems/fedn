@@ -172,7 +172,7 @@ def list_rounds():
 
         rounds = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = round_store.count(**kwargs)
-        response = {"count": count, "result": [rounds.to_dict() for rounds in rounds]}
+        response = {"count": count, "result": [round.to_dict() for round in rounds]}
 
         return jsonify(response), 200
     except Exception as e:

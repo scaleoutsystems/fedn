@@ -22,6 +22,8 @@ class Field:
 
 
 class validator:  # noqa: N801
+    """decorator class for validations of DTOs."""
+
     def __init__(self, func):
         self.func = func
 
