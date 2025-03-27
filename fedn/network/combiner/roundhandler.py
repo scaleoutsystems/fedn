@@ -149,6 +149,7 @@ class RoundHandler:
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
             client_settings = self.hook_interface.client_settings(global_model_bytes)
             config["client_settings"] = client_settings
+
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
