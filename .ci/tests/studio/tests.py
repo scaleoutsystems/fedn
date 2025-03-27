@@ -34,7 +34,7 @@ class TestFednStudio:
         start_time = time.time()
         while time.time() - start_time < fedn_env["FEDN_CLIENT_TIMEOUT"]:
             client_obj = fedn_client.get_clients()
-            if client_obj["count"] == fedn_env["FEDN_NR_CLIENTS"] and all(c["status"] in ["available", "online"] for c in client_obj["result"]):
+            if client_obj["count"] == fedn_env["FEDN_NR_CLIENTS"] and all(c["status"] in ["online"] for c in client_obj["result"]):
                 break
             time.sleep(5)  # Wait for 5 seconds before checking again
         else:
@@ -76,8 +76,15 @@ class TestFednStudio:
 
     @pytest.mark.order(4)
     def test_rounds_completion(self, fedn_client, fedn_env):
-        rounds_obj = fedn_client.get_rounds()
-        assert rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"], f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, got {rounds_obj['count']}"
+        start_time = time.time()
+        while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
+            rounds_obj = fedn_client.get_rounds()
+            if rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"]:
+                break
+            time.sleep(5)
+        else:
+            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+
         rounds_result = rounds_obj["result"]
         for round in rounds_result:
             assert round["status"] == "Finished", f"Expected round status 'Finished', got {round['status']}"
@@ -88,8 +95,15 @@ class TestFednStudio:
 
     @pytest.mark.order(5)
     def test_validations(self, fedn_client, fedn_env):
-        validation_obj = fedn_client.get_validations()
-        assert validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"], f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, got {validation_obj['count']}"
+        start_time = time.time()
+        while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
+            validation_obj = fedn_client.get_validations()
+            if validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
+                break
+            time.sleep(5)
+        else:
+            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+
         # We could assert or test model convergence here
 
         print("All tests passed!", flush=True)

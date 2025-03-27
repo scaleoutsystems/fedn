@@ -9,6 +9,7 @@ cleanup() {
     for i in $(seq 0 $(($FEDN_NR_CLIENTS - 1))); do
         eval "kill \$PID${i}" || true
     done
+    fedn project delete -id $FEDN_PROJECT -H $STUDIO_HOST -y
     echo "Cleanup completed."
 }
 
