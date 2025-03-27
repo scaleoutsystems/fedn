@@ -22,7 +22,7 @@
    :caption: Miscellaneous
    
    faq
-   api-reference
+   modules
 
 Indices and tables
 ==================
