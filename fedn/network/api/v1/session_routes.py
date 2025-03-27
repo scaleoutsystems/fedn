@@ -476,8 +476,8 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        exsisting_session = session_store.get(id)
-        if exsisting_session is None:
+        existing_session = session_store.get(id)
+        if existing_session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         session = SessionDTO()
