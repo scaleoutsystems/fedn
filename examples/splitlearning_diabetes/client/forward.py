@@ -16,18 +16,21 @@ helper = get_helper(HELPER_MODULE)
 
 seed = 42
 torch.manual_seed(seed)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
 
 
 def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
-    """Complete a forward pass on the client side (client model). Save the embeddings s.t. they can be used on
-    combiner level.
+    """Complete a forward pass on the client side (client model) based on the local client model to produce embeddings that are sent to the combiner.
 
-    Load model paramters from in_model_path (managed by the FEDn client),
-    perform a model update, and write updated paramters
-    to out_model_path (picked up by the FEDn client).
+    If the forward pass is used for validation, the test dataset is loaded.
+
+    param client_id: ID of the client to forward pass.
+    :type client_id: str
+    param out_embedding_path: Path to the output embedding file.
+    :type out_embedding_path: str
+    param is_validate: Whether to perform a validation forward pass.
+    :type is_validate: bool
+    param data_path: Path to the data file.
+    :type data_path: str
     """
     if is_validate == "True":
         logger.info(f"Client-side validation forward pass for client {client_id}")
@@ -52,8 +55,7 @@ def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
 
     # Metadata needed for aggregation server side
     metadata = {
-        # num_examples are mandatory
-        "num_examples": len(X),
+        "num_examples": len(X),  # number of examples are mandatory
     }
 
     # Save JSON metadata file (mandatory)

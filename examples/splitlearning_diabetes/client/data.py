@@ -12,7 +12,15 @@ abs_path = os.path.abspath(dir_path)
 
 
 def load_data(data_path=None, is_train=True):
-    """Load data from data_path. If data_path is None, load data from default path."""
+    """Load data from data_path. If data_path is None, load data from default path.
+
+    param data_path: Path to the data file.
+    :type data_path: str
+    param is_train: Whether to load train or test data.
+    :type is_train: bool
+    :return: The data.
+    :rtype: torch.Tensor
+    """
     if data_path is None:
         data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/diabetes.pt")
 
@@ -24,7 +32,15 @@ def load_data(data_path=None, is_train=True):
 
 
 def load_labels(data_path=None, is_train=True):
-    """Load labels from data_path. If data_path is None, load labels from default path."""
+    """Load data from data_path. If data_path is None, load data from default path.
+
+    param data_path: Path to the data file.
+    :type data_path: str
+    param is_train: Whether to load train or test data.
+    :type is_train: bool
+    :return: The labels.
+    :rtype: torch.Tensor
+    """
     if data_path is None:
         data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/labels.pt")
     data = torch.load(data_path, weights_only=True)
@@ -35,8 +51,13 @@ def load_labels(data_path=None, is_train=True):
 
 
 def vertical_split(out_dir="data", n_splits=2):
-    """Generate vertical splits for diabetes dataset for n_splits clients."""
-    # Make dir
+    """Generates *n_split* vertical datasplits for the diabetes dataset.
+
+    param out_dir: Path to the output directory.
+    :type out_dir: str
+    param n_splits: Number of vertical splits.
+    :type n_splits: int
+    """
     if not os.path.exists(f"{out_dir}/clients"):
         os.makedirs(f"{out_dir}/clients")
 
@@ -55,8 +76,6 @@ def vertical_split(out_dir="data", n_splits=2):
     # vertical data split
     features_1 = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness"]
     features_2 = ["Insulin", "BMI", "DiabetesPedigreeFunction", "Age"]
-    # features_1 = ["Glucose", "BloodPressure"]
-    # features_2 = ["Insulin", "BMI"]
 
     X_train_1 = X_train[features_1]
     X_train_2 = X_train[features_2]

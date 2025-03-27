@@ -17,14 +17,15 @@ helper = get_helper(HELPER_MODULE)
 
 seed = 42
 torch.manual_seed(seed)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
 
 
 def backward_pass(gradient_path, client_id):
-    """Load gradients from in_gradients_path, load the embeddings, and perform a backward pass to update
-    the parameters of the client model. Save the updated model to out_model_path.
+    """Loads gradients and extracts the relevant gradients to update the client model for the given client.
+
+    param gradient_path: Path to the gradients file.
+    :type gradient_path: str
+    param client_id: ID of the client to update.
+    :type client_id: str
     """
     logger.info(f"Performing backward pass for client {client_id}")
 
@@ -36,22 +37,17 @@ def backward_pass(gradient_path, client_id):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     client_model.to(device)
 
-    # instantiate optimizer
     client_optimizer = optim.Adam(client_model.parameters(), lr=0.01)
     client_optimizer.zero_grad()
 
     embedding = client_model(x_train)
 
-    # load gradients
     gradients = helper.load(gradient_path)
-    logger.info("Gradients loaded")
 
     local_gradients = gradients[client_id]
     local_gradients = torch.tensor(local_gradients, dtype=torch.float32)
 
     embedding.backward(local_gradients)
-
-    logger.info("backward pass performed")
 
     client_optimizer.step()
 

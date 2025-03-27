@@ -6,5 +6,4 @@ build_dependencies:
 dependencies:
   - pandas==2.2.3
   - torch==2.5.1
-  # - fedn
   - scikit-learn==1.6.0

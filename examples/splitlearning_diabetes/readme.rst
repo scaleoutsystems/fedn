@@ -101,6 +101,12 @@ We are going to start the training through the API Client.
 Go to the api.ipynb file in the splitlearning_diabetes folder and execute the cells. 
 The splitlearning session should start running. 
 
+Modifying the example
+---------------------
+
+In order to change the split learning model architecture, you need to modify two files: 
+The *model.py* file to change the client-side model, and the *splitlearningagg.py* file 
+in the *combiner* folder to change the server-side model. 
 
 
 
