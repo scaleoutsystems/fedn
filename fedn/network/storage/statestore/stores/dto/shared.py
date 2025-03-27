@@ -180,7 +180,7 @@ class DictDTO(DTO):
                     field_value.check_validity()
             elif not self._is_field_optional(field_name) and not self._is_field_modified(field_name):
                 if not (self._is_primary_id(field_name) and exclude_primary_id):
-                    raise MissingFieldError(f"Missing value for {field_name} for {self.__class__.__name__}")
+                    raise MissingFieldError(field_name, self.__class__.__name__)
         self._run_validators()
 
     def _run_validators(self):

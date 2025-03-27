@@ -660,7 +660,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             )
             try:
                 analytic_store.add(analytic)
-            except ValidationError as e:
+            except Exception as e:
                 logger.error(f"GRPC: SendHeartbeat error: {e}")
 
         response = fedn.Response()

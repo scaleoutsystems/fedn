@@ -40,10 +40,10 @@ class PackageDTO(BaseDTO):
     @validator
     def validate(self):
         if not self.file_name:
-            raise ValidationError("File name is required")
+            raise ValidationError("file_name", "File name is required")
 
         if not allowed_file_extension(self.file_name):
-            return ValidationError("File extension not allowed")
+            return ValidationError("file_name", "File extension not allowed")
 
         if not self.helper or not validate_helper(self.helper):
-            return ValidationError("Helper is required or is invalid")
+            return ValidationError("helper", "Helper is required or is invalid")

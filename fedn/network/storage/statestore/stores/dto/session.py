@@ -23,28 +23,28 @@ class SessionConfigDTO(DictDTO):
     @validator
     def validate_config(self):
         if not self.aggregator:
-            raise ValidationError("Aggregator is required")
+            raise ValidationError("aggregator", "Aggregator is required")
 
         if not self.round_timeout:
-            raise ValidationError("Round timeout is required")
+            raise ValidationError("round_timeout", "Round timeout is required")
 
         if not self.buffer_size:
-            raise ValidationError("Buffer size is required")
+            raise ValidationError("buffer_size", "Buffer size is required")
 
         if not self.model_id:
-            raise ValidationError("Model ID is required")
+            raise ValidationError("model_id", "Model ID is required")
 
         if not self.delete_models_storage:
-            raise ValidationError("Delete models storage is required")
+            raise ValidationError("delete_models_storage", "Delete models storage is required")
 
         if not self.clients_required:
-            raise ValidationError("Clients required is required")
+            raise ValidationError("clients_required", "Clients required is required")
 
         if not self.validate:
-            raise ValidationError("Validate is required")
+            raise ValidationError("validate", "Validate is required")
 
         if not self.helper_type:
-            raise ValidationError("Helper type is required")
+            raise ValidationError("helper_type", "Helper type is required")
 
 
 class SessionDTO(BaseDTO):
@@ -58,4 +58,4 @@ class SessionDTO(BaseDTO):
     @validator
     def validate(self):
         if not self.name:
-            raise ValidationError("Name is required")
+            raise ValidationError("name", "Name is required")
