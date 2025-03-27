@@ -5,10 +5,7 @@ import click
 import requests
 
 from .main import main
-from .shared import STUDIO_DEFAULTS, get_response, set_context
-
-# Replace this with the platform's actual login endpoint
-home_dir = os.path.expanduser("~")
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_response, set_context
 
 
 @main.group("studio")
@@ -50,7 +47,7 @@ def login_cmd(ctx, protocol: str, host: str, username: str, password: str):
     if response.status_code == 200:
         context_data = get_context(response, protocol, host)
 
-        context_path = os.path.join(home_dir, ".fedn")
+        context_path = os.path.join(HOME_DIR, ".fedn")
         if not os.path.exists(context_path):
             os.makedirs(context_path)
         set_context(context_path, context_data)
