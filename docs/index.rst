@@ -14,6 +14,7 @@
    
    architecture
    aggregators
+   cli
    helpers
    developer
 
