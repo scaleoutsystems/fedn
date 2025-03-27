@@ -248,8 +248,6 @@ class Client:
 
             tic = time.time()
 
-            logger.info("debugging: _process_forward_request in client_v2.py: is_validate is {}".format(is_validate))
-
             self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_validate}")
 
             meta = {}

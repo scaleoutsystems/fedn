@@ -34,7 +34,13 @@ Data Preparation
 Make sure the diabetes dataset is downloaded in the splitlearning_diabetes/data folder with the files "labels.csv", "train.csv" and "test.csv".
 Download the dataset from https://www.kaggle.com/datasets/uciml/pima-indians-diabetes-database?resource=download if necessary.
 
-We split the dataset (vertical split) into 2 clients. For this, locate yourself in the examples/splitlearning_diabetes/client folder and run:
+We split the dataset (vertical split) into 2 clients. For this, locate yourself in the *examples/splitlearning_diabetes/client* folder
+
+.. code-block:: bash
+
+    cd examples/splitlearning_diabetes/client
+
+and run the following command to generate the data for the two clients:
 
 .. code-block:: bash
 
@@ -43,7 +49,13 @@ We split the dataset (vertical split) into 2 clients. For this, locate yourself 
 Compute Package
 ---------------
 
-Then, locate yourself into the examples/splitlearning_diabetes folder. To create the compute package, run:
+Then, locate yourself into the examples/splitlearning_diabetes folder:
+
+.. code-block:: bash
+
+    cd ..
+
+To create the compute package, run:
 
 .. code-block:: bash
 
@@ -54,10 +66,9 @@ Note: For split learning, we do not need a seed model as for horizontal federate
 Local Setup with FEDn
 ---------------------
 
-Currently, Split Learning can only be run locally. To start all necessary services, locate yourself into the fedn/examples/splitlearning_diabetes directory.
-Then, run the following commands in different terminals:
+Currently, Split Learning can only be run locally. To start all necessary services, run the following commands in different terminals.
 
-To start mongo and minio
+To start mongo and minio:
 
 .. code-block:: bash
 
@@ -101,6 +112,15 @@ Starting the Split Learning Training
 We are going to start the training through the API Client. 
 Go to the *run_splitlearning.ipynb* file in the *splitlearning_diabetes* folder and execute the cells. 
 The splitlearning session should start running. 
+
+Clean-up
+---------
+
+After the training is finished, run the following command for clean-up:
+
+.. code-block:: bash
+
+    docker compose down
 
 Modifying the example
 ---------------------

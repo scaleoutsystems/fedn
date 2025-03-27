@@ -43,7 +43,7 @@ def save_client_model(model, client_id):
     :type client_id: str
     """
     if not os.path.exists(f"{abs_path}/local_models"):
-        os.makedirs(f"{abs_path}/local_models")
+        os.makedirs(f"{abs_path}/local_models", exist_ok=True)
     torch.save(model.state_dict(), f"{abs_path}/local_models/{client_id}.pth")
 
 
@@ -54,8 +54,6 @@ def load_client_model(client_id, num_local_features):
     :type client_id: str
     param num_local_features: Number of features in the local dataset.
     :type num_local_features: int
-    :return: The client model.
-    :rtype: ClientModel
     """
     model = compile_model(num_local_features)
     model.load_state_dict(torch.load(f"{abs_path}/local_models/{client_id}.pth", weights_only=True))

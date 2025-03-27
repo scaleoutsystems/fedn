@@ -151,6 +151,7 @@ class Aggregator(AggregatorBase):
 
         output = self.model(concatenated_embeddings)
         targets = helper.load_targets(is_train=True)
+        targets = targets.to(self.device)
 
         loss = criterion(output, targets)
         logger.info("AGGREGATOR({}): Train Loss: {}".format(self.name, loss))
@@ -172,7 +173,7 @@ class Aggregator(AggregatorBase):
             criterion = nn.BCELoss()
             output = self.model(concatenated_embeddings)
             targets = helper.load_targets(is_train=False)
-
+            targets = targets.to(self.device)
             # metric calculation
             test_loss = criterion(output, targets)
 

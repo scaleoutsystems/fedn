@@ -378,8 +378,6 @@ class FednClient:
         model_id = request.model_id
         is_validate = json.loads(request.data).get("is_validate", False)
 
-        logger.info("debugging: forward_embeddings in fedn_client.py: is_validate is {}".format(is_validate))
-
         embedding_update_id = str(uuid.uuid4())
 
         if not self.forward_callback:
