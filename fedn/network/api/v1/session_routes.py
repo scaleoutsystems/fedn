@@ -371,7 +371,7 @@ def post():
         logger.error(f"Missing field error: {e}")
         return jsonify({"message": e.user_message()}), 400
     except ValueError as e:
-        logger.error(f"ValueError occured: {e}")
+        logger.error(f"ValueError occurred: {e}")
         return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
