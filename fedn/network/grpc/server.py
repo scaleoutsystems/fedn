@@ -28,8 +28,10 @@ class Server:
 
         # Keepalive settings: these detect if the client is alive
         KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-        KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
+        # wait 20 seconds for keepalive ping ack before considering connection dead
+        KEEPALIVE_TIMEOUT_MS = 20 * 1000
+        # max idle time before server terminates the connection (5 minutes)
+        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
