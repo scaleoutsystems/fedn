@@ -1,7 +1,7 @@
-python_env: env.yaml
+python_env: python_env.yaml
 entry_points:
-  startup: 
-    command: python startup.py
+  build:
+    command: python model.py
   train:
     command: python train.py
   validate: 
