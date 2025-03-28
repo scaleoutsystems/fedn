@@ -38,7 +38,7 @@ on:
         required: false
         default: '420'
       FEDN_ARRAY_SIZE_FACTOR:
-        description: 'Array Size Factor, used in load-test, 1 = 144MB
+        description: 'Array Size Factor, used in load-test, 1 = 144MB'
         required: false
         default: '1'
       FEDN_CLIENT_TIMEOUT:
