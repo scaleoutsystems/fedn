@@ -30,6 +30,7 @@ FEDn is an open-source framework for scalable federated learning. This documenta
 
    Architecture Overview <architecture>
    aggregators
+   cli
    helpers
    apiclient
    serverfunctions

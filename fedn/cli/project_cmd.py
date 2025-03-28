@@ -4,9 +4,7 @@ import click
 import requests
 
 from .main import main
-from .shared import STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, set_context
-
-home_dir = os.path.expanduser("~")
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, set_context
 
 
 @main.group("project")
@@ -109,7 +107,7 @@ def list_projects(ctx, protocol: str = None, host: str = None):
     if response.status_code == 200:
         response_json = response.json()
         if len(response_json) > 0:
-            context_path = os.path.join(home_dir, ".fedn")
+            context_path = os.path.join(HOME_DIR, ".fedn")
             context_data = get_context(context_path)
             active_project = context_data.get("Active project id")
 
@@ -167,7 +165,7 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
     """Sets project with give ID as active by updating context file."""
     studio_api = True
     headers_projects = {}
-    context_path = os.path.join(home_dir, ".fedn")
+    context_path = os.path.join(HOME_DIR, ".fedn")
     context_data = get_context(context_path)
 
     user_access_token = context_data.get("User tokens").get("access")

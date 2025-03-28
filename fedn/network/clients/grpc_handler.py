@@ -19,8 +19,10 @@ from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
 KEEPALIVE_TIME_MS = 1 * 1000  # send keepalive ping every 60 seconds
-KEEPALIVE_TIMEOUT_MS = 30 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
+# wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIMEOUT_MS = 30 * 1000
+# allow keepalive pings even when there are no RPCs
+KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 MAX_CONNECTION_IDLE_MS = 30000
 MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
 CLIENT_IDLE_TIMEOUT_MS = 30000
@@ -121,7 +123,6 @@ class GrpcHandler:
         )
 
         try:
-            logger.info("Sending heartbeat to combiner")
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
         except grpc.RpcError as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
@@ -146,7 +147,7 @@ class GrpcHandler:
                 self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
             if isinstance(response, fedn.Response):
-                logger.info("Heartbeat successful.")
+                pass
             else:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
