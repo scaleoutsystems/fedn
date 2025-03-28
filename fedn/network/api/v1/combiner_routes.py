@@ -104,7 +104,9 @@ def get_combiners():
 
         kwargs = request.args.to_dict()
 
-        response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = combiner_store.count(**kwargs)
+        response = {"count": count, "result": [combiner.to_dict() for combiner in combiners]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -184,7 +186,9 @@ def list_combiners():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        response = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        combiners = combiner_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = combiner_store.count(**kwargs)
+        response = {"count": count, "result": [combiner.to_dict() for combiner in combiners]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -325,10 +329,10 @@ def get_combiner(id: str):
                         type: string
     """
     try:
-        response = combiner_store.get(id)
-        if response is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response), 200
+        combiner = combiner_store.get(id)
+        if combiner is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        return jsonify(combiner.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -369,7 +373,7 @@ def delete_combiner(id: str):
     try:
         result: bool = combiner_store.delete(id)
         if not result:
-           return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
         msg = "Combiner deleted" if result else "Combiner not deleted"
         return jsonify({"message": msg}), 200
     except Exception as e:

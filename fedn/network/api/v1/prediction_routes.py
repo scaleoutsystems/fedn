@@ -33,11 +33,11 @@ def start_session():
             if count == 0:
                 return jsonify({"message": "No models available"}), 400
         else:
-              model_id = data.get("model_id")
-              model = model_store.get(model_id)
-              if model is None:
+            model_id = data.get("model_id")
+            model = model_store.get(model_id)
+            if model is None:
                 return jsonify({"message": f"Model {model_id} not found"}), 404
-              session_config["model_id"] = model_id
+            session_config["model_id"] = model_id
 
         threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
 
@@ -169,7 +169,9 @@ def get_predictions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = prediction_store.count(**kwargs)
+        response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -264,7 +266,9 @@ def list_predictions():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = prediction_store.count(**kwargs)
+        response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
     except Exception as e:

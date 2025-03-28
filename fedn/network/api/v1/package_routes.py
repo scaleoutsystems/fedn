@@ -10,6 +10,8 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.storage.statestore.stores.dto.package import PackageDTO
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -122,7 +124,9 @@ def get_packages():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        packages = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = package_store.count(**kwargs)
+        response = {"count": count, "result": [result.to_dict() for result in packages]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -207,7 +211,9 @@ def list_packages():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        packages = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = package_store.count(**kwargs)
+        response = {"count": count, "result": [result.to_dict() for result in packages]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -375,11 +381,11 @@ def get_package(id: str):
                         type: string
     """
     try:
-      response = package_store.get(id)
-      if response is None:
-        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = package_store.get(id)
+        if response is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-      return jsonify(response), 200
+        return jsonify(response.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -416,9 +422,9 @@ def get_active_package():
     try:
         response = package_store.get_active()
         if response is None:
-          return jsonify({"message": "Entity not found"}), 404
+            return jsonify({"message": "Entity not found"}), 404
 
-        return jsonify(response), 200
+        return jsonify(response.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -496,7 +502,7 @@ def delete_active_package():
     try:
         result = package_store.delete_active()
         if result is False:
-          return jsonify({"message": "Entity not found"}), 404
+            return jsonify({"message": "Entity not found"}), 404
         return jsonify({"message": "Active package deleted"}), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -557,12 +563,11 @@ def upload_package():
 
         data["file_name"] = file_name
 
-        valid, response = package_store.add(data)
+        new_package = PackageDTO().populate_with(data)
 
-        if not valid:
-            return jsonify({"message": response}), 400
+        package = package_store.add(new_package)
 
-        storage_file_name = response["storage_file_name"]
+        storage_file_name = package.storage_file_name
         try:
             file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
             if not os.path.exists(FEDN_COMPUTE_PACKAGE_DIR):
@@ -571,11 +576,20 @@ def upload_package():
             repository.set_compute_package(storage_file_name, file_path)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            package_store.delete(response["id"])
+            package_store.delete(package.package_id)
             return jsonify({"message": "An unexpected error occurred"}), 500
 
-        package_store.set_active(response["id"])
+        package_store.set_active(package.package_id)
         return jsonify({"message": "Package uploaded"}), 200
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -624,8 +638,8 @@ def download_package():
     if name is None:
         active_package = package_store.get_active()
         if active_package is None:
-           return jsonify({"message": "No active package"}), 404
-        name = active_package["storage_file_name"]
+            return jsonify({"message": "No active package"}), 404
+        name = active_package.storage_file_name
     try:
         mutex = threading.Lock()
         mutex.acquire()

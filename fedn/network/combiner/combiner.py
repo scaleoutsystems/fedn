@@ -19,6 +19,12 @@ from fedn.common.log_config import logger, set_log_level_from_string, set_log_st
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
 from fedn.network.combiner.shared import analytic_store, client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
 from fedn.network.grpc.server import Server, ServerConfig
+from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
+from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
+from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
+from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
 
@@ -108,37 +114,31 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.round_store = round_store
 
-        # Add combiner to statestore
-        interface_config = {
-            "port": config["port"],
-            "fqdn": config["fqdn"],
-            "name": config["name"],
-            "address": config["host"],
-            "parent": "localhost",
-            "ip": "",
-            "updated_at": str(datetime.now()),
-        }
         # Check if combiner already exists in statestore
-        if combiner_store.get(config["name"]) is None:
-            combiner_store.add(interface_config)
+        if combiner_store.get_by_name(config["name"]) is None:
+            new_combiner = CombinerDTO()
+            new_combiner.port = config["port"]
+            new_combiner.fqdn = config["fqdn"]
+            new_combiner.name = config["name"]
+            new_combiner.address = config["host"]
+            new_combiner.parent = "localhost"
+            new_combiner.ip = ""
+            new_combiner.updated_at = str(datetime.now())
+            combiner_store.add(new_combiner)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **{"combiner": self.id})
-        count = previous_clients["count"]
-        result = previous_clients["result"]
-        logger.info(f"Found {count} previous clients")
+        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, combiner=self.id)
+        logger.info(f"Found {len(previous_clients)} previous clients")
         logger.info("Updating previous clients status to offline")
-        for client in result:
+        for client in previous_clients:
+            client.status = "offline"
             try:
-                client_to_update = client_store.get(client["client_id"])
-                client_to_update["status"] = "offline"
-                client_store.update(client["client_id"], client_to_update)
-
+                client_store.update(client)
             except Exception as e:
-                logger.error("Failed to update previous client status: {}".format(str(e)))
+                logger.error(f"Failed to update previous client status: {e}")
 
         # Set up gRPC server configuration
         if config["secure"]:
@@ -387,13 +387,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = client_store.get(client)
-                client_to_update["status"] = "online"
-                client_store.update(client, client_to_update)
+                client_to_update.status = "online"
+                client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = client_store.get(client)
-                client_to_update["status"] = "offline"
-                client_store.update(client, client_to_update)
+                client_to_update.status = "offline"
+                client_store.update(client_to_update)
 
         return clients["active_clients"]
 
@@ -426,8 +426,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param status: the status message to report
         :type status: :class:`fedn.network.grpc.fedn_pb2.Status`
         """
-        data = MessageToDict(status)
-        _ = status_store.add(data)
+        data = MessageToDict(status, preserving_proto_field_name=True)
+        status = StatusDTO().populate_with(data)
+        status_store.add(status)
 
     def _flush_model_update_queue(self):
         """Clear the model update queue (aggregator).
@@ -648,19 +649,18 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["last_seen"] = datetime.now()
 
         if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
-            success, msg = analytic_store.add(
+            analytic = AnalyticDTO().patch_with(
                 {
-                    "id": str(uuid.uuid4()),
                     "sender_id": client.client_id,
                     "sender_role": "client",
                     "cpu_utilisation": heartbeat.cpu_utilisation,
                     "memory_utilisation": heartbeat.memory_utilisation,
-                    "committed_at": datetime.now(),
                 }
             )
-
-            if not success:
-                logger.error(f"GRPC: SendHeartbeat error: {msg}")
+            try:
+                analytic_store.add(analytic)
+            except Exception as e:
+                logger.error(f"GRPC: SendHeartbeat error: {e}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -700,19 +700,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["status"] = "online"
         try:
             # If the client is already in the client store, update the status
+            client_to_update = client_store.get(client.client_id)
+            if client_to_update is not None:
+                client_to_update.status = "online"
+                client_to_update.last_seen = datetime.now()
+                client_store.update(client_to_update)
+            else:
+                new_client = ClientDTO(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
+                client_store.add(new_client)
 
-            client_to_upsert = {
-                "name": client.name,
-                "status": "online",
-                "client_id": client.client_id,
-                "last_seen": datetime.now(),
-                "combiner": self.id,
-                "updated_at": datetime.now(),
-            }
-
-            success, result = client_store.upsert(client_to_upsert)
-            if not success:
-                logger.error(result)
         except Exception as e:
             logger.error(f"Failed to update client status: {str(e)}")
 
@@ -760,12 +756,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param validation: the model validation
         :type validation: :class:`fedn.network.grpc.fedn_pb2.ModelValidation`
         """
-        data = MessageToDict(validation)
-        success, result = validation_store.add(data)
-        if not success:
-            logger.error(result)
-        else:
+        data = MessageToDict(validation, preserving_proto_field_name=True)
+        validationdto = ValidationDTO(**data)
+        try:
+            result = validation_store.add(validationdto)
             logger.info("Model validation registered: {}".format(result))
+        except Exception as e:
+            logger.error(f"Failed to register model validation: {e}")
 
     def SendModelValidation(self, request, context):
         """Send a model validation response.
@@ -779,8 +776,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelValidation from {}".format(request.sender.name))
 
-        validation = MessageToDict(request)
-        validation_store.add(validation)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+        validationdto = ValidationDTO(**data)
+        validation_store.add(validationdto)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
@@ -798,8 +796,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         logger.info("Recieved ModelPrediction from {}".format(request.sender.name))
 
-        result = MessageToDict(request)
-        prediction_store.add(result)
+        data = MessageToDict(request, preserving_proto_field_name=True)
+
+        prediction = PredictionDTO(**data)
+        prediction_store.add(prediction)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)

@@ -11,27 +11,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from fedn.common.config import get_network_config, get_statestore_config
-from fedn.network.storage.statestore.stores.analytic_store import (
-    AnalyticStore, MongoDBAnalyticStore)
-from fedn.network.storage.statestore.stores.client_store import (
-    ClientStore, MongoDBClientStore, SQLClientStore)
-from fedn.network.storage.statestore.stores.combiner_store import (
-    CombinerStore, MongoDBCombinerStore, SQLCombinerStore)
-from fedn.network.storage.statestore.stores.model_store import (
-    ModelStore, MongoDBModelStore, SQLModelStore)
-from fedn.network.storage.statestore.stores.package_store import (
-    MongoDBPackageStore, PackageStore, SQLPackageStore)
-from fedn.network.storage.statestore.stores.prediction_store import (
-    MongoDBPredictionStore, PredictionStore, SQLPredictionStore)
-from fedn.network.storage.statestore.stores.round_store import (
-    MongoDBRoundStore, RoundStore, SQLRoundStore)
-from fedn.network.storage.statestore.stores.session_store import (
-    MongoDBSessionStore, SessionStore, SQLSessionStore)
-from fedn.network.storage.statestore.stores.status_store import (
-    MongoDBStatusStore, SQLStatusStore, StatusStore)
-from fedn.network.storage.statestore.stores.store import MyAbstractBase
-from fedn.network.storage.statestore.stores.validation_store import (
-    MongoDBValidationStore, SQLValidationStore, ValidationStore)
+from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
+from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
+from fedn.network.storage.statestore.stores.model_store import ModelStore, MongoDBModelStore, SQLModelStore
+from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
+from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
+from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
+from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
+from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 
 class StoreContainer:
