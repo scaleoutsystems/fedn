@@ -19,14 +19,11 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
 **Connect the APIClient to the FEDn project**
 
 To access the API you need the URL to the controller-host, as well as an admin API token. You 
-obtain these from your Studio project. The controller host can be found in the top-right corner of the dashboard:
+obtain these from your Studio project. Navigate to your "Project settings" and copy the "Project url", this is the controller host address:
 
 .. image:: img/find_controller_url.png
 
-To obtain an admin API token,  
-
-#. Navigate to the "Settings" tab in your Studio project and click on the "Generate token" button. 
-#. Copy the 'access' token and use it to access the API using the instructions below. 
+To obtain an admin API token press "Generate" in the "Generate Admin token" section and copy the token:
 
 .. image:: img/generate_admin_token.png
 
@@ -57,7 +54,7 @@ In the next step, we will use the API to upload these objects to the Studio proj
 
 **Set the active compute package and seed model**
 
-To set the active compute package in the FEDn Studio Project:
+To set the active compute package in the FEDn Studio Project: 
 
 .. code:: python
 
@@ -88,6 +85,8 @@ To run a session using the FedAdam aggregator using custom hyperparamters:
 .. code-block:: python
 
    >>> session_name = "experiment_fedadam"
+   # Use the seed model which is the first model in the model trail
+   >>> initial_model = models[0]
 
    >>> session_config = {
                      "helper": "numpyhelper",
@@ -100,7 +99,7 @@ To run a session using the FedAdam aggregator using custom hyperparamters:
                            "beta2": 0.99,
                            "tau": 1e-4
                            },
-                     "model_id": seed_model['model'],
+                     "model_id": initial_model['model'],
                      "rounds": 10
                   }
 
@@ -142,7 +141,7 @@ To get a specific session:
 
 .. code-block:: python
    
-   >>> session = client.get_session(id="session_name")
+   >>> session = client.get_session(id="session_id")
 
 For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`.  
 There is also a collection of Jupyter Notebooks showcasing more advanced use of the API, including how to work with other built-in aggregators and how to automate hyperparameter tuning:
