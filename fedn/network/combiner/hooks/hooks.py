@@ -78,6 +78,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         logger.info("Received metadata")
         client_id = request.client_id
         metadata = json.loads(request.metadata)
+        # dictionary contains: [model, client_metadata] in that order for each key
         self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
         return fedn.ClientMetaResponse(status="Metadata stored")
 
@@ -88,7 +89,8 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info("Received previous global model")
             self.previous_global = model
         else:
-            logger.info("Received client model")
+            logger.info(f"Received client model from client {client_id}")
+            # dictionary contains: [model, client_metadata] in that order for each key
             self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
         return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
 
@@ -127,7 +129,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         # if no new code return previous
         if server_functions_code == self.server_functions_code:
             logger.info("No new server function code provided.")
-            logger.info(f"Provided function: {self.implemented_functions}")
+            logger.info(f"Provided functions: {self.implemented_functions}")
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
 
         self.server_functions_code = server_functions_code
