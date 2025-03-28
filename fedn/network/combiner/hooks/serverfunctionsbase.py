@@ -53,7 +53,7 @@ class ServerFunctionsBase(ABC):
             previous_global (list[np.ndarray]): A list of parameters representing the global
             model from the previous round.
 
-            client_updates (list[list[np.ndarray]]): A dictionary where the key is client ID,
+            client_updates (Dict[str, Tuple[List[np.ndarray], Dict]]): A dictionary where the key is client ID,
             pointing to a tuple with the first element being client parameter and second element
             being the clients metadata.
 

@@ -20,11 +20,11 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
     :type parameters: List[np.ndarray]
     """
     function_service = FunctionServiceServicer()
-    server_functions = inspect.getsource(server_functions)
+    function_code = inspect.getsource(server_functions)
     for i in range(rounds):
         print(f"Simulating server round: {i+1}")
         # see output from provided functions call
-        request = fedn.ProvidedFunctionsRequest(function_code=server_functions)
+        request = fedn.ProvidedFunctionsRequest(function_code=function_code)
         _ = function_service.HandleProvidedFunctions(request, "")
         # see output from client selection request
         fake_clients = [str(j) for j in range(num_clients)]
