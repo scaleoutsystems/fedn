@@ -12,6 +12,9 @@ See https://docs.scaleoutsystems.com/en/stable/apiclient.html for more informati
 
 When connected to the project API you can start sessions with your supplied server functions.
 
+To test your server functions locally you can use the function `fedn.network.combiner.hooks.serverfunctionstest.test_server_functions`, 
+see `test_locally.py` for a running example.
+
 Full commands to run through the API client:
 
 Get your token from the settings page in your studio project and add it in your system environment.
