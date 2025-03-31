@@ -12,31 +12,9 @@ class StatusStore(Store[StatusDTO]):
     pass
 
 
-def _translate_key_mongo(key: str) -> str:
-    if key == "logLevel":
-        key = "log_level"
-    elif key == "sender.role":
-        key = "sender_role"
-    elif key == "sessionId":
-        key = "session_id"
-    return key
-
-
 class MongoDBStatusStore(StatusStore, MongoDBStore[StatusDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "status_id")
-
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
-        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
-        _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
-        _sort_key = _translate_key_mongo(sort_key)
-        if _kwargs != kwargs or _sort_key != sort_key:
-            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
-        return entites
-
-    def count(self, **kwargs) -> int:
-        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
-        return super().count(**kwargs)
 
     def _document_from_dto(self, item: StatusDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
@@ -67,8 +45,6 @@ def _translate_key_sql(key: str) -> str:
         key = "sender_name"
     elif key == "sender.role":
         key = "sender_role"
-    elif key == "sessionId":
-        key = "session_id"
     return key
 
 

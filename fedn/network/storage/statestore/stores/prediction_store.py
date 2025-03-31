@@ -12,29 +12,9 @@ class PredictionStore(Store[PredictionDTO]):
     pass
 
 
-def _translate_key_mongo(key: str):
-    if key == "correlationId":
-        key = "correlation_id"
-    elif key == "modelId":
-        key = "model_id"
-    return key
-
-
 class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "prediction_id")
-
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
-        entites = super().list(limit, skip, sort_key, sort_order, **kwargs)
-        _kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
-        _sort_key = _translate_key_mongo(sort_key)
-        if _kwargs != kwargs or _sort_key != sort_key:
-            entites = super().list(limit, skip, _sort_key, sort_order, **_kwargs) + entites
-        return entites
-
-    def count(self, **kwargs) -> int:
-        kwargs = {_translate_key_mongo(k): v for k, v in kwargs.items()}
-        return super().count(**kwargs)
 
     def _document_from_dto(self, item: PredictionDTO) -> Dict:
         doc = item.to_db()
@@ -42,11 +22,6 @@ class MongoDBPredictionStore(PredictionStore, MongoDBStore[PredictionDTO]):
 
     def _dto_from_document(self, document: Dict) -> PredictionDTO:
         item = from_document(document)
-
-        if "correlationId" in item:
-            item["correlation_id"] = item.pop("correlationId")
-        if "modelId" in item:
-            item["model_id"] = item.pop("modelId")
 
         pred = PredictionDTO()
         pred.sender.patch_with(item.pop("sender"), throw_on_extra_keys=False)
@@ -64,10 +39,6 @@ def _translate_key_sql(key: str):
         key = "receiver_name"
     elif key == "receiver.role":
         key = "receiver_role"
-    elif key == "correlationId":
-        key = "correlation_id"
-    elif key == "modelId":
-        key = "model_id"
     return key
 
 
