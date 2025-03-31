@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, jsonify, request
 
 from fedn.common.config import get_controller_config, get_network_config
@@ -493,17 +495,22 @@ def add_client():
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
-        if client_store.get(client_id) is not None:
+        if client_store.get(client_id) is None:
             logger.info("adding client {}".format(client_id))
+
+            last_seen = datetime.now()
+
             new_client = ClientDTO(
                 client_id=client_id,
                 name=name,
                 combiner=combiner.name,
                 combiner_preferred=preferred_combiner,
                 ip=remote_addr,
-                status="available",  # TODO: Should be "online"?
+                status="available",
                 package=package,
+                last_seen=last_seen,
             )
+
             client_store.add(new_client)
 
         payload = {
