@@ -1,29 +1,45 @@
+Welcome to FEDn Documentation
+=============================
+
+FEDn is an open-source framework for scalable federated learning. This documentation covers architecture, setup, deployment, API references, and troubleshooting guidance. Quickly locate configuration examples, technical concepts, or operational details you need to deploy federated models efficiently in production environments.
+
 .. toctree::
    :maxdepth: 1
-   :caption: Introduction
-   
+   :caption: Getting Started
+
    introduction
-   quickstart
-   projects
+   My First FEDn Project <quickstart>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials and Examples
+
+ 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Developer Resources
+
+   A Guide to the FEDn Project Structure <projects>
+   Local Development Guide <developer>
+   API Reference <modules>
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Usage Guides
+
+   Architecture Overview <architecture>
+   aggregators
+   cli
+   helpers
    apiclient
    serverfunctions
 
 .. toctree::
    :maxdepth: 1
-   :caption: Documentation
-   
-   architecture
-   aggregators
-   cli
-   helpers
-   developer
+   :caption: Support & Troubleshooting
 
-.. toctree::
-   :maxdepth: 1
-   :caption: Miscellaneous
-   
    faq
-   modules
 
 Indices and tables
 ==================
@@ -34,6 +50,5 @@ Indices and tables
 
 .. meta::
     :description lang=en:
-        FEDn is a federated learning platform that is secure, scalable and easy-to-use.
+        FEDn is a federated learning platform that is secure, scalable, and easy-to-use.
     :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
-    

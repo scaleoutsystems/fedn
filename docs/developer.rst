@@ -15,34 +15,56 @@ Pseudo-distributed sandbox
 
 During development on FEDn, and when working on own extentions including aggregators and helpers, it is 
 useful to have a local development setup of the core FEDn server-side services (controller, combiner, database, object store). 
-We provide Dockerfiles and docker-compose template for an all-in-one local sandbox: 
+We provide Dockerfiles and docker-compose template for an all-in-one local sandbox:
 
 .. code-block::
+   git clone https://github.com/scaleoutsystems/fedn.git
+   cd fedn
+   docker compose up -d
 
-   docker compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    up
-
-This starts up local services for MongoDB, Minio, the API Server, one Combiner and two clients. 
+This starts up local services for MongoDB, Minio, the API Server (Controller), one Combiner. 
 You can verify the deployment on localhost using these urls: 
 
 - API Server: http://localhost:8092/get_controller_status
 - Minio: http://localhost:9000
 - Mongo Express: http://localhost:8081
+  
+To run a client in this setup, you can use the CLI to connect to the API Server.
 
-This setup does not include any of the security and authentication features available in a Studio Project, 
+.. code-block::
+
+   pip install -e .
+   cd examples/mnist-pytorch
+   fedn run client --api-url http://localhost:8092 --local-package
+
+The --local-package flag is used to indicate that the package is available locally in the current directory.
+This will enable you to modify the machine learning scripts in the client folder while the client is running.
+In otrher words, you don't need to rebuild and upload the compute package every time you make a change. 
+Obs that this feature is also available in FEDn Studio.
+
+You can also connect directly to the Combiner (gRPC) without using the API Server (REST-API):
+
+.. code-block::
+
+   fedn run client --combiner=localhost --combiner-port=12080 --local-package
+
+Observe that you need to create an initial model seed.npz in the current directory before starting any new session:
+
+.. code-block::
+
+   fedn run build --path client
+
+Please observe that this local sandbox deployment does not include any of the security and authentication features available in a Studio Project, 
 so we will not require authentication of clients (insecure mode) when using the APIClient:  
 
 .. code-block::
 
    from fedn import APIClient
    client = APIClient(host="localhost", port=8092)
-   client.set_active_package("package.tgz", helper="numpyhelper", name="my-package")
    client.set_active_model("seed.npz")
+   client.start_session(rounds=10, timeout=60)
 
-To connect a native FEDn client to the sandbox deployment, you need to make sure that the combiner service can be resolved by the client using the name "combiner". 
-One way to achieve this is to edit your '/etc/hosts' and add a line '127.0.0.1  	combiner'. 
+
 
 Access message logs and validation data from MongoDB  
 ------------------------------------------------------
@@ -74,22 +96,21 @@ You can clean up by running
 
 .. code-block::
 
-   docker-compose -f ../../docker-compose.yaml -f docker-compose.override.yaml down -v
+   docker compose down -v
 
 Connecting clients using Docker:
 ------------------------------------------------------
 
-For convenience, we distribute a Docker image hosted on ghrc.io with FEDn preinstalled. For example, to start a client for the MNIST PyTorch example using Docker
-and FEDN 0.10.0, run this from the example folder:   
+If you like to run the client in docker as well we have added an extra docker-compose file in the examples folders for this purpose.
+This will allow you to run the client in a separate container and connect to the API server using the service name `api-server`:
 
 .. code-block::
+   
+   docker compose \
+    -f ../../docker-compose.yaml \
+    -f docker-compose.override.yaml \
+    up
 
-   docker run \
-     -v $PWD/client.yaml:/app/client.yaml \
-     -e FEDN_PACKAGE_EXTRACT_DIR=package \
-     -e FEDN_NUM_DATA_SPLITS=2 \
-     -e FEDN_DATA_PATH=/app/package/data/clients/1/mnist.pt \
-     ghcr.io/scaleoutsystems/fedn/fedn:0.10.0 run client -in client.yaml --force-ssl --secure=True
 
 
 Distributed deployment on a local network
@@ -108,7 +129,7 @@ the host for the servier-side components, and other hosts or devices as clients.
    
 **Prerequisites**
 -  `One host workstation and atleast one client device`
--  `Python 3.8, 3.9, 3.10 or 3.11 <https://www.python.org/downloads>`__
+-  `Python 3.9, 3.10, 3.11 or 3.12 <https://www.python.org/downloads>`__
 -  `Docker <https://docs.docker.com/get-docker>`__
 -  `Docker Compose <https://docs.docker.com/compose/install>`__
 
@@ -148,7 +169,7 @@ We can then run a client using docker by adding the hostname:ip mapping in the d
    <potentiel data pointers>
    —add-host=api-server:<host local ip> \
    —add-host=combiner:<host local ip> \
-   <image name> run client -in client.yaml --name client1
+   <image name> client start -in client.yaml --name client1
 
 
 Alternatively updating the `/etc/hosts` file, appending the following lines for running naitively:
@@ -168,7 +189,7 @@ Authentication and Authorization (RBAC)
 
 FEDn supports Role-Based Access Control (RBAC) for controlling access to the FEDn API and gRPC endpoints. The RBAC system is based on JSON Web Tokens (JWT) and is implemented using the `jwt` package. The JWT tokens are used to authenticate users and to control access to the FEDn API.
 There are two types of JWT tokens used in the FEDn RBAC system:
-- Access tokens: Used to authenticate users and to control access to the FEDn API.
+- Access tokens: Used to authenticate access to the FEDn API.
 - Refresh tokens: Used to obtain new access tokens when the old ones expire.
  
 .. note:: Please note that the FEDn RBAC system is not enabled by default and does not issue JWT tokens. It is used to integrate with external authentication and authorization systems such as FEDn Studio. 
