@@ -1,6 +1,7 @@
-import docker
-import time
 import os
+import time
+
+import docker
 
 CONTAINER_NAME="mongo-test-db"
 """ 
@@ -36,6 +37,7 @@ def start_mongodb_container():
     else:
         raise Exception("Could not start MongoDB container")
 
+    time.sleep(1)
     return container, port
 
 def stop_mongodb_container():

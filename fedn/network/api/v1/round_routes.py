@@ -92,7 +92,9 @@ def get_rounds():
 
         kwargs = request.args.to_dict()
 
-        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = round_store.count(**kwargs)
+        response = {"count": count, "result": [rounds.to_dict() for rounds in rounds]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -168,7 +170,9 @@ def list_rounds():
 
         kwargs = get_post_data_to_kwargs(request)
 
-        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = round_store.count(**kwargs)
+        response = {"count": count, "result": [round.to_dict() for round in rounds]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -301,8 +305,8 @@ def get_round(id: str):
     try:
         round = round_store.get(id)
         if round is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        response = round
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = round.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")

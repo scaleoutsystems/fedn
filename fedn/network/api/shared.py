@@ -77,7 +77,7 @@ def get_checksum(name: str = None) -> Tuple[bool, str, str]:
         if active_package is None:
             message = "No compute package uploaded"
             return success, message, sum
-        name = active_package["storage_file_name"]
+        name = active_package.storage_file_name
     file_path = safe_join(os.getcwd(), name)
     try:
         sum = str(sha(file_path))

@@ -9,6 +9,8 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
+from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
 
 # from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
@@ -105,7 +107,10 @@ def get_models():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = [model.to_dict() for model in models]
+        count = model_store.count(**kwargs)
+        response = {"count": count, "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -187,7 +192,10 @@ def list_models():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = [model.to_dict() for model in models]
+        count = model_store.count(**kwargs)
+        response = {"count": count, "result": result}
 
         return jsonify(response), 200
     except Exception as e:
@@ -337,7 +345,7 @@ def get_model(id: str):
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-        response = model
+        response = model.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -384,28 +392,35 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id)
-
-        if model is None:
+        exsisting_model = model_store.get(id)
+        if exsisting_model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
+        model = ModelDTO()
+        model.model_id = id
+
         data = request.get_json()
-        _id = model["id"]
+        data.pop("model", None)
+        data.pop("model_id", None)
+        model.patch_with(data, throw_on_extra_keys=False)
 
-        # Update the model with the new data
-        # Only update the fields that are present in the request
-        for key, value in data.items():
-            if key in ["_id", "model"]:
-                continue
-            model[key] = value
+        updated_model = model_store.update(model)
 
-        success, message = model_store.update(_id, model)
+        response = updated_model.to_dict()
+        return jsonify(response), 200
 
-        if success:
-            response = model
-            return jsonify(response), 200
-
-        return jsonify({"message": f"Failed to update model: {message}"}), 500
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -452,20 +467,29 @@ def put_model(id: str):
     """
     try:
         model = model_store.get(id)
-
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
         data = request.get_json()
-        _id = model["id"]
+        data.pop("model", None)
+        data["model_id"] = id
 
-        success, message = model_store.update(_id, data)
+        model.populate_with(data)
+        new_model = model_store.update(model)
+        response = new_model.to_dict()
+        return jsonify(response), 200
 
-        if success:
-            response = model
-            return jsonify(response), 200
-
-        return jsonify({"message": f"Failed to update model: {message}"}), 500
+    except EntityNotFound as e:
+        logger.error(f"Entity not found: {e}")
+        return jsonify({"message": f"Entity with id: {id} not found"}), 404
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
@@ -634,11 +658,10 @@ def download(id: str):
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-            model_id = model["model"]
             model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
-            file = minio_repository.get_artifact_stream(model_id, model_bucket)
+            file = minio_repository.get_artifact_stream(model.model_id, model_bucket)
 
-            return send_file(file, as_attachment=True, download_name=model_id)
+            return send_file(file, as_attachment=True, download_name=model.model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
     except Exception as e:
@@ -689,9 +712,9 @@ def get_parameters(id: str):
             model = model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
-            model_id = model["model"]
+
             model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
-            file = minio_repository.get_artifact_stream(model_id, model_bucket)
+            file = minio_repository.get_artifact_stream(model.model_id, model_bucket)
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
