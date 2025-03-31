@@ -30,7 +30,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
         return self.mongo_update(item)
 
     def get_latest_round_id(self) -> int:
-        obj = self.database[self.collection].find_one(sort=[("committed_at", pymongo.DESCENDING)])
+        obj = self.database[self.collection].find_one(sort=[("_id", pymongo.DESCENDING)])
         if obj:
             return int(obj["round_id"])
         else:
