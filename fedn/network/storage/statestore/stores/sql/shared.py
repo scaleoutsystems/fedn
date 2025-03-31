@@ -223,3 +223,22 @@ class ValidationModel(MyAbstractBase):
     sender_role: Mapped[Optional[str]] = mapped_column(String(255))
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     timestamp: Mapped[datetime]
+
+
+class MetricModel(MyAbstractBase):
+    __tablename__ = "metrics"
+
+    key: Mapped[str] = mapped_column(String(255))
+    value: Mapped[float]
+
+    # Client timestamp
+    timestamp: Mapped[Optional[datetime]]
+
+    sender_id: Mapped[str]
+    sender_role: Mapped[str]
+
+    model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
+    model_step: Mapped[Optional[int]]
+
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+    round_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rounds.id"))

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field, PrimaryID
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, NodeDTO, PrimaryID
 
 
 class ValidationDTO(BaseDTO):
@@ -15,5 +15,5 @@ class ValidationDTO(BaseDTO):
     timestamp: Optional[datetime] = Field(None)
     session_id: Optional[str] = Field(None)
     meta: Optional[str] = Field(None)
-    sender: Optional[AgentDTO] = Field(AgentDTO())
-    receiver: Optional[AgentDTO] = Field(AgentDTO())
+    sender: Optional[NodeDTO] = Field(NodeDTO())
+    receiver: Optional[NodeDTO] = Field(NodeDTO())
