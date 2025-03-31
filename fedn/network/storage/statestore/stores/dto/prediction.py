@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field, PrimaryID
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, NodeDTO, PrimaryID
 
 
 class PredictionDTO(BaseDTO):
@@ -12,5 +12,5 @@ class PredictionDTO(BaseDTO):
     correlation_id: str = Field(None)
     timestamp: str = Field(None)
     meta: Optional[str] = Field(None)
-    sender: AgentDTO = Field(AgentDTO())
-    receiver: AgentDTO = Field(AgentDTO())
+    sender: NodeDTO = Field(NodeDTO())
+    receiver: NodeDTO = Field(NodeDTO())
