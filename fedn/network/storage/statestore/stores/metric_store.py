@@ -24,7 +24,7 @@ class MongoDBMetricStore(MetricStore, MongoDBStore[MetricDTO]):
         return MetricDTO().patch_with(item, throw_on_extra_keys=False)
 
 
-class SQLMetricStore(MetricStore, SQLStore[MetricDTO]):
+class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def __init__(self, session):
         super().__init__(session, MetricModel)
 
