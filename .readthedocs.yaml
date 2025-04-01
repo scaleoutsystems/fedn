@@ -4,6 +4,9 @@ build:
   os: ubuntu-20.04
   tools:
     python: "3.9"
+  jobs:
+    pre_build:
+     - sphinx-apidoc --ext-autodoc --module-first -o docs fedn ./*tests* ./*exceptions* ./*common* ./*v1* ./*cli* ./ ./fedn/network/api/server.py ./fedn/network/controller/controlbase.py
 
 sphinx:
    configuration: docs/conf.py
