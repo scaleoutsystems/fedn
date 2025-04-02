@@ -6,8 +6,7 @@ build:
     python: "3.9"
   jobs:
     pre_build:
-     - sphinx-apidoc --ext-autodoc --module-first -o docs fedn ./*tests* ./*exceptions* ./*common* ./*v1* ./*cli* ./ ./fedn/network/api/server.py ./fedn/network/controller/controlbase.py
-
+     - sphinx-apidoc --ext-autodoc --module-first -o docs fedn ./*tests* ./fedn/cli* ./fedn/common* ./fedn/network/api/v1* ./fedn/network/grpc/fedn_pb2.py ./fedn/network/grpc/fedn_pb2_grpc.py  ./fedn/network/api/server.py ./fedn/network/controller/controlbase.py
 sphinx:
    configuration: docs/conf.py
 
