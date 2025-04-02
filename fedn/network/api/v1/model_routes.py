@@ -543,7 +543,7 @@ def get_descendants(id: str):
         if descendants is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-        response = descendants
+        response = [model.to_dict() for model in descendants]
         return jsonify(response), 200
 
     except Exception as e:
@@ -612,7 +612,41 @@ def get_ancestors(id: str):
         ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
         if ancestors is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        response = ancestors
+        response = [model.to_dict() for model in ancestors]
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/leaf-nodes", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_leaf_nodes():
+    """Get model leaf nodes
+    Retrieves a list of
+    ---
+    tags:
+        - Models
+    responses:
+      200:
+        description: A list of models.
+        schema:
+            type: object
+            properties:
+                type: array
+                items:
+                    $ref: '#/definitions/Model'
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                error:
+                    type: string
+    """
+    try:
+        leaf_nodes = model_store.get_leaf_nodes()
+        response = [model.to_dict() for model in leaf_nodes]
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
