@@ -238,7 +238,7 @@ class MetricModel(MyAbstractBase):
     sender_role: Mapped[str]
 
     model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
-    model_step: Mapped[Optional[int]]
+    step: Mapped[Optional[int]]
 
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     round_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rounds.id"))
