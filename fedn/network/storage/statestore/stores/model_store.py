@@ -38,6 +38,13 @@ class ModelStore(Store[ModelDTO]):
         pass
 
     @abstractmethod
+    def get_leaf_nodes(self) -> List[ModelDTO]:
+        """List orphans
+        return: A list of entities
+        """
+        pass
+
+    @abstractmethod
     def get_active(self) -> str:
         """Get the active model
         return: The active model id (str)
@@ -97,7 +104,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
             if model is not None:
                 formatted_model = self._dto_from_document(model)
                 result.append(formatted_model)
-                current_model_id = model["model"]
+                current_model_id = model["model_id"]
             else:
                 break
 
@@ -135,6 +142,20 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 
         if reverse:
             result.reverse()
+
+        return result
+
+    def get_leaf_nodes(self) -> List[ModelDTO]:
+        parent_ids = self.database[self.collection].distinct("parent_model")
+
+        kwargs = {"key": "models", "model": {"$nin": parent_ids}}
+        leaf_nodes = list(self.database[self.collection].find(kwargs))
+
+        result: list = []
+
+        for model in leaf_nodes:
+            formatted_model = self._dto_from_document(model)
+            result.append(formatted_model)
 
         return result
 
@@ -218,6 +239,20 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
                 query = query.limit(limit)
 
             # Execute the query
+            items = session.execute(query).fetchall()
+
+            # Return the list of ancestors
+            result = []
+            for item in items:
+                result.append(self._dto_from_orm_model(item))
+
+            return result
+
+    def get_leaf_nodes(self) -> List[ModelDTO]:
+        with self.Session() as session:
+            # Define the recursive CTE
+            child_alias = aliased(ModelModel)  # Alias for recursion
+            query = session.query(ModelModel).outerjoin(child_alias, ModelModel.id == child_alias.parent_id).filter(child_alias.id.is_(None))
             items = session.execute(query).fetchall()
 
             # Return the list of ancestors
