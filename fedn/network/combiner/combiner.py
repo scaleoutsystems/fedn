@@ -689,8 +689,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.info("Recieved ModelMetric from {}".format(request.sender.name))
-
+        logger.info("Received ModelMetric from {}".format(request.sender.name))
         metric_msg = MessageToDict(request, preserving_proto_field_name=True)
         metrics = metric_msg.pop("metrics")
 
