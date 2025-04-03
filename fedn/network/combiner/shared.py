@@ -2,6 +2,7 @@ from fedn.common.config import get_modelstorage_config
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
+from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
@@ -25,6 +26,7 @@ client_store: ClientStore = stores.client_store
 status_store: StatusStore = stores.status_store
 validation_store: ValidationStore = stores.validation_store
 prediction_store: PredictionStore = stores.prediction_store
+analytic_store: AnalyticStore = stores.analytic_store
 
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)

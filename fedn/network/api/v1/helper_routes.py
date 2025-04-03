@@ -29,7 +29,7 @@ def get_active_helper():
         if active_package is None:
             return jsonify({"message": "No active helper"}), 404
 
-        response = active_package["helper"]
+        response = active_package.helper
 
         return jsonify(response), 200
     except Exception as e:

@@ -8,6 +8,7 @@ from io import BytesIO
 from typing import Any, Callable, Optional, Union
 
 import grpc
+import psutil
 from google.protobuf.json_format import MessageToJson
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -18,8 +19,10 @@ from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
 KEEPALIVE_TIME_MS = 1 * 1000  # send keepalive ping every 60 seconds
-KEEPALIVE_TIMEOUT_MS = 30 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
+# wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIMEOUT_MS = 30 * 1000
+# allow keepalive pings even when there are no RPCs
+KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 MAX_CONNECTION_IDLE_MS = 30000
 MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
 CLIENT_IDLE_TIMEOUT_MS = 30000
@@ -107,16 +110,19 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-    def heartbeat(self, client_name: str, client_id: str) -> fedn.Response:
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float, cpu_utilisation: float) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
+        heartbeat = fedn.Heartbeat(
+            sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id),
+            memory_utilisation=memory_utilisation,
+            cpu_utilisation=cpu_utilisation,
+        )
 
         try:
-            logger.info("Sending heartbeat to combiner")
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
         except grpc.RpcError as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
@@ -131,7 +137,9 @@ class GrpcHandler:
         send_heartbeat = True
         while send_heartbeat:
             try:
-                response = self.heartbeat(client_name, client_id)
+                memory_usage = psutil.virtual_memory().percent
+                cpu_usage = psutil.cpu_percent(interval=update_frequency)
+                response = self.heartbeat(client_name, client_id, memory_usage, cpu_usage)
             except grpc.RpcError as e:
                 self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
@@ -139,11 +147,10 @@ class GrpcHandler:
                 self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
             if isinstance(response, fedn.Response):
-                logger.info("Heartbeat successful.")
+                pass
             else:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
-            time.sleep(update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
         """Subscribe to the model update request stream."""

@@ -1,4 +1,3 @@
-import json
 import math
 import os
 import sys
@@ -7,22 +6,7 @@ import torch
 from model import load_parameters, save_parameters
 
 from data import load_data
-from fedn.utils.helpers.helpers import save_metadata
-
-
-# swap this to the load_metadata from helpers.helpers on release..
-def load_client_settings(filename):
-    """Load client settings from file.
-
-    :param filename: The name of the file to load from.
-    :type filename: str
-    :return: The loaded metadata.
-    :rtype: dict
-    """
-    with open(filename + "-metadata", "r") as infile:
-        metadata = json.load(infile)
-    return metadata
-
+from fedn.utils.helpers.helpers import load_metadata, save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -68,7 +52,7 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
     # Load parmeters and initialize model
     model = load_parameters(in_model_path)
 
-    client_settings = load_client_settings(in_model_path)
+    client_settings = load_metadata(in_model_path)
     lr = client_settings["learning_rate"]
 
     # Train

@@ -1,6 +1,7 @@
-import docker
-import time
 import os
+import time
+
+import docker
 
 CONTAINER_NAME="postgres-test-db"
 """ 
@@ -35,6 +36,8 @@ def start_postgres_container():
     else:
         raise Exception("Could not start Postgres container")
 
+    time.sleep(3)
+    
     return container, port
 
 def stop_postgres_container():

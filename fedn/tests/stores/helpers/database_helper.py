@@ -74,3 +74,8 @@ def postgres_connection():
         yield DatabaseConnection(force_create_new=True)
     if not os.environ.get("UNITTEST_GITHUB"):
         stop_postgres_container()
+
+
+@pytest.fixture(params=["postgres_connection", "sql_connection", "mongo_connection"])
+def db_connection(request):
+    return request.getfixturevalue(request.param)

@@ -22,7 +22,9 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port=None, secure=False, verify=False, token=None, auth_scheme=None):
+    def __init__(self, host: str, port: int = None, secure: bool = False, verify: bool = False, token: str = None, auth_scheme: str = None):
+        if "://" in host:
+            host = host.split("://")[1]
         self.host = host
         self.port = port
         self.secure = secure
@@ -37,6 +39,9 @@ class APIClient:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
 
         if token:
+            # Split the token if it contains a space (scheme + token).
+            if " " in token:
+                token = token.split()[1]
             self.headers = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
@@ -501,25 +506,38 @@ class APIClient:
 
     # --- Sessions --- #
 
-    def get_session(self, id: str):
+    def get_session(self, id: str = None, name: str = None):
         """Get a session from the statestore.
 
         :param id: The session id to get.
         :type id: str
+        :param name: The session name to get.
+        :type name: str
         :return: Session.
         :rtype: dict
         """
-        response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
-
-        _json = response.json()
+        if name:
+            response = requests.get(self._get_url_api_v1(f"sessions?name={name}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+            if "result" in _json and len(_json["result"]) > 0:
+                _json = _json["result"][0]
+            else:
+                _json = {"message": "Session not found."}
+        elif id:
+            response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+        else:
+            _json = {"message": "No id or name provided."}
 
         return _json
 
-    def get_sessions(self, n_max: int = None):
+    def get_sessions(self, n_max: int = None, name: str = None):
         """Get sessions from the statestore.
 
         :param n_max: The maximum number of sessions to get (If none all will be fetched).
         :type n_max: int
+        :param name: The session name to get.
+        :type name: str
         :return: Sessions.
         :rtype: dict
         """
@@ -528,7 +546,11 @@ class APIClient:
         if n_max:
             _headers["X-Limit"] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1("sessions/"), verify=self.verify, headers=_headers)
+        url = self._get_url_api_v1("sessions/")
+        if name:
+            url += f"?name={name}"
+
+        response = requests.get(url, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
