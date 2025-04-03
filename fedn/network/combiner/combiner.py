@@ -694,9 +694,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         metrics = metric_msg.pop("metrics")
 
         for metric in metrics:
-            newMetric = MetricDTO(**metric, **metric_msg)
+            new_metric = MetricDTO(**metric, **metric_msg)
             try:
-                metric_store.add(newMetric)
+                metric_store.add(new_metric)
             except Exception as e:
                 logger.error(f"Failed to register model metric: {e}")
 
