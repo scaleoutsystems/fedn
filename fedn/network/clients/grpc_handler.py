@@ -10,7 +10,6 @@ from typing import Any, Callable, Optional, Union
 import grpc
 import psutil
 from google.protobuf.json_format import MessageToJson
-from google.protobuf.wrappers_pb2 import UInt32Value
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
