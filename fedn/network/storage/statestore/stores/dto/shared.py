@@ -3,7 +3,7 @@
 import copy
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Generic, List, TypeVar, Union, get_args, get_origin
+from typing import Any, Dict, Generic, List, Optional, TypeVar, Union, get_args, get_origin
 
 from fedn.network.storage.statestore.stores.shared import MissingFieldError
 
@@ -370,6 +370,7 @@ class NodeDTO(DictDTO):
 
     name: str = Field(None)
     role: str = Field(None)
+    client_id: Optional[str] = Field(None)
 
 
 # Private functions
