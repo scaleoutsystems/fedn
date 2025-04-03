@@ -22,7 +22,10 @@ def from_document(document: dict) -> dict:
 
 
 class Store(ABC, Generic[DTO]):
-    """Abstract class for a store."""
+    """Abstract class for a store.
+
+    OBS! This is an interface, do not add any implementations here.
+    """
 
     @abstractmethod
     def get(self, id: str) -> DTO:

@@ -22,7 +22,7 @@ class Field:
 
 
 class validator:  # noqa: N801
-    """decorator class for validations of DTOs."""
+    """decorator class for validation methods of DTOs."""
 
     def __init__(self, func):
         self.func = func
@@ -365,7 +365,7 @@ class BaseDTO(DictDTO):
         return super()._is_field_optional(key) or key == "committed_at"
 
 
-class AgentDTO(DictDTO):
+class NodeDTO(DictDTO):
     """Agent data transfer object."""
 
     name: str = Field(None)

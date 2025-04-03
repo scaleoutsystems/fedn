@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fedn.network.storage.statestore.stores.dto.shared import AgentDTO, BaseDTO, Field, PrimaryID
+from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, NodeDTO, PrimaryID
 
 
 class StatusDTO(BaseDTO):
@@ -17,4 +17,4 @@ class StatusDTO(BaseDTO):
     type: Optional[str] = Field(None)
     extra: Optional[str] = Field(None)
     session_id: Optional[str] = Field(None)
-    sender: Optional[AgentDTO] = Field(AgentDTO())
+    sender: Optional[NodeDTO] = Field(NodeDTO())
