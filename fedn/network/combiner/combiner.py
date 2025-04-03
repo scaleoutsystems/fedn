@@ -692,14 +692,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Recieved ModelMetric from {}".format(request.sender.name))
 
         metric_msg = MessageToDict(request, preserving_proto_field_name=True)
-        logger.info(f"Metrics: {metric_msg}")
         metrics = metric_msg.pop("metrics")
 
         for metric in metrics:
             newMetric = MetricDTO(**metric, **metric_msg)
             try:
-                result = metric_store.add(newMetric)
-                logger.info("Model metric registered: {}".format(result))
+                metric_store.add(newMetric)
             except Exception as e:
                 logger.error(f"Failed to register model metric: {e}")
 

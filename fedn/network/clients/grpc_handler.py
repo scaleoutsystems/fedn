@@ -398,7 +398,6 @@ class GrpcHandler:
         metric.timestamp.GetCurrentTime()
         for key, value in metrics.items():
             metric.metrics.add(key=key, value=value)
-        print(metric)
         return metric
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:

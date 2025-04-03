@@ -92,7 +92,8 @@ class FednContext:
                 model_id = request.model_id
             if round_id is None:
                 if request.type == fedn.StatusType.MODEL_UPDATE:
-                    round_id = request.data["round_id"]
+                    config = json.loads(request.data)
+                    round_id = config["round_id"]
             if session_id is None:
                 session_id = request.session_id
 
