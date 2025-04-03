@@ -22,19 +22,26 @@ def init_seedmodel() -> dict:
 def main():
     parser = argparse.ArgumentParser(description="API example")
     parser.add_argument("--init-seed", action="store_true", required=False, help="Use this flag to send a seed model to the server")
+    parser.add_argument("--upload-seed", action="store_true", required=False, help="Use this flag to send a seed model to the server")
     parser.add_argument("--start-session", action="store_true", required=False, help="Use this flag to start session")
     args = parser.parse_args()
 
     if args.init_seed:
         init_seedmodel()
+        return
+
+    if HOST == "":
+        print("Please insert HOST and TOKEN in fedn_api.py")
+        return
+    if TOKEN:
+        api_client = APIClient(host=HOST, secure=True, verify=True, token=TOKEN)
+    else:
+        api_client = APIClient(host=HOST)
+
+    if args.upload_seed:
+        init_seedmodel()
+        api_client.set_active_model("seed.npz")
     elif args.start_session:
-        if HOST == "" and TOKEN == "":
-            print("Please insert HOST and TOKEN in fedn_api.py")
-            return
-        if TOKEN:
-            api_client = APIClient(host=HOST, secure=True, verify=True, token=TOKEN)
-        else:
-            api_client = APIClient(host=HOST)
         # Depending on the computer hosting the clients this round_timeout might need to increase
         response = api_client.start_session(name="Training", round_timeout=1200)
         print(response)

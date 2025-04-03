@@ -46,7 +46,7 @@ Next, generate the seed model:
 
 .. code-block::
 
-   python fedn_api.py --init-seed
+   python fedn_api.py --upload-seed
 
 This will create a model file 'seed.npz' in the root of the project and upload it to the server.
 
@@ -56,7 +56,7 @@ Now we need to start the clients, download at set of client configutations follo
 Start the clients with the following command:
 .. code-block::
 
-   python client_sc.py --dataset-split-idx 0 --client-yaml client0.yaml
+   python main.py --dataset-split-idx 0 --client-yaml client0.yaml
 
 where each client is started with a different dataset split index and client yaml file.
 
