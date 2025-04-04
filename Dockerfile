@@ -1,6 +1,7 @@
-ARG BASE_IMG=python:3.11-slim
+# ARG BASE_IMG=python:3.11-slim
 ARG RUNTIME_IMG=gcr.io/distroless/python3
-FROM $BASE_IMG AS builder
+# FROM $BASE_IMG AS builder
+FROM python:3.11-slim as builder
 
 ARG GRPC_HEALTH_PROBE_VERSION=""
 
