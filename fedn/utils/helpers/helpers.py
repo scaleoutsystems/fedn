@@ -50,5 +50,5 @@ def save_metrics(metrics, filename):
     :param filename: The name of the file to save to.
     :type filename: str
     """
-    with open(filename, "wb") as outfile:
+    with open(filename, "w") as outfile:
         json.dump(metrics, outfile)
