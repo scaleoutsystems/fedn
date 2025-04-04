@@ -34,6 +34,7 @@ FEDn is an open-source framework for scalable federated learning. This documenta
    helpers
    apiclient
    serverfunctions
+   localcompute
 
 .. toctree::
    :maxdepth: 1
