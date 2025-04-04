@@ -103,8 +103,9 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
         active_package = self.get_active()
 
-        for package in packages:
-            package.active = is_active_package(package.package_id, active_package.to_dict())
+        if active_package:
+            for package in packages:
+                package.active = is_active_package(package.package_id, active_package.to_dict())
 
         return packages
 
