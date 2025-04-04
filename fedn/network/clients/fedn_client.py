@@ -407,8 +407,10 @@ class FednClient:
 
         Args:
             metrics (dict): The metrics to log.
-            step (int, optional): The step number. If not provided, the step from the context will be used. If provided the context step will be set to this value.
-            commit (bool, optional): Whether to commit the metrics. Defaults to True.
+            step (int, optional): The step number.
+            If provided the context step will be set to this value.
+            If not provided, the step from the context will be used.
+            commit (bool, optional): Whether or not to increment the step.  Defaults to True.
 
         Returns:
             bool: True if the metrics were logged successfully, False otherwise.
