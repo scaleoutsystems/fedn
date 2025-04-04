@@ -140,6 +140,9 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
 
         if self.primary_key not in item_dict or not item_dict[self.primary_key]:
             item_dict[self.primary_key] = str(uuid.uuid4())
+        elif self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]}):
+            raise Exception(f"Entity with id {item_dict[self.primary_key]} already exists")
+
         item_dict["committed_at"] = datetime.now()
 
         self.database[self.collection].insert_one(item_dict)
@@ -155,7 +158,7 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         item_dict = self._document_from_dto(item)
         id = item_dict[self.primary_key]
         result = self.database[self.collection].update_one({self.primary_key: id}, {"$set": item_dict})
-        if result.modified_count == 1:
+        if result.matched_count == 1:
             document = self.database[self.collection].find_one({self.primary_key: id})
             return self._dto_from_document(document)
         raise EntityNotFound(f"Entity with id {id} not found")

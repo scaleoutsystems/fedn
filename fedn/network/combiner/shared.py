@@ -5,6 +5,7 @@ from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.metric_store import MetricStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
@@ -27,6 +28,7 @@ status_store: StatusStore = stores.status_store
 validation_store: ValidationStore = stores.validation_store
 prediction_store: PredictionStore = stores.prediction_store
 analytic_store: AnalyticStore = stores.analytic_store
+metric_store: MetricStore = stores.metric_store
 
 
 repository = Repository(modelstorage_config["storage_config"], init_buckets=False)

@@ -17,11 +17,22 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import analytic_store, client_store, combiner_store, prediction_store, repository, round_store, status_store, validation_store
+from fedn.network.combiner.shared import (
+    analytic_store,
+    client_store,
+    combiner_store,
+    metric_store,
+    prediction_store,
+    repository,
+    round_store,
+    status_store,
+    validation_store,
+)
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
+from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
@@ -667,6 +678,29 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.sender.role = heartbeat.sender.role
         response.response = "Heartbeat received"
         return response
+
+    def SendModelMetric(self, request, context):
+        """Send a model metric response.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelMetric`
+        :param context: the context
+        :type context: :class:`grpc._server._Context`
+        :return: the response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
+        """
+        logger.info("Received ModelMetric from {}".format(request.sender.name))
+        metric_msg = MessageToDict(request, preserving_proto_field_name=True)
+        metrics = metric_msg.pop("metrics")
+
+        for metric in metrics:
+            new_metric = MetricDTO(**metric, **metric_msg)
+            try:
+                metric_store.add(new_metric)
+            except Exception as e:
+                logger.error(f"Failed to register model metric: {e}")
+
+        return fedn.Response()
 
     # Combiner Service
 

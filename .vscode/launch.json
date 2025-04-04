@@ -19,5 +19,12 @@
             "module": "pytest",
             "justMyCode": true
         },
+        {
+            "name": "Run current file",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+        }
     ]
 }

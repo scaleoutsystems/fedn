@@ -3,6 +3,7 @@ syntax = "proto3";
 package fedn;
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 message Response {
     Client sender = 1;
@@ -91,6 +92,22 @@ message ModelPrediction {
   string meta = 7;
   string prediction_id = 8;
 }
+
+message ModelMetric {
+  Client sender = 1;
+  repeated NamedMetric metrics = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  google.protobuf.UInt32Value step = 4;
+  string model_id = 5;
+  string round_id = 6;
+  string session_id = 7;
+}
+
+message NamedMetric {
+  string key = 1;
+  float value = 2;
+}
+
 
 enum ModelStatus {
   OK = 0;
@@ -247,17 +264,17 @@ service Connector {
 
     rpc ReassignClient (ReassignRequest) returns (Response);
     rpc ReconnectClient (ReconnectRequest) returns (Response);
+
+    rpc SendModelMetric(ModelMetric) returns (Response);
 }
 
 service Combiner {
-
     // Stream endpoints for training/validation pub/sub
     rpc TaskStream (ClientAvailableMessage) returns (stream TaskRequest);
 
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
     rpc SendModelPrediction (ModelPrediction) returns (Response);
-
 }
 
 message ProvidedFunctionsRequest {

@@ -15,7 +15,7 @@ class MetricDTO(BaseDTO):
     sender: NodeDTO = Field(NodeDTO())
 
     model_id: str = Field(None)
-    model_step: int = Field(None)
+    step: Optional[int] = Field(None)
 
     round_id: Optional[str] = Field(None)
     session_id: Optional[str] = Field(None)
