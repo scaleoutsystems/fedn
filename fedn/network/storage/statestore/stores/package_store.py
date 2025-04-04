@@ -96,7 +96,17 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
         kwargs["key"] = "package_trail"
-        return super().list(limit, skip, sort_key, sort_order, **kwargs)
+        packages = super().list(limit, skip, sort_key, sort_order, **kwargs)
+
+        if packages is None or len(packages) == 0:
+            return []
+
+        active_package = self.get_active()
+
+        for package in packages:
+            package.active = is_active_package(package.package_id, active_package.to_dict())
+
+        return packages
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"
