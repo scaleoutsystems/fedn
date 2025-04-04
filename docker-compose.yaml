@@ -143,7 +143,8 @@ services:
     build:
       context: .
       args:
-        BASE_IMG: ${BASE_IMG:-python:3.10-slim}
+        BASE_IMG: ${BASE_IMG:-python:3.11-slim}
+        RUNTIME_IMG: ${RUNTIME_IMG:-python:3.11-slim}
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn

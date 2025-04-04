@@ -1,6 +1,6 @@
-# ARG BASE_IMG=python:3.12-slim
-# FROM $BASE_IMG AS builder
-FROM python:3.11-slim AS builder
+ARG BASE_IMG=python:3.11-slim
+ARG RUNTIME_IMG=gcr.io/distroless/python3
+FROM $BASE_IMG AS builder
 
 ARG GRPC_HEALTH_PROBE_VERSION=""
 
@@ -23,7 +23,8 @@ RUN mkdir /python-dist \
   && pip install --prefix=/python-dist --no-cache-dir 'setuptools>=65' .
 
 # Stage 2: Distroless Runtime
-FROM gcr.io/distroless/python3
+
+FROM $RUNTIME_IMG
 
 COPY --from=builder /python-dist /python-dist
 COPY --from=builder /build /app
