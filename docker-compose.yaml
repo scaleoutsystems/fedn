@@ -109,7 +109,7 @@ services:
       retries: 5
     depends_on:
       - api-server
-      - hooks
+      # - hooks
   # Hooks
   hooks:
     container_name: hook
@@ -124,9 +124,9 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
-    entrypoint: [ "sh", "-c" ]
     command:
-      - "/venv/bin/pip install --no-cache-dir -e . && /venv/bin/fedn hooks start"
+      - hooks
+      - start
     ports:
       - 12081:12081
     healthcheck:

@@ -1,5 +1,6 @@
-ARG BASE_IMG=python:3.12-slim
-FROM $BASE_IMG AS builder
+# ARG BASE_IMG=python:3.12-slim
+# FROM $BASE_IMG AS builder
+FROM python:3.11-slim AS builder
 
 ARG GRPC_HEALTH_PROBE_VERSION=""
 
