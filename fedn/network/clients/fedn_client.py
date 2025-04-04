@@ -83,7 +83,9 @@ def get_compute_package_dir_path() -> str:
     return result
 
 
-class FednContext:
+class LoggingContext:
+    """Context for keeping track of the session, model and round IDs during a dispatched call from a request."""
+
     def __init__(
         self, *, step: int = 0, model_id: str = None, round_id: str = None, session_id: str = None, request: Optional[fedn.TaskRequest] = None
     ) -> None:
@@ -121,7 +123,7 @@ class FednClient:
         self.dispatcher: Optional[Dispatcher] = None
         self.grpc_handler: Optional[GrpcHandler] = None
 
-        self._current_context: Optional[FednContext] = None
+        self._current_context: Optional[LoggingContext] = None
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -256,8 +258,8 @@ class FednClient:
         self.grpc_handler.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
 
     @contextmanager
-    def fedn_context(self, context: FednContext):
-        """Set the FEDn context."""
+    def logging_context(self, context: LoggingContext):
+        """Set the logging context."""
         prev_context = self._current_context
         self._current_context = context
         try:
@@ -276,7 +278,7 @@ class FednClient:
 
     def update_local_model(self, request: fedn.TaskRequest) -> None:
         """Update the local model."""
-        with self.fedn_context(FednContext(request=request)):
+        with self.logging_context(LoggingContext(request=request)):
             model_id = request.model_id
             model_update_id = str(uuid.uuid4())
 
@@ -331,7 +333,7 @@ class FednClient:
 
     def validate_global_model(self, request: fedn.TaskRequest) -> None:
         """Validate the global model."""
-        with self.fedn_context(FednContext(request=request)):
+        with self.logging_context(LoggingContext(request=request)):
             model_id = request.model_id
 
             self.send_status(
@@ -381,7 +383,7 @@ class FednClient:
 
     def predict_global_model(self, request: fedn.TaskRequest) -> None:
         """Predict using the global model."""
-        with self.fedn_context(FednContext(request=request)):
+        with self.logging_context(LoggingContext(request=request)):
             model_id = request.model_id
             model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
 
@@ -401,7 +403,17 @@ class FednClient:
             self.send_model_prediction(prediction_message)
 
     def log_metric(self, metrics: dict, step: int = None, commit: bool = True) -> bool:
-        """Log the metrics."""
+        """Log the metrics to the server.
+
+        Args:
+            metrics (dict): The metrics to log.
+            step (int, optional): The step number. If not provided, the step from the context will be used. If provided the context step will be set to this value.
+            commit (bool, optional): Whether to commit the metrics. Defaults to True.
+
+        Returns:
+            bool: True if the metrics were logged successfully, False otherwise.
+
+        """
         context = self._current_context
 
         if context is None:
