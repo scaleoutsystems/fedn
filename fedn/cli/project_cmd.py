@@ -53,13 +53,24 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
+@click.option("-b", "--branch", required=False, help="git branch (default main)")
+@click.option("-im", "--image", required=False, help="docker image")
+@click.option("-r", "--repo", required=False, help="fedn repo")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False):
+def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, branch: str = None,
+ image: str = None, repo: str = None):
     """Create project.
     :param ctx:
     """
     # Check if user can create project
+
+    if image:
+        if not branch:
+            branch = "main"
+        if not repo:
+            repo = "ghcr.io/scaleoutsystems.com/fedn/"
+
     studio_api = True
     url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/create", usr_api=studio_api)
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -84,7 +95,8 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
     else:
         # Call the authentication API
         try:
-            requests.post(url, data={"name": name, "description": description}, headers=headers)
+            requests.post(url, data={"name": name, "description": description, "studio_branch": branch, "fedn_image": image, "fedn_repo": repo}, headers=headers
+                )
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
         click.secho("Project created.", fg="green")
