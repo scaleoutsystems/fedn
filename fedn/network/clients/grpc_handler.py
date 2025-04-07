@@ -226,6 +226,18 @@ class GrpcHandler:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
             self._handle_unknown_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
 
+    def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
+        """Send a model metric to the combiner."""
+        try:
+            logger.info("Sending model metric to combiner.")
+            _ = self.connectorStub.SendModelMetric(metric, metadata=self.metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+        except Exception as e:
+            logger.error(f"GRPC (SendModelMetric): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+        return True
+
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
@@ -371,6 +383,21 @@ class GrpcHandler:
         prediction.prediction_id = session_id
 
         return prediction
+
+    def create_metric_message(self, sender_name: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str) -> fedn.ModelMetric:
+        """Create a metric message."""
+        metric = fedn.ModelMetric()
+        metric.sender.name = sender_name
+        metric.sender.role = fedn.CLIENT
+        metric.model_id = model_id
+        if step is not None:
+            metric.step.value = step
+        metric.session_id = session_id
+        metric.round_id = round_id
+        metric.timestamp.GetCurrentTime()
+        for key, value in metrics.items():
+            metric.metrics.add(key=key, value=value)
+        return metric
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         """Send a model update to the combiner."""
