@@ -487,7 +487,7 @@ def start_server_api():
     if debug:
         app.run(debug=debug, port=port, host=host)
     else:
-        workers = os.cpu_count()
+        workers = config.get("num_workers", 2)
         gunicorn_app.run_gunicorn(app, host, port, workers)
 
 
