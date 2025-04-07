@@ -48,7 +48,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: [self-hosted, ${{ github.event.inputs.FEDN_RUNNER || 'north' }}]
+    runs-on: [self-hosted, ${{ github.event.inputs.FEDN_RUNNER || north }}]
 
     steps:
     - name: Checkout repository
