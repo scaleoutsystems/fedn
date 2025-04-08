@@ -53,9 +53,9 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
-@click.option("-b", "--branch", required=False, help="git branch (default main)")
-@click.option("-im", "--image", required=False, help="docker image")
-@click.option("-r", "--repo", required=False, help="fedn repo")
+@click.option("-b", "--branch", required=False, help="git branch (default main). Requires admin in Studio")
+@click.option("-im", "--image", required=False, help="docker image. Requires admin in Studio")
+@click.option("-r", "--repo", required=False, help="fedn repo. Requires admin in Studio")
 @project_cmd.command("create")
 @click.pass_context
 def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, branch: str = None,
@@ -70,6 +70,8 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
             branch = "main"
         if not repo:
             repo = "ghcr.io/scaleoutsystems.com/fedn/"
+    elif branch or repo:
+             raise ValueError("Need to provide an image.")
 
     studio_api = True
     url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/create", usr_api=studio_api)
@@ -104,17 +106,21 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("-no-header", "--no-header", required=False, help="list projects without headers")
 @project_cmd.command("list")
 @click.pass_context
-def list_projects(ctx, protocol: str = None, host: str = None):
+def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool = False):
     """Return:
     ------
     - result: list of projects
 
     """
     studio_api = True
-
-    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers={}, usr_api=studio_api, usr_token=True)
+    if no_header:
+        headers = {}
+    else:
+        headers = {}
+    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers=headers, usr_api=studio_api, usr_token=True)
 
     if response.status_code == 200:
         response_json = response.json()

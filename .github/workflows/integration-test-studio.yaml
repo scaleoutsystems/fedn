@@ -21,10 +21,10 @@ on:
         description: 'Round Timeout'
         required: false
         default: '180'
-      FEDN_BUFFER_SIZE:
-        description: 'Buffer Size'
+      FEDN_RUNNER:
+        description: 'Runner'
         required: false
-        default: '-1'
+        default: 'north'
       FEDN_FL_ALG:
         description: 'FL Algorithm'
         required: false
@@ -48,7 +48,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: self-hosted
+    runs-on: [self-hosted, south]
 
     steps:
     - name: Checkout repository
@@ -97,6 +97,8 @@ jobs:
 
     - name: Print test logs
       if: failure()
+      env:
+        FEDN_EXAMPLE: ${{ github.event.inputs.FEDN_EXAMPLE || 'mnist-pytorch' }}
       run: |
         for log in examples/$FEDN_EXAMPLE/test_*.log; do
               echo "Printing $log"
