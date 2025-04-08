@@ -8,23 +8,6 @@ from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get
 bp = Blueprint("metric", __name__, url_prefix=f"/api/{api_version}/metrics")
 
 
-# class MetricDTO(BaseDTO):
-#     metric_id: str = PrimaryID(None)
-
-#     key: str = Field(None)
-#     value: float = Field(None)
-
-#     timestamp: Optional[datetime] = Field(None)
-
-#     sender: NodeDTO = Field(NodeDTO())
-
-#     model_id: str = Field(None)
-#     model_step: int = Field(None)
-
-#     round_id: Optional[str] = Field(None)
-#     session_id: Optional[str] = Field(None)
-
-
 @bp.route("/", methods=["GET"])
 @jwt_auth_required(role="admin")
 def get_metrics():
@@ -150,7 +133,7 @@ def get_metrics():
 
 @jwt_auth_required(role="admin")
 @bp.route("/list", methods=["POST"])
-def list_predictions():
+def list_metrics():
     """Retrieve a list of metrics based on the provided filters and pagination.
 
     This endpoint allows an admin user to fetch a list of metrics from the metric store.
