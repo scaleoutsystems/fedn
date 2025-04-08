@@ -69,7 +69,7 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
         if not branch:
             branch = "main"
         if not repo:
-            repo = "ghcr.io/scaleoutsystems.com/fedn/"
+            repo = "ghcr.io/scaleoutsystems/fedn"
     elif branch or repo:
              raise ValueError("Need to provide an image.")
 
