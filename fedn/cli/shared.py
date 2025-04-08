@@ -8,7 +8,8 @@ from fedn.common.log_config import logger
 
 CONTROLLER_DEFAULTS = {"protocol": "http", "host": "localhost", "port": 8092, "debug": False}
 
-STUDIO_DEFAULTS = {"protocol": "https", "host": "api.fedn.scaleoutsystems.com", "branch": "main", "image": "fedn:latest", "repo": "ghcr.io/scaleoutsystems/fedn"}
+STUDIO_DEFAULTS = {"protocol": "https", "host": "api.fedn.scaleoutsystems.com", "branch": "main", "image": "fedn:latest", "repo": "ghcr.io/scaleoutsystems/fedn"
+}
 
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
 
