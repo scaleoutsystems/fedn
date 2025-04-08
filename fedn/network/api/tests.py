@@ -27,6 +27,7 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
+from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 import pymongo
 
 from build.lib.fedn.network.storage.statestore.stores.dto.client import ClientDTO
@@ -39,8 +40,8 @@ from fedn.network.storage.statestore.stores.dto.session import SessionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO  # noqa: F401
 
-entitites = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations']
-keys = ['client_id', 'combiner_id', 'model_id', 'package_id', 'round_id', 'session_id', 'status_id', 'validation_id']
+entitites = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations', 'metrics']
+keys = ['client_id', 'combiner_id', 'model_id', 'package_id', 'round_id', 'session_id', 'status_id', 'validation_id', 'metric_id']
 
 class NetworkAPITests(unittest.TestCase):
     """ Unittests for the Network API. """
@@ -91,6 +92,9 @@ class NetworkAPITests(unittest.TestCase):
         fedn.network.api.shared.status_store.count = MagicMock(return_value=1)
         fedn.network.api.shared.validation_store.list = MagicMock(return_value=[ValidationDTO(validation_id="test")])
         fedn.network.api.shared.validation_store.count = MagicMock(return_value=1)
+        fedn.network.api.shared.metric_store.list = MagicMock(return_value=[MetricDTO(metric_id="test")])
+        fedn.network.api.shared.metric_store.count = MagicMock(return_value=1)
+
 
         for key,entity in zip(keys, entitites):
             response = self.app.get(f'/api/v1/{entity}/')
@@ -121,6 +125,8 @@ class NetworkAPITests(unittest.TestCase):
         fedn.network.api.shared.status_store.list.assert_called_once()
         fedn.network.api.shared.validation_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
         fedn.network.api.shared.validation_store.list.assert_called_once()
+        fedn.network.api.shared.metric_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        fedn.network.api.shared.metric_store.list.assert_called_once()
    
         for entity in entitites:
             headers = {
@@ -141,6 +147,7 @@ class NetworkAPITests(unittest.TestCase):
         fedn.network.api.shared.session_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
         fedn.network.api.shared.status_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
         fedn.network.api.shared.validation_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        fedn.network.api.shared.metric_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
            
 
 if __name__ == '__main__':
