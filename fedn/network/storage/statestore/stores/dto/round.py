@@ -57,7 +57,7 @@ class RoundCombinerDTO(DictDTO):
     """RoundCombiner data transfer object."""
 
     round_id: Optional[str] = Field(None)
-    model_id: str = Field(None)
+    model_id: Optional[str] = Field(None)
     name: str = Field(None)
     status: str = Field(None)
     time_exec_training: float = Field(None)
