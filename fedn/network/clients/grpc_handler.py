@@ -384,10 +384,13 @@ class GrpcHandler:
 
         return prediction
 
-    def create_metric_message(self, sender_name: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str) -> fedn.ModelMetric:
+    def create_metric_message(
+        self, sender_name: str, sender_client_id: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str
+    ) -> fedn.ModelMetric:
         """Create a metric message."""
         metric = fedn.ModelMetric()
         metric.sender.name = sender_name
+        metric.sender.client_id = sender_client_id
         metric.sender.role = fedn.CLIENT
         metric.model_id = model_id
         if step is not None:

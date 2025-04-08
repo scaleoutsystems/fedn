@@ -431,7 +431,13 @@ class FednClient:
             context.step += 1
 
         message = self.grpc_handler.create_metric_message(
-            sender_name=self.name, metrics=metrics, model_id=context.model_id, step=step, round_id=context.round_id, session_id=context.session_id
+            sender_name=self.name,
+            sender_client_id=sender.client_id,
+            metrics=metrics,
+            model_id=context.model_id,
+            step=step,
+            round_id=context.round_id,
+            session_id=context.session_id,
         )
 
         return self.grpc_handler.send_model_metric(message)
