@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import List, Optional, Type
 
-from sqlalchemy import ForeignKey, MetaData, String
+from sqlalchemy import ForeignKey, MetaData, PickleType, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 constraint_naming_conventions = {
@@ -225,7 +225,7 @@ class ValidationModel(MyAbstractBase):
     timestamp: Mapped[datetime]
 
 
-class MetricModel(MyAbstractBase):
+class AttributeModel(MyAbstractBase):
     __tablename__ = "metrics"
 
     key: Mapped[str] = mapped_column(String(255))
@@ -242,3 +242,14 @@ class MetricModel(MyAbstractBase):
 
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     round_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rounds.id"))
+
+
+class AttributeModel(MyAbstractBase):
+    __tablename__ = "attributes"
+
+    attributes: Mapped[PickleType]
+    # Client timestamp
+    timestamp: Mapped[Optional[datetime]]
+
+    sender_id: Mapped[str]
+    sender_role: Mapped[str]
