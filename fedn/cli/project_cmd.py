@@ -2,8 +2,7 @@ import os
 
 import click
 import requests
-#from tabulate import tabulate
-from prettytable import PrettyTable
+import pandas as pd
 from .main import main
 from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, set_context
 
@@ -87,21 +86,20 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
         try:
             response = requests.post(url, data={"name": name, "description": description}, headers=headers)
             response_project = response.json().get("project")
-            table = PrettyTable(["Name", "Slug", "Owner", "Status", "Created At", "FEDn Version"])
-
-            row = [
-                response_project.get("name"),
-                response_project.get("slug"),
-                response_project.get("owner_username"),
-                response_project.get("status"),
-                response_project.get("created_at"),
-                response_project.get("app_version")
-            ]
-            table.add_row(row)
+            rows = []
+            rows.append({
+                "Name": response_project.get("name"),
+                "Slug": response_project.get("slug"),
+                "Owner": response_project.get("owner_username"),
+                "Status": response_project.get("status"),
+                "Created At": response_project.get("created_at"),
+                "FEDn Version": response_project.get("app_version")
+            })
+            data = pd.DataFrame(rows)
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
         click.secho("Project successfully created.", fg="green")
-        click.secho(table)
+        click.secho(data.to_string(index=False))
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
@@ -134,17 +132,20 @@ def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool=F
                         click.secho(project_name)
             else:
                 # Create a list to store table rows
-                table = PrettyTable(["Name", "Slug", "Owner", "Status", "Created At", "FEDn Version"])
+                rows = []
                 for i in response_json:
-                    table.add_row([
-                        i.get("name"),
-                        i.get("slug"),
-                        i.get("owner_username"),
-                        i.get("status"),
-                        i.get("created_at"),
-                        i.get("app_version")
-                    ])
-                click.secho(table)
+                    rows.append({
+                        "Name": i.get("name"),
+                        "Slug": i.get("slug"),
+                        "Owner": i.get("owner_username"),
+                        "Status": i.get("status"),
+                        "Created At": i.get("created_at"),
+                        "FEDn Version": i.get("app_version")
+                    })
+
+                # Create and print DataFrame
+                data = pd.DataFrame(rows)
+                click.secho(data.to_string(index=False))
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
