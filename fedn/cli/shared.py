@@ -130,6 +130,42 @@ def print_response(response, entity_name: str, so):
     else:
         click.echo(f"Error: {response.status_code}")
 
+def print_response_tabular(data):
+    if not isinstance(data, list):
+        data = [data]
+    headers = ["Name", "Slug", "Owner", "Status", "Created At", "FEDn Version"]
+
+    # Prepare rows
+    rows = []
+    for i in data:
+        rows.append([
+            i.get("name", ""),
+            i.get("slug", ""),
+            i.get("owner_username", ""),
+            i.get("status", ""),
+            i.get("created_at", ""),
+            i.get("app_version", "")
+        ])
+
+    # Calculate column widths
+    col_widths = [len(h) for h in headers]
+    for row in rows:
+        for idx, value in enumerate(row):
+            col_widths[idx] = max(col_widths[idx], len(str(value)))
+
+    # Helper to format a row
+    def format_row(row):
+        return " | ".join(f"{str(val):<{col_widths[idx]}}" for idx, val in enumerate(row))
+
+    # Print header
+    print(format_row(headers))
+    print("-+-".join("-" * w for w in col_widths))
+
+    # Print rows
+    for row in rows:
+        click.secho(format_row(row))
+
+
 
 def set_context(context_path, context_data):
     """Saves context data as yaml file in given path"""

@@ -2,9 +2,8 @@ import os
 
 import click
 import requests
-import pandas as pd
 from .main import main
-from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, set_context
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, print_response_tabular, set_context
 
 
 @main.group("project")
@@ -86,20 +85,11 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
         try:
             response = requests.post(url, data={"name": name, "description": description}, headers=headers)
             response_project = response.json().get("project")
-            rows = []
-            rows.append({
-                "Name": response_project.get("name"),
-                "Slug": response_project.get("slug"),
-                "Owner": response_project.get("owner_username"),
-                "Status": response_project.get("status"),
-                "Created At": response_project.get("created_at"),
-                "FEDn Version": response_project.get("app_version")
-            })
-            data = pd.DataFrame(rows)
+            print_response_tabular(response_project)
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
         click.secho("Project successfully created.", fg="green")
-        click.secho(data.to_string(index=False))
+
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
@@ -130,22 +120,7 @@ def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool=F
                         click.secho(f"{project_name} (active)", fg="green")
                     else:
                         click.secho(project_name)
-            else:
-                # Create a list to store table rows
-                rows = []
-                for i in response_json:
-                    rows.append({
-                        "Name": i.get("name"),
-                        "Slug": i.get("slug"),
-                        "Owner": i.get("owner_username"),
-                        "Status": i.get("status"),
-                        "Created At": i.get("created_at"),
-                        "FEDn Version": i.get("app_version")
-                    })
-
-                # Create and print DataFrame
-                data = pd.DataFrame(rows)
-                click.secho(data.to_string(index=False))
+            print_response_tabular(response_json)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
