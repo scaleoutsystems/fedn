@@ -84,10 +84,25 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
     else:
         # Call the authentication API
         try:
-            requests.post(url, data={"name": name, "description": description}, headers=headers)
+            response = requests.post(url, data={"name": name, "description": description}, headers=headers)
+            response_project = response.json().get("project")
+            table_data = []
+            row = [
+                response_project.get("name"),
+                response_project.get("slug"),
+                response_project.get("owner_username"),
+                response_project.get("status"),
+                response_project.get("created_at"),
+                response_project.get("app_version")
+            ]
+            table_data.append(row)
+            # Define headers
+            headers = ["Name", "Slug", "Owner", "Status", "Created At", "FEDn Version"]
+            # Print the table
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
-        click.secho("Project created.", fg="green")
+        click.secho("Project successfully created.", fg="green")
+        click.secho(tabulate(table_data, headers=headers, tablefmt="grid"))
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
