@@ -225,7 +225,7 @@ class ValidationModel(MyAbstractBase):
     timestamp: Mapped[datetime]
 
 
-class AttributeModel(MyAbstractBase):
+class MetricModel(MyAbstractBase):
     __tablename__ = "metrics"
 
     key: Mapped[str] = mapped_column(String(255))

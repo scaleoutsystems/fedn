@@ -7,36 +7,44 @@ import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
-
+from fedn.network.storage.statestore.stores.dto.model import ModelDTO
+fr
 
 
 
 @pytest.fixture
 def test_metrics():
+    model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
     
-    metric1 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now())
-    metric2 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now())
-    metric3 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now())
-    metric4 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now())
-    return [metric1, metric2, metric3, metric4]
+    metric1 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
+    metric2 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
+    metric3 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
+    metric4 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
+    return model, [metric1, metric2, metric3, metric4]
 
 
 
 @pytest.fixture
 def test_metric():
+    model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
     metric = MetricDTO()
     metric.key = "loss"
     metric.value = 0.1
     metric.sender.name = "test_sender_name1"
     metric.sender.role = "test_sender_role1"
     metric.timestamp = datetime.datetime.now()
-    metric.model_id = 
-    metric.step = 1
-    return metric
+    metric.model_id = model.model_id
+    metric.step = 0
+    return model, metric
 
 
 @pytest.fixture
 def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_metrics):
+    model, test_metrics = test_metrics
+    mongo_connection.model_store.add(model)
+    postgres_connection.model_store.add(model)
+    sql_connection.model_store.add(model)
+    
     for c in test_metrics:
         mongo_connection.metric_store.add(c)
         postgres_connection.metric_store.add(c)

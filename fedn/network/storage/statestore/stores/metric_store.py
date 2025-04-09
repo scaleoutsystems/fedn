@@ -4,7 +4,7 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
-from fedn.network.storage.statestore.stores.sql.shared import AttributeModel, from_orm_model
+from fedn.network.storage.statestore.stores.sql.shared import MetricModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
@@ -33,9 +33,9 @@ def _translate_key_sql(key: str):
     return key
 
 
-class SQLMetricStore(MetricStore, SQLStore[MetricDTO, AttributeModel]):
+class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def __init__(self, session):
-        super().__init__(session, AttributeModel)
+        super().__init__(session, MetricModel)
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
         sort_key = _translate_key_sql(sort_key)
@@ -46,14 +46,14 @@ class SQLMetricStore(MetricStore, SQLStore[MetricDTO, AttributeModel]):
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         return super().count(**kwargs)
 
-    def _update_orm_model_from_dto(self, entity: AttributeModel, item: MetricDTO):
+    def _update_orm_model_from_dto(self, entity: MetricModel, item: MetricDTO):
         item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("metric_id", None)
         for key, value in item_dict.items():
             setattr(entity, key, value)
         return entity
 
-    def _dto_from_orm_model(self, item: AttributeModel) -> MetricDTO:
-        orm_dict = from_orm_model(item, AttributeModel)
+    def _dto_from_orm_model(self, item: MetricModel) -> MetricDTO:
+        orm_dict = from_orm_model(item, MetricModel)
         orm_dict["metric_id"] = orm_dict.pop("id")
         return MetricDTO().populate_with(orm_dict)

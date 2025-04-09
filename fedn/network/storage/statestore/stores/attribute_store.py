@@ -36,7 +36,7 @@ def _translate_key_sql(key: str):
     return key
 
 
-class MongoDBMetricStore(AttributeStore, MongoDBStore[AttributeDTO]):
+class MongoDBAttributeStore(AttributeStore, MongoDBStore[AttributeDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "attribute_id")
 
@@ -49,7 +49,7 @@ class MongoDBMetricStore(AttributeStore, MongoDBStore[AttributeDTO]):
         return AttributeDTO().patch_with(item, throw_on_extra_keys=False)
 
 
-class SQLMetricStore(AttributeStore, SQLStore[AttributeDTO, AttributeModel]):
+class SQLAttributeStore(AttributeStore, SQLStore[AttributeDTO, AttributeModel]):
     def __init__(self, session):
         super().__init__(session, AttributeModel)
 
