@@ -80,7 +80,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
         id = item_dict[self.primary_key]
         result = self.database[self.collection].update_one({self.primary_key: id, "key": "models"}, {"$set": item_dict})
         if result.matched_count == 1:
-            document = self.database[self.collection].find_one({self.primary_key: id})
+            document = self.database[self.collection].find_one({self.primary_key: id, "key": "models"})
             return self._dto_from_document(document)
         raise EntityNotFound(f"Entity with id {id} not found")
 
