@@ -9,10 +9,7 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
-from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
-
-# from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -392,19 +389,17 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        exsisting_model = model_store.get(id)
-        if exsisting_model is None:
+        existing_model = model_store.get(id)
+        if existing_model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-        model = ModelDTO()
-        model.model_id = id
-
         data = request.get_json()
+
         data.pop("model", None)
         data.pop("model_id", None)
-        model.patch_with(data, throw_on_extra_keys=False)
 
-        updated_model = model_store.update(model)
+        existing_model.patch_with(data, throw_on_extra_keys=False)
+        updated_model = model_store.update(existing_model)
 
         response = updated_model.to_dict()
         return jsonify(response), 200
