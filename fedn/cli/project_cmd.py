@@ -161,23 +161,20 @@ def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
 
     response = get_response(protocol=protocol, host=host, port=None, endpoint=f"projects/{id}", token=None, headers={}, usr_api=studio_api, usr_token=False)
     if response.status_code == 200:
-        if response.json().get("error"):
-            click.secho(f"No project with id '{id}' exists.", fg="red")
-        else:
-            url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/update", usr_api=studio_api)
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/update", usr_api=studio_api)
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
-            _token = get_token(None, True)
+        _token = get_token(None, True)
 
-            if _token:
-                headers["Authorization"] = _token
+        if _token:
+            headers["Authorization"] = _token
 
-            # Call the authentication API
-            try:
-                requests.post(url, data={"slug": id}, headers=headers)
-            except requests.exceptions.RequestException as e:
-                click.secho(str(e), fg="red")
-            click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
+        # Call the authentication API
+        try:
+            requests.post(url, data={"slug": id}, headers=headers)
+        except requests.exceptions.RequestException as e:
+            click.secho(str(e), fg="red")
+        click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
