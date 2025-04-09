@@ -481,7 +481,9 @@ def patch_session(id: str):
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         data = request.get_json()
-        data["session_id"] = id
+        # Remove session_id from the data if it exists
+        # since we are editing 'id' otherwise the user could change the id
+        data.pop("session_id", None)
 
         existing_session.patch_with(data, throw_on_extra_keys=False)
         updated_session = session_store.update(existing_session)
