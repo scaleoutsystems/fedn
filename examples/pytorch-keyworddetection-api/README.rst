@@ -30,8 +30,14 @@ Or if you rather use pip to install the packages:
 
    pip install -r requirements.txt
 
-Note that you in the case of installing with pip need to install either sox (macos or linux) or soundfile (windows) depending on your platform as this is a requirement for the torchaudio package.
+.. note::
 
+   In the case of installing with pip need to install either sox (macos or linux) or soundfile (windows) depending on your platform as this is a requirement for the torchaudio package.
+
+   For MacOS, you can install sox with the following command:
+   .. code-block::
+      brew install sox
+   
 
 Clone this repository, then locate into this directory:
 
