@@ -5,9 +5,10 @@ from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, No
 
 
 class AttributeDTO(BaseDTO):
-    metric_id: str = PrimaryID(None)
+    attribute_id: str = PrimaryID(None)
 
-    attribute: dict = Field({})
+    key: str = Field(None)
+    value: str = Field(None)
 
     timestamp: Optional[datetime] = Field(None)
 

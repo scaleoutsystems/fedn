@@ -1,3 +1,4 @@
+from typing import List, Tuple
 import pytest
 import pymongo
 
@@ -8,7 +9,6 @@ import itertools
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.model import ModelDTO
-fr
 
 
 
@@ -16,68 +16,77 @@ fr
 def test_metrics():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
     
-    metric1 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
-    metric2 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
-    metric3 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
-    metric4 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=datetime.datetime.now(), model_id=model.model_id)
+    timestamp = datetime.datetime.now().replace(microsecond=0)
+    
+
+    metric1 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=timestamp, model_id=model.model_id)
+    metric2 = MetricDTO(metric_id=str(uuid.uuid4()),key="loss", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=timestamp, model_id=model.model_id)
+    metric3 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name2", "role":"test_sender_role1"}, timestamp=timestamp, model_id=model.model_id)
+    metric4 = MetricDTO(metric_id=str(uuid.uuid4()),key="accuracy", value=0.1, sender={"name":"test_sender_name1", "role":"test_sender_role1"}, timestamp=timestamp, model_id=model.model_id)
     return model, [metric1, metric2, metric3, metric4]
 
 
 
 @pytest.fixture
-def test_metric():
+def test_model_metric():
+    timestamp = datetime.datetime.now().replace(microsecond=0)
+
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
     metric = MetricDTO()
     metric.key = "loss"
     metric.value = 0.1
     metric.sender.name = "test_sender_name1"
     metric.sender.role = "test_sender_role1"
-    metric.timestamp = datetime.datetime.now()
+    metric.timestamp = timestamp
     metric.model_id = model.model_id
     metric.step = 0
     return model, metric
 
 
 @pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_metrics):
-    model, test_metrics = test_metrics
+def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_metrics: Tuple[ModelDTO, List[MetricDTO]]):
+    model, metrics = test_metrics
     mongo_connection.model_store.add(model)
     postgres_connection.model_store.add(model)
     sql_connection.model_store.add(model)
-    
-    for c in test_metrics:
+
+    for c in metrics:
         mongo_connection.metric_store.add(c)
         postgres_connection.metric_store.add(c)
         sql_connection.metric_store.add(c)
 
     yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
 
-    for c in test_metrics:
+    for c in metrics:
         mongo_connection.metric_store.delete(c.metric_id)
         postgres_connection.metric_store.delete(c.metric_id)
         sql_connection.metric_store.delete(c.metric_id)
+
+    mongo_connection.model_store.delete(model.model_id)
+    postgres_connection.model_store.delete(model.model_id)
+    sql_connection.model_store.delete(model.model_id)
 
 
 
 @pytest.fixture
 def options():
     sorting_keys = (None, 
-                    "correlation_id", 
+                    "sender.name", 
                     "timestamp", 
                     "invalid_key"
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
     desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
-    opt_kwargs = ({}, {"correlation_id":""})
+    opt_kwargs = ({}, {"key":"loss"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-class TestmetricStore:
+class TestMetricStore:
 
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_metric: MetricDTO):
-        test_metric.check_validity()
-
+    def test_add_update_delete(self, db_connection: DatabaseConnection, test_model_metric: Tuple[ModelDTO, MetricDTO]):
+        model, test_metric = test_model_metric
+        db_connection.model_store.add(model)
         read_metric1 = db_connection.metric_store.add(test_metric)
         assert isinstance(read_metric1.metric_id, str)
         assert isinstance(read_metric1.committed_at, datetime.datetime)
@@ -101,6 +110,8 @@ class TestmetricStore:
         # Delete the metric and check that it is deleted
         success = db_connection.metric_store.delete(metric_id)
         assert success == True
+
+        db_connection.model_store.delete(model.model_id)
     
 
     def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   

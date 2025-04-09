@@ -49,6 +49,11 @@ class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def _update_orm_model_from_dto(self, entity: MetricModel, item: MetricDTO):
         item_dict = item.to_db(exclude_unset=False)
         item_dict["id"] = item_dict.pop("metric_id", None)
+
+        sender: Dict = item_dict.pop("sender", {})
+        item_dict["sender_name"] = sender.get("name")
+        item_dict["sender_role"] = sender.get("role")
+
         for key, value in item_dict.items():
             setattr(entity, key, value)
         return entity
@@ -56,4 +61,8 @@ class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def _dto_from_orm_model(self, item: MetricModel) -> MetricDTO:
         orm_dict = from_orm_model(item, MetricModel)
         orm_dict["metric_id"] = orm_dict.pop("id")
+        orm_dict["sender"] = {
+            "name": orm_dict.pop("sender_name"),
+            "role": orm_dict.pop("sender_role"),
+        }
         return MetricDTO().populate_with(orm_dict)
