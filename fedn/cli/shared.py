@@ -130,10 +130,16 @@ def print_response(response, entity_name: str, so):
     else:
         click.echo(f"Error: {response.status_code}")
 
-def print_response_tabular(data):
+def pretty_print_projects(data):
+    """Prints the project information in tabular format.
+    :param data:
+        type: array
+        description: list of entities
+    return: None
+    """
     if not isinstance(data, list):
         data = [data]
-    headers = ["Name", "Slug", "Owner", "Status", "Created At", "FEDn Version"]
+    headers = ["Name", "ID", "Owner", "Status", "Created At", "FEDn Version"]
 
     # Prepare rows
     rows = []
