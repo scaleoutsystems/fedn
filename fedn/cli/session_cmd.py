@@ -132,18 +132,21 @@ def start_session(
     if response.status_code == 201:
         session_id = response.json()["session_id"]
         url = get_api_url(protocol, host, port, "sessions/start", usr_api=False)
-        response = requests.post(
-            url,
-            json={
-                "session_id": session_id,
-                "rounds": rounds,
-                "round_timeout": round_timeout,
-            },
-            headers=headers,
-            verify=False,
-        )
-        response_json = response.json()
-        response_json["session_id"] = session_id
-        click.secho(f"Session started successfully: {response_json}", fg="green")
+        try:
+            response = requests.post(
+                url,
+                json={
+                    "session_id": session_id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                headers=headers,
+                verify=False,
+            )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            click.secho(f"Session started successfully: {response_json}", fg="green")
+        except requests.exceptions.RequestException:
+            click.secho(f"Failed to start session: {response.json()}", fg="red")
     else:
         click.secho(f"Failed to start session: {response.json()}", fg="red")
