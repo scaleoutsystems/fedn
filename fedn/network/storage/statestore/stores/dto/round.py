@@ -11,6 +11,7 @@ class RoundConfigDTO(SessionConfigDTO):
     task: str = Field(None)
     rounds: int = Field(None)
     round_id: str = Field(None)
+    client_settings: Optional[dict] = Field({})
 
 
 class RoundReduceDTO(DictDTO):
