@@ -147,6 +147,38 @@ def get_project(ctx, id: str = None, protocol: str = None, host: str = None):
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
 
+@click.option("-id", "--id", required=True, default=None, help="Name of new project.")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@project_cmd.command("update")
+@click.pass_context
+def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
+    """Update project to latest version.
+    :param ctx:
+    """
+    # Check if user can create project
+    studio_api = True
+
+    response = get_response(protocol=protocol, host=host, port=None, endpoint=f"projects/{id}", token=None, headers={}, usr_api=studio_api, usr_token=False)
+    if response.status_code == 200:
+        url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/update", usr_api=studio_api)
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        _token = get_token(None, True)
+
+        if _token:
+            headers["Authorization"] = _token
+
+        # Call the authentication API
+        try:
+            requests.post(url, data={"slug": id}, headers=headers)
+        except requests.exceptions.RequestException as e:
+            click.secho(str(e), fg="red")
+        click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
+    else:
+        click.secho(f"Unexpected error: {response.status_code}", fg="red")
+
+
 @click.option("-id", "--id", required=True, help="id name of project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
@@ -215,7 +247,6 @@ def activate_project(id: str = None, protocol: str = None, host: str = None):
             click.echo("No projects available to set current context.")
     else:
         click.secho(f"Unexpected error: {response_projects.status_code}", fg="red")
-
 
 def no_project_exists(response) -> bool:
     """Returns true if no project exists."""
