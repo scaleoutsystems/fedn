@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional, Type
+from typing import Dict, List, Optional, Type
 
-from sqlalchemy import ForeignKey, MetaData, String
+from sqlalchemy import JSON, ForeignKey, MetaData, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 constraint_naming_conventions = {
@@ -89,6 +89,7 @@ class RoundConfigModel(MyAbstractBase):
     task: Mapped[str] = mapped_column(String(255))
     round_id: Mapped[str]
     rounds: Mapped[int]
+    client_settings: Mapped[Optional[Dict]] = mapped_column(JSON)
 
 
 class RoundCombinerDataModel(MyAbstractBase):
