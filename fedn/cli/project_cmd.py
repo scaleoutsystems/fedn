@@ -2,9 +2,8 @@ import os
 
 import click
 import requests
-
 from .main import main
-from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, set_context
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, pretty_print_projects, set_context
 
 
 @main.group("project")
@@ -49,13 +48,14 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 
 
 @click.option("-n", "--name", required=False, default=None, help="Name of new project.")
-@click.option("-d", "--description", required=False, default=None, help="Description of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
+@click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False):
+def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, no_header: bool = False
+):
     """Create project.
     :param ctx:
     """
@@ -68,33 +68,32 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
     if _token:
         headers["Authorization"] = _token
-    if not no_interactive:
-        if name is None:
-            name = input("Please enter a project name: ")
-        if description is None:
-            description = input("Please enter a project description (optional): ")
-    else:
-        if name is None:
+    if name is None:
+        if no_interactive:
             click.secho("Project name is required.", fg="red")
             return
-        if description is None:
-            description = ""
-    if len(name) > 46 or len(description) >= 255:
+        name = input("Please enter a project name: ")
+    if len(name) > 46:
         click.secho("Project name or description too long.", fg="red")
     else:
         # Call the authentication API
         try:
-            requests.post(url, data={"name": name, "description": description}, headers=headers)
+            response = requests.post(url, data={"name": name}, headers=headers)
+            response_project = response.json().get("project")
+            if not no_header:
+                pretty_print_projects(response_project)
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
-        click.secho("Project created.", fg="green")
+        click.secho("Project successfully created.", fg="green")
+
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("list")
 @click.pass_context
-def list_projects(ctx, protocol: str = None, host: str = None):
+def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool=False):
     """Return:
     ------
     - result: list of projects
@@ -110,13 +109,15 @@ def list_projects(ctx, protocol: str = None, host: str = None):
             context_path = os.path.join(HOME_DIR, ".fedn")
             context_data = get_context(context_path)
             active_project = context_data.get("Active project id")
-
-            for i in response_json:
-                project_name = i.get("slug")
-                if project_name == active_project:
-                    click.secho(f"{project_name} (active)", fg="green")
-                else:
-                    click.secho(project_name)
+            if no_header:
+                for i in response_json:
+                    project_name = i.get("slug")
+                    if project_name == active_project:
+                        click.secho(f"{project_name} (active)", fg="green")
+                    else:
+                        click.secho(project_name)
+            else:
+                pretty_print_projects(response_json)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
