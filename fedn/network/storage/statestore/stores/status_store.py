@@ -66,7 +66,6 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
         item_dict["id"] = item_dict.pop("status_id", None)
 
         sender: Dict = item_dict.pop("sender", {})
-
         item_dict["sender_name"] = sender.get("name")
         item_dict["sender_role"] = sender.get("role")
 

@@ -15,9 +15,10 @@ from sqlalchemy.orm.session import Session as SessionClass
 
 from fedn.common.config import get_network_config, get_statestore_config
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
+from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
-from fedn.network.storage.statestore.stores.metric_store import MongoDBMetricStore, SQLMetricStore
+from fedn.network.storage.statestore.stores.metric_store import MetricStore, MongoDBMetricStore, SQLMetricStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore, MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
@@ -44,6 +45,7 @@ class StoreContainer:
         session_store: SessionStore,
         analytic_store: AnalyticStore,
         metric_store: SQLMetricStore,
+        attribute_store: AttributeStore,
     ) -> None:
         """Initialize the StoreContainer with various store instances."""
         self.client_store = client_store
@@ -57,6 +59,7 @@ class StoreContainer:
         self.session_store = session_store
         self.analytic_store = analytic_store
         self.metric_store = metric_store
+        self.attribute_store = attribute_store
 
 
 class DatabaseConnection:
@@ -105,6 +108,7 @@ class DatabaseConnection:
             session_store = MongoDBSessionStore(mdb, "control.sessions")
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
+            attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
             self.mdb = mdb
 
         elif self.type in ["SQLite", "PostgreSQL"]:
@@ -121,7 +125,7 @@ class DatabaseConnection:
             session_store = SQLSessionStore(Session)
             analytic_store = None
             metric_store = SQLMetricStore(Session)
-
+            attribute_store = SQLAttributeStore(Session)
             self.Session = Session
         else:
             raise ValueError("Unknown statestore type")
@@ -138,6 +142,7 @@ class DatabaseConnection:
             session_store,
             analytic_store,
             metric_store,
+            attribute_store,
         )
 
     def close(self) -> None:
@@ -214,3 +219,11 @@ class DatabaseConnection:
     @property
     def analytic_store(self) -> AnalyticStore:
         return self.sc.analytic_store
+
+    @property
+    def metric_store(self) -> MetricStore:
+        return self.sc.metric_store
+
+    @property
+    def attribute_store(self) -> AttributeStore:
+        return self.sc.attribute_store
