@@ -49,16 +49,15 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 
 
 @click.option("-n", "--name", required=False, default=None, help="Name of new project.")
-@click.option("-d", "--description", required=False, default=None, help="Description of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
-@click.option("-b", "--branch", required=False, default = STUDIO_DEFAULTS["branch"], help="git branch (default main). Requires admin in Studio")
-@click.option("-im", "--image", required=False, default = STUDIO_DEFAULTS["image"],help="docker image. Requires admin in Studio")
-@click.option("-r", "--repo", required=False, default = STUDIO_DEFAULTS["repo"], help="fedn repo. Requires admin in Studio")
+@click.option("--branch", required=False, default = None, help="Studio branch (default main). Requires admin in Studio")
+@click.option("--image", required=False, default = None,help="Container image. Requires admin in Studio")
+@click.option("--repository", required=False, default = None, help="Container image repository. Requires admin in Studio")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, branch: str = None,
+def create_project(ctx, name: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, branch: str = None,
  image: str = None, repo: str = None):
     """Create project.
     :param ctx:
@@ -71,23 +70,17 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
     if _token:
         headers["Authorization"] = _token
-    if not no_interactive:
-        if name is None:
-            name = input("Please enter a project name: ")
-        if description is None:
-            description = input("Please enter a project description (optional): ")
-    else:
-        if name is None:
+    if name is None:
+        if no_interactive:
             click.secho("Project name is required.", fg="red")
             return
-        if description is None:
-            description = ""
-    if len(name) > 46 or len(description) >= 255:
+            name = input("Please enter a project name: ")
+    if len(name) > 46:
         click.secho("Project name or description too long.", fg="red")
     else:
         # Call the authentication API
         try:
-            requests.post(url, data={"name": name, "description": description, "studio_branch": branch, "fedn_image": image, "fedn_repo": repo}, headers=headers
+            requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repo}, headers=headers
                 )
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
