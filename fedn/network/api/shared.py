@@ -30,19 +30,19 @@ modelstorage_config = get_modelstorage_config()
 network_id = get_network_config()
 
 # TODO: Refactor all access to the stores to use the DatabaseConnection
-stores = DatabaseConnection().get_stores()
-session_store: SessionStore = stores.session_store
-model_store: ModelStore = stores.model_store
-round_store: RoundStore = stores.round_store
-package_store: PackageStore = stores.package_store
-combiner_store: CombinerStore = stores.combiner_store
-client_store: ClientStore = stores.client_store
-status_store: StatusStore = stores.status_store
-validation_store: ValidationStore = stores.validation_store
-prediction_store: PredictionStore = stores.prediction_store
-analytic_store: AnalyticStore = stores.analytic_store
-metric_store: MetricStore = stores.metric_store
-training_run_store: RunStore = stores.training_run_store
+dbconn = DatabaseConnection()
+session_store: SessionStore = dbconn.session_store
+model_store: ModelStore = dbconn.model_store
+round_store: RoundStore = dbconn.round_store
+package_store: PackageStore = dbconn.package_store
+combiner_store: CombinerStore = dbconn.combiner_store
+client_store: ClientStore = dbconn.client_store
+status_store: StatusStore = dbconn.status_store
+validation_store: ValidationStore = dbconn.validation_store
+prediction_store: PredictionStore = dbconn.prediction_store
+analytic_store: AnalyticStore = dbconn.analytic_store
+metricStore: MetricStore = dbconn.metric_store
+training_run_store: RunStore = dbconn.training_run_store
 
 
 repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
