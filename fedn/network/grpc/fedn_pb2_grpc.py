@@ -500,11 +500,6 @@ class ConnectorStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
-        self.SendModelMetric = channel.unary_unary(
-                '/fedn.Connector/SendModelMetric',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
-                _registered_method=True)
 
 
 class ConnectorServicer(object):
@@ -557,12 +552,6 @@ class ConnectorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def SendModelMetric(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_ConnectorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -599,11 +588,6 @@ def add_ConnectorServicer_to_server(servicer, server):
             'ReconnectClient': grpc.unary_unary_rpc_method_handler(
                     servicer.ReconnectClient,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ReconnectRequest.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
-            ),
-            'SendModelMetric': grpc.unary_unary_rpc_method_handler(
-                    servicer.SendModelMetric,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
@@ -806,33 +790,6 @@ class Connector(object):
             metadata,
             _registered_method=True)
 
-    @staticmethod
-    def SendModelMetric(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(
-            request,
-            target,
-            '/fedn.Connector/SendModelMetric',
-            network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.Response.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
 
 class CombinerStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -861,6 +818,16 @@ class CombinerStub(object):
         self.SendModelPrediction = channel.unary_unary(
                 '/fedn.Combiner/SendModelPrediction',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
+        self.SendModelMetric = channel.unary_unary(
+                '/fedn.Combiner/SendModelMetric',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
+        self.SendAttributeMessage = channel.unary_unary(
+                '/fedn.Combiner/SendAttributeMessage',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.AttributeMessage.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
 
@@ -893,6 +860,18 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendModelMetric(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendAttributeMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -914,6 +893,16 @@ def add_CombinerServicer_to_server(servicer, server):
             'SendModelPrediction': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelPrediction,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'SendModelMetric': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendModelMetric,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'SendAttributeMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendAttributeMessage,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.AttributeMessage.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
@@ -1024,6 +1013,60 @@ class Combiner(object):
             target,
             '/fedn.Combiner/SendModelPrediction',
             network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendModelMetric(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/SendModelMetric',
+            network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendAttributeMessage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/SendAttributeMessage',
+            network_dot_grpc_dot_fedn__pb2.AttributeMessage.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
