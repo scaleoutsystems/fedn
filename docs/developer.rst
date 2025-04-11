@@ -18,6 +18,7 @@ useful to have a local development setup of the core FEDn server-side services (
 We provide Dockerfiles and docker-compose template for an all-in-one local sandbox:
 
 .. code-block::
+   
    git clone https://github.com/scaleoutsystems/fedn.git
    cd fedn
    docker compose up -d
