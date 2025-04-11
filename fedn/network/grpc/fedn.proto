@@ -95,7 +95,7 @@ message ModelPrediction {
 
 message ModelMetric {
   Client sender = 1;
-  repeated NamedMetric metrics = 2;
+  repeated MetricElem metrics = 2;
   google.protobuf.Timestamp timestamp = 3;
   google.protobuf.UInt32Value step = 4;
   string model_id = 5;
@@ -103,11 +103,21 @@ message ModelMetric {
   string session_id = 7;
 }
 
-message NamedMetric {
+message MetricElem {
   string key = 1;
   float value = 2;
 }
 
+message AttributeMessage {
+  Client sender = 1;
+  repeated AttributeElem attributes = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message AttributeElem {
+  string key = 1;
+  string value = 2;
+}
 
 enum ModelStatus {
   OK = 0;
@@ -264,8 +274,6 @@ service Connector {
 
     rpc ReassignClient (ReassignRequest) returns (Response);
     rpc ReconnectClient (ReconnectRequest) returns (Response);
-
-    rpc SendModelMetric(ModelMetric) returns (Response);
 }
 
 service Combiner {
@@ -275,6 +283,9 @@ service Combiner {
     rpc SendModelUpdate (ModelUpdate) returns (Response);
     rpc SendModelValidation (ModelValidation) returns (Response);
     rpc SendModelPrediction (ModelPrediction) returns (Response);
+
+    rpc SendModelMetric(ModelMetric) returns (Response);
+    rpc SendAttributeMessage(AttributeMessage) returns (Response);
 }
 
 message ProvidedFunctionsRequest {
