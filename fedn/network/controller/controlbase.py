@@ -1,6 +1,5 @@
 import os
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import Any, Tuple
 
 import fedn.utils.helpers.helpers
@@ -12,6 +11,8 @@ from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.dto.round import RoundDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -84,7 +85,7 @@ class ControlBase(ABC):
 
         try:
             active_package = self.package_store.get_active()
-            helper_type = active_package["helper"]
+            helper_type = active_package.helper
         except Exception:
             logger.error("Failed to get active helper")
 
@@ -120,7 +121,7 @@ class ControlBase(ABC):
         definition = self.package_store.get_active()
         if definition:
             try:
-                package_name = definition["storage_file_name"]
+                package_name = definition.storage_file_name
                 return package_name
             except (IndexError, KeyError):
                 logger.error("No context filename set for compute context definition")
@@ -152,10 +153,8 @@ class ControlBase(ABC):
         :type status: str
         """
         session = self.session_store.get(session_id)
-        session["status"] = status
-        updated, msg = self.session_store.update(session["id"], session)
-        if not updated:
-            raise Exception(msg)
+        session.status = status
+        self.session_store.update(session)
 
     def get_session_status(self, session_id: str):
         """Get the status of a session.
@@ -166,10 +165,10 @@ class ControlBase(ABC):
         :rtype: str
         """
         session = self.session_store.get(session_id)
-        return session["status"]
+        return session.status
 
     def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
-        """Set the model id for a session.
+        """Set the model id for a session
 
         :param session_id: The session unique identifier
         :type session_id: str
@@ -177,14 +176,14 @@ class ControlBase(ABC):
         :type config: dict
         """
         session = self.session_store.get(session_id)
-        session["session_config"] = config
-        updated, msg = self.session_store.update(session["id"], session)
-        if not updated:
-            raise Exception(msg)
+        session.session_config.patch_with(config)
+
+        self.session_store.update(session)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
-        self.round_store.add(round_data)
+        round = RoundDTO(**round_data)
+        self.round_store.add(round)
 
     def set_round_data(self, round_id: str, round_data: dict):
         """Set round data.
@@ -195,10 +194,8 @@ class ControlBase(ABC):
         :type status: dict
         """
         round = self.round_store.get(round_id)
-        round["round_data"] = round_data
-        updated, _ = self.round_store.update(round["id"], round)
-        if not updated:
-            raise Exception("Failed to update round")
+        round.round_data = round_data
+        self.round_store.update(round)
 
     def set_round_status(self, round_id: str, status: str):
         """Set the round round stats.
@@ -209,10 +206,8 @@ class ControlBase(ABC):
         :type status: str
         """
         round = self.round_store.get(round_id)
-        round["status"] = status
-        updated, _ = self.round_store.update(round["id"], round)
-        if not updated:
-            raise Exception("Failed to update round")
+        round.status = status
+        self.round_store.update(round)
 
     def set_round_config(self, round_id: str, round_config: RoundConfig):
         """Upate round in backend db.
@@ -223,10 +218,8 @@ class ControlBase(ABC):
         :type round_config: dict
         """
         round = self.round_store.get(round_id)
-        round["round_config"] = round_config
-        updated, _ = self.round_store.update(round["id"], round)
-        if not updated:
-            raise Exception("Failed to update round")
+        round.round_config = round_config
+        self.round_store.update(round)
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.
@@ -273,20 +266,16 @@ class ControlBase(ABC):
         if active_model and session_id:
             parent_model = active_model
 
-        committed_at = datetime.now()
+        new_model = ModelDTO()
+        new_model.model_id = model_id
+        new_model.parent_model = parent_model
+        new_model.session_id = session_id
+        new_model.name = name
 
-        updated, _ = self.model_store.add(
-            {
-                "key": "models",
-                "model": model_id,
-                "parent_model": parent_model,
-                "session_id": session_id,
-                "committed_at": committed_at,
-                "name": name,
-            }
-        )
-
-        if not updated:
+        try:
+            self.model_store.add(new_model)
+        except Exception as e:
+            logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")
 
         self.model_store.set_active(model_id)

@@ -12,14 +12,14 @@ STUDIO_DEFAULTS = {"protocol": "https", "host": "api.fedn.scaleoutsystems.com"}
 
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
 
+HOME_DIR = os.environ.get("FEDN_HOME_DIR", os.path.expanduser("~"))
+
 CLIENT_DEFAULTS = {
     "discover_host": "localhost",
     "discover_port": 8092,
 }
 
 API_VERSION = "v1"
-
-home_dir = os.path.expanduser("~")
 
 
 def apply_config(path: str, config: dict):
@@ -57,7 +57,7 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: boo
 def get_project_url(protocol: str, host: str, port: str, endpoint: str) -> str:
     _url = os.environ.get("FEDN_CONTROLLER_URL")
     if _url is None:
-        context_path = os.path.join(home_dir, ".fedn")
+        context_path = os.path.join(HOME_DIR, ".fedn")
         try:
             context_data = get_context(context_path)
             _url = context_data.get("Active project url")
@@ -74,7 +74,7 @@ def get_token(token: str, usr_token: bool) -> str:
     _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     if _token is None:
-        context_path = os.path.join(home_dir, ".fedn")
+        context_path = os.path.join(HOME_DIR, ".fedn")
         try:
             context_data = get_context(context_path)
             if usr_token:

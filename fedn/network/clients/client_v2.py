@@ -222,7 +222,7 @@ class Client:
             self.fedn_client.dispatcher.run_cmd(f"predict {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
-                metrics = json.loads(fh.read())
+                metrics = json.load(fh)
 
             os.unlink(inpath)
             os.unlink(outpath)

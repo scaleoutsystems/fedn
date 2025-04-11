@@ -5,33 +5,27 @@ Classes:
     DatabaseConnection: A singleton class for managing database connections and stores.
 """
 
+from typing import Type
+
 import pymongo
 from pymongo.database import Database
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session as SessionClass
 
 from fedn.common.config import get_network_config, get_statestore_config
-from fedn.network.storage.statestore.stores.analytic_store import (
-    AnalyticStore, MongoDBAnalyticStore)
-from fedn.network.storage.statestore.stores.client_store import (
-    ClientStore, MongoDBClientStore, SQLClientStore)
-from fedn.network.storage.statestore.stores.combiner_store import (
-    CombinerStore, MongoDBCombinerStore, SQLCombinerStore)
-from fedn.network.storage.statestore.stores.model_store import (
-    ModelStore, MongoDBModelStore, SQLModelStore)
-from fedn.network.storage.statestore.stores.package_store import (
-    MongoDBPackageStore, PackageStore, SQLPackageStore)
-from fedn.network.storage.statestore.stores.prediction_store import (
-    MongoDBPredictionStore, PredictionStore, SQLPredictionStore)
-from fedn.network.storage.statestore.stores.round_store import (
-    MongoDBRoundStore, RoundStore, SQLRoundStore)
-from fedn.network.storage.statestore.stores.session_store import (
-    MongoDBSessionStore, SessionStore, SQLSessionStore)
-from fedn.network.storage.statestore.stores.status_store import (
-    MongoDBStatusStore, SQLStatusStore, StatusStore)
-from fedn.network.storage.statestore.stores.store import MyAbstractBase
-from fedn.network.storage.statestore.stores.validation_store import (
-    MongoDBValidationStore, SQLValidationStore, ValidationStore)
+from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
+from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
+from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
+from fedn.network.storage.statestore.stores.metric_store import MongoDBMetricStore, SQLMetricStore
+from fedn.network.storage.statestore.stores.model_store import ModelStore, MongoDBModelStore, SQLModelStore
+from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
+from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
+from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
+from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
+from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
+from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
+from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 
 class StoreContainer:
@@ -49,6 +43,7 @@ class StoreContainer:
         model_store: ModelStore,
         session_store: SessionStore,
         analytic_store: AnalyticStore,
+        metric_store: SQLMetricStore,
     ) -> None:
         """Initialize the StoreContainer with various store instances."""
         self.client_store = client_store
@@ -61,6 +56,7 @@ class StoreContainer:
         self.model_store = model_store
         self.session_store = session_store
         self.analytic_store = analytic_store
+        self.metric_store = metric_store
 
 
 class DatabaseConnection:
@@ -86,10 +82,16 @@ class DatabaseConnection:
         return cls._instance
 
     def _init_connection(self) -> None:
+        self.type: str = None
+        self.mdb: Database = None
+        self.Session: sessionmaker = None
+
         statestore_config = get_statestore_config()
         network_id = get_network_config()
 
-        if statestore_config["type"] == "MongoDB":
+        self.type = statestore_config["type"]
+
+        if self.type == "MongoDB":
             mdb: Database = self._setup_mongo(statestore_config, network_id)
 
             client_store = MongoDBClientStore(mdb, "network.clients")
@@ -102,8 +104,10 @@ class DatabaseConnection:
             model_store = MongoDBModelStore(mdb, "control.model")
             session_store = MongoDBSessionStore(mdb, "control.sessions")
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
+            metric_store = MongoDBMetricStore(mdb, "control.metrics")
+            self.mdb = mdb
 
-        elif statestore_config["type"] in ["SQLite", "PostgreSQL"]:
+        elif self.type in ["SQLite", "PostgreSQL"]:
             Session = self._setup_sql(statestore_config)  # noqa: N806
 
             client_store = SQLClientStore(Session)
@@ -116,6 +120,9 @@ class DatabaseConnection:
             model_store = SQLModelStore(Session)
             session_store = SQLSessionStore(Session)
             analytic_store = None
+            metric_store = SQLMetricStore(Session)
+
+            self.Session = Session
         else:
             raise ValueError("Unknown statestore type")
 
@@ -130,20 +137,21 @@ class DatabaseConnection:
             model_store,
             session_store,
             analytic_store,
+            metric_store,
         )
 
     def close(self) -> None:
         """Close the database connection."""
         pass
 
-    def _setup_mongo(self, statestore_config: dict, network_id: str) -> "DatabaseConnection":
+    def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
         mc.server_info()
         mdb: Database = mc[network_id]
 
         return mdb
 
-    def _setup_sql(self, statestore_config: dict) -> "DatabaseConnection":
+    def _setup_sql(self, statestore_config: dict) -> Type[SessionClass]:
         if statestore_config["type"] == "SQLite":
             sqlite_config = statestore_config["sqlite_config"]
             dbname = sqlite_config["dbname"]

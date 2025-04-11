@@ -24,7 +24,7 @@ jobs:
         working-directory: ./
 
       - name: Publish to Test PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.14
+        uses: pypa/gh-action-pypi-publish@release/v1.12
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}

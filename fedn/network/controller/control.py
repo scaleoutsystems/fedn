@@ -14,6 +14,7 @@ from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
@@ -136,27 +137,25 @@ class Control(ControlBase):
             logger.error("Session not found.")
             return
 
-        session_config = session["session_config"]
+        session_config = session.session_config
 
-        if not session_config or not isinstance(session_config, dict):
+        if not session_config:
             logger.error("Session not properly configured.")
             return
 
         if round_timeout is not None:
-            session_config["round_timeout"] = round_timeout
+            session_config.round_timeout = round_timeout
 
         self._state = ReducerState.monitoring
 
         last_round = self.get_latest_round_id()
 
-        aggregator = session_config["aggregator"]
-
-        session_config["session_id"] = session_id
+        aggregator = session_config.aggregator
 
         for combiner in self.network.get_combiners():
             combiner.set_aggregator(aggregator)
-            if session_config.get("server_functions", None) is not None:
-                combiner.set_server_functions(session_config["server_functions"])
+            if session_config.server_functions is not None:
+                combiner.set_server_functions(session_config.server_functions)
 
         self.set_session_status(session_id, "Started")
 
@@ -170,18 +169,18 @@ class Control(ControlBase):
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
                     break
-                _, round_data = self.round(session_config, str(current_round))
-                logger.info("Round completed with status {}".format(round_data["status"]))
+                _, round_data = self.round(session_config, str(current_round), session_id)
+                logger.info("Round completed with status {}".format(round_data.status))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
 
-            session_config["model_id"] = self.model_store.get_active()
+            session_config.model_id = self.model_store.get_active()
 
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
         self._state = ReducerState.idle
 
-        self.set_session_config(session_id, session_config)
+        self.set_session_config(session_id, session_config.to_dict())
 
     def prediction_session(self, config: RoundConfig) -> None:
         """Execute a new prediction session.
@@ -285,6 +284,7 @@ class Control(ControlBase):
         self.set_session_config(session_id, session_config)
 
     def round(self, session_config: RoundConfig, round_id: str):
+    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
         """Execute one global round.
 
         : param session_config: The session config.
@@ -293,7 +293,6 @@ class Control(ControlBase):
         : type round_id: str
 
         """
-        session_id = session_config["session_id"]
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -302,7 +301,7 @@ class Control(ControlBase):
             return None, self.round_store.get(round_id)
 
         # Assemble round config for this global round
-        round_config = copy.deepcopy(session_config)
+        round_config = session_config.to_dict()
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
@@ -335,7 +334,7 @@ class Control(ControlBase):
 
         @retry(
             wait=wait_random(min=1.0, max=2.0),
-            stop=stop_after_delay(session_config["round_timeout"]),
+            stop=stop_after_delay(session_config.round_timeout),
             retry_error_callback=do_if_round_times_out,
             retry=retry_if_exception_type(CombinersNotDoneException),
         )
@@ -345,11 +344,11 @@ class Control(ControlBase):
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
                 return False
-            if "combiners" not in round:
+            if len(round.combiners) < 1:
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
 
-            if len(round["combiners"]) < len(participating_combiners):
+            if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("All combiners have not yet reported.")
 
@@ -365,13 +364,13 @@ class Control(ControlBase):
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.round_store.get(round_id)
-            combiners = round["combiners"]
-            return combiners
+            if len(round.combiners) != len(participating_combiners):
+                raise KeyError("Combiners have not yet reported.")
 
-        _ = check_combiners_done_reporting()
+        check_combiners_done_reporting()
 
         round = self.round_store.get(round_id)
-        round_valid = self.evaluate_round_validity_policy(round)
+        round_valid = self.evaluate_round_validity_policy(round.to_dict())
         if not round_valid:
             logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
             self.set_round_status(round_id, "Failed")
@@ -382,7 +381,7 @@ class Control(ControlBase):
         round_data = {}
         try:
             round = self.round_store.get(round_id)
-            model, data = self.reduce(round["combiners"])
+            model, data = self.reduce(round.combiners.to_dict())
             round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:
@@ -395,7 +394,6 @@ class Control(ControlBase):
             logger.info("Committing global model to model trail...")
             tic = time.time()
             model_id = str(uuid.uuid4())
-            session_id = session_config["session_id"] if "session_id" in session_config else None
             self.commit(model_id, model, session_id)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
@@ -407,18 +405,18 @@ class Control(ControlBase):
         self.set_round_status(round_id, "Success")
 
         # 4. Trigger participating combiner nodes to execute a validation round for the current model
-        validate = session_config["validate"]
-        if validate:
-            combiner_config = copy.deepcopy(session_config)
+        if session_config.validate:
+            combiner_config = session_config.to_dict()
             combiner_config["round_id"] = round_id
             combiner_config["model_id"] = self.model_store.get_active()
             combiner_config["task"] = "validation"
+            combiner_config["session_id"] = session_id
 
             helper_type: str = None
 
             try:
                 active_package = self.package_store.get_active()
-                helper_type = active_package["helper"]
+                helper_type = active_package.helper
             except Exception:
                 logger.error("Failed to get active helper")
 

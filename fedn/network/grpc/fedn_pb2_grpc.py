@@ -2,8 +2,11 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
+<<<<<<< HEAD
 
 import fedn.network.grpc.fedn_pb2 as fedn__pb2
+=======
+>>>>>>> master
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
@@ -500,6 +503,11 @@ class ConnectorStub(object):
                 request_serializer=fedn__pb2.ReconnectRequest.SerializeToString,
                 response_deserializer=fedn__pb2.Response.FromString,
                 _registered_method=True)
+        self.SendModelMetric = channel.unary_unary(
+                '/fedn.Connector/SendModelMetric',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
 
 
 class ConnectorServicer(object):
@@ -552,6 +560,12 @@ class ConnectorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendModelMetric(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ConnectorServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -589,6 +603,11 @@ def add_ConnectorServicer_to_server(servicer, server):
                     servicer.ReconnectClient,
                     request_deserializer=fedn__pb2.ReconnectRequest.FromString,
                     response_serializer=fedn__pb2.Response.SerializeToString,
+            ),
+            'SendModelMetric': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendModelMetric,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -780,6 +799,33 @@ class Connector(object):
             '/fedn.Connector/ReconnectClient',
             fedn__pb2.ReconnectRequest.SerializeToString,
             fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendModelMetric(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Connector/SendModelMetric',
+            network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
