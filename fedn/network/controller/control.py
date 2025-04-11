@@ -283,7 +283,6 @@ class Control(ControlBase):
 
         self.set_session_config(session_id, session_config)
 
-    def round(self, session_config: RoundConfig, round_id: str):
     def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
         """Execute one global round.
 

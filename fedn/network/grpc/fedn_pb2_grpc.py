@@ -2,13 +2,10 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 import warnings
-<<<<<<< HEAD
 
-import fedn.network.grpc.fedn_pb2 as fedn__pb2
-=======
->>>>>>> master
+from fedn.network.grpc import fedn_pb2 as network_dot_grpc_dot_fedn__pb2
 
-GRPC_GENERATED_VERSION = '1.70.0'
+GRPC_GENERATED_VERSION = '1.71.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -39,13 +36,13 @@ class ModelServiceStub(object):
         """
         self.Upload = channel.stream_unary(
                 '/fedn.ModelService/Upload',
-                request_serializer=fedn__pb2.ModelRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ModelResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 _registered_method=True)
         self.Download = channel.unary_stream(
                 '/fedn.ModelService/Download',
-                request_serializer=fedn__pb2.ModelRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ModelResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 _registered_method=True)
 
 
@@ -69,13 +66,13 @@ def add_ModelServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Upload': grpc.stream_unary_rpc_method_handler(
                     servicer.Upload,
-                    request_deserializer=fedn__pb2.ModelRequest.FromString,
-                    response_serializer=fedn__pb2.ModelResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
             ),
             'Download': grpc.unary_stream_rpc_method_handler(
                     servicer.Download,
-                    request_deserializer=fedn__pb2.ModelRequest.FromString,
-                    response_serializer=fedn__pb2.ModelResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -103,8 +100,8 @@ class ModelService(object):
             request_iterator,
             target,
             '/fedn.ModelService/Upload',
-            fedn__pb2.ModelRequest.SerializeToString,
-            fedn__pb2.ModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -130,8 +127,8 @@ class ModelService(object):
             request,
             target,
             '/fedn.ModelService/Download',
-            fedn__pb2.ModelRequest.SerializeToString,
-            fedn__pb2.ModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -154,28 +151,28 @@ class ControlStub(object):
         """
         self.Start = channel.unary_unary(
                 '/fedn.Control/Start',
-                request_serializer=fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ControlResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
         self.Stop = channel.unary_unary(
                 '/fedn.Control/Stop',
-                request_serializer=fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ControlResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
         self.FlushAggregationQueue = channel.unary_unary(
                 '/fedn.Control/FlushAggregationQueue',
-                request_serializer=fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ControlResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
         self.SetAggregator = channel.unary_unary(
                 '/fedn.Control/SetAggregator',
-                request_serializer=fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ControlResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
         self.SetServerFunctions = channel.unary_unary(
                 '/fedn.Control/SetServerFunctions',
-                request_serializer=fedn__pb2.ControlRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ControlResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
 
 
@@ -217,28 +214,28 @@ def add_ControlServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Start': grpc.unary_unary_rpc_method_handler(
                     servicer.Start,
-                    request_deserializer=fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn__pb2.ControlResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
             'Stop': grpc.unary_unary_rpc_method_handler(
                     servicer.Stop,
-                    request_deserializer=fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn__pb2.ControlResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
             'FlushAggregationQueue': grpc.unary_unary_rpc_method_handler(
                     servicer.FlushAggregationQueue,
-                    request_deserializer=fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn__pb2.ControlResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
             'SetAggregator': grpc.unary_unary_rpc_method_handler(
                     servicer.SetAggregator,
-                    request_deserializer=fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn__pb2.ControlResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
             'SetServerFunctions': grpc.unary_unary_rpc_method_handler(
                     servicer.SetServerFunctions,
-                    request_deserializer=fedn__pb2.ControlRequest.FromString,
-                    response_serializer=fedn__pb2.ControlResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -266,8 +263,8 @@ class Control(object):
             request,
             target,
             '/fedn.Control/Start',
-            fedn__pb2.ControlRequest.SerializeToString,
-            fedn__pb2.ControlResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -293,8 +290,8 @@ class Control(object):
             request,
             target,
             '/fedn.Control/Stop',
-            fedn__pb2.ControlRequest.SerializeToString,
-            fedn__pb2.ControlResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -320,8 +317,8 @@ class Control(object):
             request,
             target,
             '/fedn.Control/FlushAggregationQueue',
-            fedn__pb2.ControlRequest.SerializeToString,
-            fedn__pb2.ControlResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -347,8 +344,8 @@ class Control(object):
             request,
             target,
             '/fedn.Control/SetAggregator',
-            fedn__pb2.ControlRequest.SerializeToString,
-            fedn__pb2.ControlResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -374,8 +371,8 @@ class Control(object):
             request,
             target,
             '/fedn.Control/SetServerFunctions',
-            fedn__pb2.ControlRequest.SerializeToString,
-            fedn__pb2.ControlResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -398,8 +395,8 @@ class ReducerStub(object):
         """
         self.GetGlobalModel = channel.unary_unary(
                 '/fedn.Reducer/GetGlobalModel',
-                request_serializer=fedn__pb2.GetGlobalModelRequest.SerializeToString,
-                response_deserializer=fedn__pb2.GetGlobalModelResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
                 _registered_method=True)
 
 
@@ -417,8 +414,8 @@ def add_ReducerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'GetGlobalModel': grpc.unary_unary_rpc_method_handler(
                     servicer.GetGlobalModel,
-                    request_deserializer=fedn__pb2.GetGlobalModelRequest.FromString,
-                    response_serializer=fedn__pb2.GetGlobalModelResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -446,8 +443,8 @@ class Reducer(object):
             request,
             target,
             '/fedn.Reducer/GetGlobalModel',
-            fedn__pb2.GetGlobalModelRequest.SerializeToString,
-            fedn__pb2.GetGlobalModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.GetGlobalModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.GetGlobalModelResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -470,38 +467,38 @@ class ConnectorStub(object):
         """
         self.AllianceStatusStream = channel.unary_stream(
                 '/fedn.Connector/AllianceStatusStream',
-                request_serializer=fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn__pb2.Status.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Status.FromString,
                 _registered_method=True)
         self.SendStatus = channel.unary_unary(
                 '/fedn.Connector/SendStatus',
-                request_serializer=fedn__pb2.Status.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.ListActiveClients = channel.unary_unary(
                 '/fedn.Connector/ListActiveClients',
-                request_serializer=fedn__pb2.ListClientsRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ClientList.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
                 _registered_method=True)
         self.AcceptingClients = channel.unary_unary(
                 '/fedn.Connector/AcceptingClients',
-                request_serializer=fedn__pb2.ConnectionRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ConnectionResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
                 _registered_method=True)
         self.SendHeartbeat = channel.unary_unary(
                 '/fedn.Connector/SendHeartbeat',
-                request_serializer=fedn__pb2.Heartbeat.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.ReassignClient = channel.unary_unary(
                 '/fedn.Connector/ReassignClient',
-                request_serializer=fedn__pb2.ReassignRequest.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.ReconnectClient = channel.unary_unary(
                 '/fedn.Connector/ReconnectClient',
-                request_serializer=fedn__pb2.ReconnectRequest.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.SendModelMetric = channel.unary_unary(
                 '/fedn.Connector/SendModelMetric',
@@ -571,38 +568,38 @@ def add_ConnectorServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'AllianceStatusStream': grpc.unary_stream_rpc_method_handler(
                     servicer.AllianceStatusStream,
-                    request_deserializer=fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn__pb2.Status.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
             ),
             'SendStatus': grpc.unary_unary_rpc_method_handler(
                     servicer.SendStatus,
-                    request_deserializer=fedn__pb2.Status.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.Status.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'ListActiveClients': grpc.unary_unary_rpc_method_handler(
                     servicer.ListActiveClients,
-                    request_deserializer=fedn__pb2.ListClientsRequest.FromString,
-                    response_serializer=fedn__pb2.ClientList.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ListClientsRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ClientList.SerializeToString,
             ),
             'AcceptingClients': grpc.unary_unary_rpc_method_handler(
                     servicer.AcceptingClients,
-                    request_deserializer=fedn__pb2.ConnectionRequest.FromString,
-                    response_serializer=fedn__pb2.ConnectionResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ConnectionRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ConnectionResponse.SerializeToString,
             ),
             'SendHeartbeat': grpc.unary_unary_rpc_method_handler(
                     servicer.SendHeartbeat,
-                    request_deserializer=fedn__pb2.Heartbeat.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.Heartbeat.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'ReassignClient': grpc.unary_unary_rpc_method_handler(
                     servicer.ReassignClient,
-                    request_deserializer=fedn__pb2.ReassignRequest.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ReassignRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'ReconnectClient': grpc.unary_unary_rpc_method_handler(
                     servicer.ReconnectClient,
-                    request_deserializer=fedn__pb2.ReconnectRequest.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ReconnectRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'SendModelMetric': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelMetric,
@@ -635,8 +632,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/AllianceStatusStream',
-            fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn__pb2.Status.FromString,
+            network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Status.FromString,
             options,
             channel_credentials,
             insecure,
@@ -662,8 +659,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/SendStatus',
-            fedn__pb2.Status.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.Status.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -689,8 +686,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/ListActiveClients',
-            fedn__pb2.ListClientsRequest.SerializeToString,
-            fedn__pb2.ClientList.FromString,
+            network_dot_grpc_dot_fedn__pb2.ListClientsRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ClientList.FromString,
             options,
             channel_credentials,
             insecure,
@@ -716,8 +713,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/AcceptingClients',
-            fedn__pb2.ConnectionRequest.SerializeToString,
-            fedn__pb2.ConnectionResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ConnectionRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ConnectionResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -743,8 +740,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/SendHeartbeat',
-            fedn__pb2.Heartbeat.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.Heartbeat.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -770,8 +767,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/ReassignClient',
-            fedn__pb2.ReassignRequest.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.ReassignRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -797,8 +794,8 @@ class Connector(object):
             request,
             target,
             '/fedn.Connector/ReconnectClient',
-            fedn__pb2.ReconnectRequest.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.ReconnectRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -848,28 +845,28 @@ class CombinerStub(object):
         """
         self.TaskStream = channel.unary_stream(
                 '/fedn.Combiner/TaskStream',
-                request_serializer=fedn__pb2.ClientAvailableMessage.SerializeToString,
-                response_deserializer=fedn__pb2.TaskRequest.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
                 _registered_method=True)
         self.SendModelUpdate = channel.unary_unary(
                 '/fedn.Combiner/SendModelUpdate',
-                request_serializer=fedn__pb2.ModelUpdate.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.SendModelValidation = channel.unary_unary(
                 '/fedn.Combiner/SendModelValidation',
-                request_serializer=fedn__pb2.ModelValidation.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.SendModelPrediction = channel.unary_unary(
                 '/fedn.Combiner/SendModelPrediction',
-                request_serializer=fedn__pb2.ModelPrediction.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
         self.SendBackwardCompletion = channel.unary_unary(
                 '/fedn.Combiner/SendBackwardCompletion',
-                request_serializer=fedn__pb2.BackwardCompletion.SerializeToString,
-                response_deserializer=fedn__pb2.Response.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
 
 
@@ -912,28 +909,28 @@ def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'TaskStream': grpc.unary_stream_rpc_method_handler(
                     servicer.TaskStream,
-                    request_deserializer=fedn__pb2.ClientAvailableMessage.FromString,
-                    response_serializer=fedn__pb2.TaskRequest.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.SerializeToString,
             ),
             'SendModelUpdate': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelUpdate,
-                    request_deserializer=fedn__pb2.ModelUpdate.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelUpdate.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'SendModelValidation': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelValidation,
-                    request_deserializer=fedn__pb2.ModelValidation.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelValidation.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'SendModelPrediction': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelPrediction,
-                    request_deserializer=fedn__pb2.ModelPrediction.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'SendBackwardCompletion': grpc.unary_unary_rpc_method_handler(
                     servicer.SendBackwardCompletion,
-                    request_deserializer=fedn__pb2.BackwardCompletion.FromString,
-                    response_serializer=fedn__pb2.Response.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -961,8 +958,8 @@ class Combiner(object):
             request,
             target,
             '/fedn.Combiner/TaskStream',
-            fedn__pb2.ClientAvailableMessage.SerializeToString,
-            fedn__pb2.TaskRequest.FromString,
+            network_dot_grpc_dot_fedn__pb2.ClientAvailableMessage.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
             options,
             channel_credentials,
             insecure,
@@ -988,8 +985,8 @@ class Combiner(object):
             request,
             target,
             '/fedn.Combiner/SendModelUpdate',
-            fedn__pb2.ModelUpdate.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.ModelUpdate.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1015,8 +1012,8 @@ class Combiner(object):
             request,
             target,
             '/fedn.Combiner/SendModelValidation',
-            fedn__pb2.ModelValidation.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.ModelValidation.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1042,8 +1039,8 @@ class Combiner(object):
             request,
             target,
             '/fedn.Combiner/SendModelPrediction',
-            fedn__pb2.ModelPrediction.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1069,8 +1066,8 @@ class Combiner(object):
             request,
             target,
             '/fedn.Combiner/SendBackwardCompletion',
-            fedn__pb2.BackwardCompletion.SerializeToString,
-            fedn__pb2.Response.FromString,
+            network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1093,33 +1090,33 @@ class FunctionServiceStub(object):
         """
         self.HandleProvidedFunctions = channel.unary_unary(
                 '/fedn.FunctionService/HandleProvidedFunctions',
-                request_serializer=fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ProvidedFunctionsResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.FromString,
                 _registered_method=True)
         self.HandleClientConfig = channel.stream_unary(
                 '/fedn.FunctionService/HandleClientConfig',
-                request_serializer=fedn__pb2.ClientConfigRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ClientConfigResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
                 _registered_method=True)
         self.HandleClientSelection = channel.unary_unary(
                 '/fedn.FunctionService/HandleClientSelection',
-                request_serializer=fedn__pb2.ClientSelectionRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ClientSelectionResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.FromString,
                 _registered_method=True)
         self.HandleMetadata = channel.unary_unary(
                 '/fedn.FunctionService/HandleMetadata',
-                request_serializer=fedn__pb2.ClientMetaRequest.SerializeToString,
-                response_deserializer=fedn__pb2.ClientMetaResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.FromString,
                 _registered_method=True)
         self.HandleStoreModel = channel.stream_unary(
                 '/fedn.FunctionService/HandleStoreModel',
-                request_serializer=fedn__pb2.StoreModelRequest.SerializeToString,
-                response_deserializer=fedn__pb2.StoreModelResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
                 _registered_method=True)
         self.HandleAggregation = channel.unary_stream(
                 '/fedn.FunctionService/HandleAggregation',
-                request_serializer=fedn__pb2.AggregationRequest.SerializeToString,
-                response_deserializer=fedn__pb2.AggregationResponse.FromString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
                 _registered_method=True)
 
 
@@ -1167,33 +1164,33 @@ def add_FunctionServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'HandleProvidedFunctions': grpc.unary_unary_rpc_method_handler(
                     servicer.HandleProvidedFunctions,
-                    request_deserializer=fedn__pb2.ProvidedFunctionsRequest.FromString,
-                    response_serializer=fedn__pb2.ProvidedFunctionsResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.SerializeToString,
             ),
             'HandleClientConfig': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleClientConfig,
-                    request_deserializer=fedn__pb2.ClientConfigRequest.FromString,
-                    response_serializer=fedn__pb2.ClientConfigResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.SerializeToString,
             ),
             'HandleClientSelection': grpc.unary_unary_rpc_method_handler(
                     servicer.HandleClientSelection,
-                    request_deserializer=fedn__pb2.ClientSelectionRequest.FromString,
-                    response_serializer=fedn__pb2.ClientSelectionResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.SerializeToString,
             ),
             'HandleMetadata': grpc.unary_unary_rpc_method_handler(
                     servicer.HandleMetadata,
-                    request_deserializer=fedn__pb2.ClientMetaRequest.FromString,
-                    response_serializer=fedn__pb2.ClientMetaResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.SerializeToString,
             ),
             'HandleStoreModel': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleStoreModel,
-                    request_deserializer=fedn__pb2.StoreModelRequest.FromString,
-                    response_serializer=fedn__pb2.StoreModelResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.SerializeToString,
             ),
             'HandleAggregation': grpc.unary_stream_rpc_method_handler(
                     servicer.HandleAggregation,
-                    request_deserializer=fedn__pb2.AggregationRequest.FromString,
-                    response_serializer=fedn__pb2.AggregationResponse.SerializeToString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1221,8 +1218,8 @@ class FunctionService(object):
             request,
             target,
             '/fedn.FunctionService/HandleProvidedFunctions',
-            fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
-            fedn__pb2.ProvidedFunctionsResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ProvidedFunctionsResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1248,8 +1245,8 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleClientConfig',
-            fedn__pb2.ClientConfigRequest.SerializeToString,
-            fedn__pb2.ClientConfigResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1275,8 +1272,8 @@ class FunctionService(object):
             request,
             target,
             '/fedn.FunctionService/HandleClientSelection',
-            fedn__pb2.ClientSelectionRequest.SerializeToString,
-            fedn__pb2.ClientSelectionResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ClientSelectionRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ClientSelectionResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1302,8 +1299,8 @@ class FunctionService(object):
             request,
             target,
             '/fedn.FunctionService/HandleMetadata',
-            fedn__pb2.ClientMetaRequest.SerializeToString,
-            fedn__pb2.ClientMetaResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.ClientMetaRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ClientMetaResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1329,8 +1326,8 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleStoreModel',
-            fedn__pb2.StoreModelRequest.SerializeToString,
-            fedn__pb2.StoreModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -1356,8 +1353,8 @@ class FunctionService(object):
             request,
             target,
             '/fedn.FunctionService/HandleAggregation',
-            fedn__pb2.AggregationRequest.SerializeToString,
-            fedn__pb2.AggregationResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
             options,
             channel_credentials,
             insecure,
