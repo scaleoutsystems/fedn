@@ -496,7 +496,7 @@ def add_client():
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
         if client_store.get(client_id) is None:
-            logger.info("adding client {}".format(client_id))
+            logger.info("Adding client {}".format(client_id))
 
             last_seen = datetime.now()
 
@@ -511,7 +511,8 @@ def add_client():
                 last_seen=last_seen,
             )
 
-            client_store.add(new_client)
+            added_client = client_store.add(new_client)
+            client_id = added_client.client_id
 
         payload = {
             "status": "assigned",
@@ -521,6 +522,7 @@ def add_client():
             "ip": combiner.ip,
             "port": combiner.port,
             "helper_type": helper_type,
+            "client_id": client_id,
         }
         return jsonify(payload), 200
     except ValidationError as e:

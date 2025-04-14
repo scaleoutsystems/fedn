@@ -29,8 +29,10 @@ from fedn.network.combiner.shared import (
     validation_store,
 )
 from fedn.network.grpc.server import Server, ServerConfig
+from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
+from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
@@ -679,29 +681,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.response = "Heartbeat received"
         return response
 
-    def SendModelMetric(self, request, context):
-        """Send a model metric response.
-
-        :param request: the request
-        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelMetric`
-        :param context: the context
-        :type context: :class:`grpc._server._Context`
-        :return: the response
-        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
-        """
-        logger.info("Received ModelMetric from {}".format(request.sender.name))
-        metric_msg = MessageToDict(request, preserving_proto_field_name=True)
-        metrics = metric_msg.pop("metrics")
-
-        for metric in metrics:
-            new_metric = MetricDTO(**metric, **metric_msg)
-            try:
-                metric_store.add(new_metric)
-            except Exception as e:
-                logger.error(f"Failed to register model metric: {e}")
-
-        return fedn.Response()
-
     # Combiner Service
 
     def TaskStream(self, response, context):
@@ -838,6 +817,48 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response = fedn.Response()
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
         return response
+
+    def SendModelMetric(self, request, context):
+        """Send a model metric response.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.ModelMetric`
+        :param context: the context
+        :type context: :class:`grpc._server._Context`
+        :return: the response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
+        """
+        logger.info("Received ModelMetric from {}".format(request.sender.name))
+        metric_msg = MessageToDict(request, preserving_proto_field_name=True)
+        metrics = metric_msg.pop("metrics")
+
+        for metric in metrics:
+            new_metric = MetricDTO(**metric, **metric_msg)
+            try:
+                metric_store.add(new_metric)
+            except Exception as e:
+                logger.error(f"Failed to register model metric: {e}")
+
+        return fedn.Response()
+
+    def SendAttributeMessage(self, request, context):
+        """Send a model attribute response.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.AttributeMessage`
+        """
+        logger.info("Received Attributes from {}".format(request.sender.name))
+        attribute_msg = MessageToDict(request, preserving_proto_field_name=True)
+        attributes = attribute_msg.pop("attributes")
+
+        for attribute in attributes:
+            new_attribute = AttributeDTO(**attribute, **attribute_msg)
+            try:
+                DatabaseConnection().attribute_store.add(new_attribute)
+            except Exception as e:
+                logger.error(f"Failed to register model attribute: {e}")
+
+        return fedn.Response()
 
     ####################################################################################################################
 
