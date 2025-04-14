@@ -2,6 +2,7 @@ import copy
 import datetime
 import time
 import uuid
+from typing import Optional
 
 import pymongo
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
@@ -115,7 +116,7 @@ class Control(ControlBase):
         super().__init__(network_id, session_store, model_store, round_store, package_store, combiner_store, client_store, model_repository, training_run_store)
         self.name = "DefaultControl"
 
-    def _get_active_model_id(self, session_id: str) -> str:
+    def _get_active_model_id(self, session_id: str) -> Optional[str]:
         """Get the active model for a session.
 
         :param session_id: The session ID.
@@ -196,6 +197,7 @@ class Control(ControlBase):
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
                     training_run_obj.completed_at = datetime.datetime.now()
+                    training_run_obj.completed_at_model_id = self.model_store.get_active()
                     self.training_run_store.update(training_run_obj)
                     break
                 _, round_data = self.round(session_config, str(current_round), session_id)
@@ -203,11 +205,12 @@ class Control(ControlBase):
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
 
-            session_config.model_id = self.model_store.get_active()
+            session_config.model_id = self._get_active_model_id(session_id)
 
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
             training_run_obj.completed_at = datetime.datetime.now()
+            training_run_obj.completed_at_model_id = self.model_store.get_active()
             self.training_run_store.update(training_run_obj)
             logger.info("Session finished.")
         self._state = ReducerState.idle
