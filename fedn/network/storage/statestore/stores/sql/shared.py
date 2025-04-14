@@ -264,7 +264,7 @@ class TrainingRunModel(MyAbstractBase):
 
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    completed_at_model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
     round_timeout: Mapped[int]
     rounds: Mapped[Optional[int]]
-    completed_rounds: Mapped[Optional[int]]
     completed_at: Mapped[Optional[datetime]]
