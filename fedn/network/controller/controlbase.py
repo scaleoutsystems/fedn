@@ -17,6 +17,7 @@ from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore
+from fedn.network.storage.statestore.stores.training_run_store import TrainingRunStore
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -53,6 +54,7 @@ class ControlBase(ABC):
         combiner_store: CombinerStore,
         client_store: ClientStore,
         model_repository: Repository,
+        training_run_store: TrainingRunStore,
     ):
         """Constructor."""
         self._state = ReducerState.setup
@@ -61,6 +63,7 @@ class ControlBase(ABC):
         self.model_store = model_store
         self.round_store = round_store
         self.package_store = package_store
+        self.training_run_store = training_run_store
         self.network = Network(self, network_id, combiner_store, client_store)
 
         self.model_repository = model_repository
