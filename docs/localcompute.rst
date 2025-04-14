@@ -10,7 +10,7 @@ a client running in the local file. When a training session is started, the clie
 
 With FEDn local compute, you can run FEDn clients in Python scripts or notebooks. You could for example run a client on Google Colab. 
 This can be useful for fast development and testing.
-Follow the steps in `this notebook <https://github.com/scaleoutsystems/fedn/blob/feature/SK-1263/examples/api-tutorials/Local_Package_Api_Example.ipynb>`_ 
+Follow the steps in `this notebook <https://github.com/scaleoutsystems/fedn/blob/master/examples/api-tutorials/Local_Compute_Example.ipynb>`_ 
 to get started. 
 
 
