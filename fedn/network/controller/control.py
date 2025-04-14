@@ -146,7 +146,7 @@ class Control(ControlBase):
                 logger.warning("No model in model chain, please provide a seed model!")
                 return
         except Exception:
-            logger.error("Failed to get get latest model of session and model chain.")
+            logger.error("Failed to get latest model of session and model chain.")
             return
 
         self._state = ReducerState.instructing
