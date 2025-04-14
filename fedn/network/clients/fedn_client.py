@@ -364,7 +364,7 @@ class FednClient:
                 logger.error("No validate callback set")
                 return
 
-            logger.info(f"Running validate callback with model ID: {model_id}")
+            logger.debug(f"Running validate callback with model ID: {model_id}")
             metrics = self.validate_callback(in_model)
 
             if metrics is not None:

@@ -697,14 +697,12 @@ class APIClient:
     def start_splitlearning_session(
         self,
         name: str = None,
-        aggregator: str = "splitlearningagg",
         model_id: str = None,
         round_timeout: int = 180,
         rounds: int = 5,
         round_buffer_size: int = -1,
         delete_models: bool = True,
         validate: bool = False,
-        helper: str = "splitlearninghelper",
         min_clients: int = 1,
         requested_clients: int = 8,
     ):
@@ -712,8 +710,6 @@ class APIClient:
 
         :param name: The name of the session
         :type name: str
-        :param aggregator: The aggregator plugin to use.
-        :type aggregator: str
         :param model_id: The id of the initial model.
         :type model_id: str
         :param round_timeout: The round timeout to use in seconds.
@@ -726,8 +722,6 @@ class APIClient:
         :type delete_models: bool
         :param validate: Whether to validate the model after each round.
         :type validate: bool
-        :param helper: The helper type to use.
-        :type helper: str
         :param min_clients: The minimum number of clients required.
         :type min_clients: int
         :param requested_clients: The requested number of clients.
@@ -735,15 +729,12 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
-        if helper != "splitlearninghelper":
-            return {"message": "Helper must be 'splitlearninghelper' for split learning sessions"}
-
         response = requests.post(
             self._get_url_api_v1("sessions/"),
             json={
                 "name": name,
                 "session_config": {
-                    "aggregator": aggregator,
+                    "aggregator": "splitlearningagg",
                     "model_id": model_id,
                     "round_timeout": round_timeout,
                     "buffer_size": round_buffer_size,
@@ -751,7 +742,7 @@ class APIClient:
                     "clients_required": min_clients,
                     "requested_clients": requested_clients,
                     "validate": validate,
-                    "helper_type": helper,
+                    "helper_type": "splitlearninghelper",
                 },
             },
             verify=self.verify,

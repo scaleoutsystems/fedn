@@ -262,7 +262,7 @@ class Client:
             with open(out_embedding_path + "-metadata", "r") as fh:
                 training_metadata = json.loads(fh.read())
 
-            logger.info("SETTING Forward metadata: {}".format(training_metadata))
+            logger.debug("SETTING Forward metadata: {}".format(training_metadata))
             meta["training_metadata"] = training_metadata
 
             os.unlink(out_embedding_path)
@@ -299,7 +299,7 @@ class Client:
             os.unlink(inpath)
 
         except Exception as e:
-            logger.warning("Backward failed with exception {}".format(e))
+            logger.error("Backward failed with exception {}".format(e))
             meta = {"status": "failed", "error": str(e)}
 
         return meta
