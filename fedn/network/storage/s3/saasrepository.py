@@ -153,16 +153,5 @@ class SAASRepository(RepositoryBase):
             logger.error(f"Could not delete artifact: {instance_name}. Error: {err}")
 
     def create_bucket(self, bucket_name: str) -> None:
-        """Create a new bucket. If bucket exists, do nothing.
-
-        :param bucket_name: The name of the bucket
-        :type bucket_name: str
-        """
-        logger.info(f"Creating bucket: {bucket_name}")
-
-        try:
-            if not self.client.bucket_exists(bucket_name):
-                self.client.make_bucket(bucket_name)
-        except InvalidResponseError as err:
-            logger.error(f"Failed to create bucket: {bucket_name}. Error: {err}")
-            raise
+        # No need to create any buckets in the SaaS.
+        pass
