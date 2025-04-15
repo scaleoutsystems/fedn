@@ -20,9 +20,9 @@ from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.prediction_store import PredictionStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.run_store import RunStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 from fedn.network.storage.statestore.stores.status_store import StatusStore
-from fedn.network.storage.statestore.stores.training_run_store import TrainingRunStore
 from fedn.network.storage.statestore.stores.validation_store import ValidationStore
 from fedn.utils.checksum import sha
 
@@ -42,7 +42,7 @@ validation_store: ValidationStore = stores.validation_store
 prediction_store: PredictionStore = stores.prediction_store
 analytic_store: AnalyticStore = stores.analytic_store
 metric_store: MetricStore = stores.metric_store
-training_run_store: TrainingRunStore = stores.training_run_store
+training_run_store: RunStore = stores.training_run_store
 
 
 repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])

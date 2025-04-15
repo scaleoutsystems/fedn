@@ -23,10 +23,10 @@ from fedn.network.storage.statestore.stores.model_store import ModelStore, Mongo
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
+from fedn.network.storage.statestore.stores.run_store import MongoDBRunStore, RunStore, SQLRunStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
-from fedn.network.storage.statestore.stores.training_run_store import MongoDBTrainingRunStore, SQLTrainingRunStore, TrainingRunStore
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 
@@ -47,7 +47,7 @@ class StoreContainer:
         analytic_store: AnalyticStore,
         metric_store: SQLMetricStore,
         attribute_store: AttributeStore,
-        training_run_store: TrainingRunStore,
+        training_run_store: RunStore,
     ) -> None:
         """Initialize the StoreContainer with various store instances."""
         self.client_store = client_store
@@ -112,7 +112,7 @@ class DatabaseConnection:
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
             attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
-            training_run_store = MongoDBTrainingRunStore(mdb, "control.training_runs")
+            training_run_store = MongoDBRunStore(mdb, "control.training_runs")
             self.mdb = mdb
 
         elif self.type in ["SQLite", "PostgreSQL"]:
@@ -130,7 +130,7 @@ class DatabaseConnection:
             analytic_store = None
             metric_store = SQLMetricStore(Session)
             attribute_store = SQLAttributeStore(Session)
-            training_run_store = SQLTrainingRunStore(Session)
+            training_run_store = SQLRunStore(Session)
             self.Session = Session
         else:
             raise ValueError("Unknown statestore type")

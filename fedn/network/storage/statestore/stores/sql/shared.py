@@ -259,7 +259,7 @@ class AttributeModel(MyAbstractBase):
     sender_client_id: Mapped[Optional[str]]
 
 
-class TrainingRunModel(MyAbstractBase):
+class RunModel(MyAbstractBase):
     __tablename__ = "training_runs"
 
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))

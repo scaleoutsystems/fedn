@@ -4,7 +4,7 @@ from typing import Optional
 from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
-class TrainingRunDTO(BaseDTO):
+class RunDTO(BaseDTO):
     """Training run data transfer object."""
 
     training_run_id: Optional[str] = PrimaryID(None)

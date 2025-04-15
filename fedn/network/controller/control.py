@@ -16,13 +16,13 @@ from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
-from fedn.network.storage.statestore.stores.dto.training_run import TrainingRunDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.run_store import RunStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
-from fedn.network.storage.statestore.stores.training_run_store import TrainingRunStore
 
 
 class UnsupportedStorageBackend(Exception):
@@ -110,7 +110,7 @@ class Control(ControlBase):
         combiner_store: CombinerStore,
         client_store: ClientStore,
         model_repository: Repository,
-        training_run_store: TrainingRunStore,
+        training_run_store: RunStore,
     ):
         """Constructor method."""
         super().__init__(network_id, session_store, model_store, round_store, package_store, combiner_store, client_store, model_repository, training_run_store)
@@ -179,7 +179,7 @@ class Control(ControlBase):
 
         self.set_session_status(session_id, "Started")
 
-        training_run_obj = TrainingRunDTO()
+        training_run_obj = RunDTO()
         training_run_obj.session_id = session_id
         training_run_obj.model_id = active_model_id
         training_run_obj.round_timeout = session_config.round_timeout
