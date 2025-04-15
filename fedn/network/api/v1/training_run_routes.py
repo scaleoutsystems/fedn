@@ -15,10 +15,10 @@ def get_training_runs():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        analytics = training_run_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        training_runs = training_run_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = training_run_store.count(**kwargs)
 
-        response = {"count": count, "result": [analytic.to_dict() for analytic in analytics]}
+        response = {"count": count, "result": [training_run.to_dict() for training_run in training_runs]}
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
