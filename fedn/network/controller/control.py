@@ -2,7 +2,9 @@ import copy
 import datetime
 import time
 import uuid
+from typing import Optional
 
+import pymongo
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from fedn.common.log_config import logger
@@ -14,10 +16,12 @@ from fedn.network.state import ReducerState
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.client_store import ClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
 from fedn.network.storage.statestore.stores.model_store import ModelStore
 from fedn.network.storage.statestore.stores.package_store import PackageStore
 from fedn.network.storage.statestore.stores.round_store import RoundStore
+from fedn.network.storage.statestore.stores.run_store import RunStore
 from fedn.network.storage.statestore.stores.session_store import SessionStore
 
 
@@ -106,27 +110,43 @@ class Control(ControlBase):
         combiner_store: CombinerStore,
         client_store: ClientStore,
         model_repository: Repository,
+        training_run_store: RunStore,
     ):
         """Constructor method."""
-        super().__init__(network_id, session_store, model_store, round_store, package_store, combiner_store, client_store, model_repository)
+        super().__init__(network_id, session_store, model_store, round_store, package_store, combiner_store, client_store, model_repository, training_run_store)
         self.name = "DefaultControl"
+
+    def _get_active_model_id(self, session_id: str) -> Optional[str]:
+        """Get the active model for a session.
+
+        :param session_id: The session ID.
+        :type session_id: str
+        :return: The active model ID.
+        :rtype: str
+        """
+        last_model_of_session = self.model_store.list(1, 0, "committed_at", pymongo.DESCENDING, session_id=session_id)
+        if len(last_model_of_session) > 0:
+            return last_model_of_session[0].model_id
+
+        # if no model is found for the session, get the last model in the model chain
+        last_model = self.model_store.list(1, 0, "committed_at", pymongo.DESCENDING)
+        if len(last_model) > 0:
+            return last_model[0].model_id
+
+        return None
 
     def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
 
-        model_set: bool = False
-
         try:
-            active_model_id = self.model_store.get_active()
-            if active_model_id not in ["", " "]:
-                model_set = True
+            active_model_id = self._get_active_model_id(session_id)
+            if not active_model_id or active_model_id in ["", " "]:
+                logger.warning("No model in model chain, please provide a seed model!")
+                return
         except Exception:
-            logger.error("Failed to get active model")
-
-        if not model_set:
-            logger.warning("No model in model chain, please provide a seed model!")
+            logger.error("Failed to get latest model of session and model chain.")
             return
 
         self._state = ReducerState.instructing
@@ -159,6 +179,14 @@ class Control(ControlBase):
 
         self.set_session_status(session_id, "Started")
 
+        training_run_obj = RunDTO()
+        training_run_obj.session_id = session_id
+        training_run_obj.model_id = active_model_id
+        training_run_obj.round_timeout = session_config.round_timeout
+        training_run_obj.rounds = rounds
+
+        training_run_obj = self.training_run_store.add(training_run_obj)
+
         for round in range(1, rounds + 1):
             if last_round:
                 current_round = last_round + round
@@ -168,16 +196,23 @@ class Control(ControlBase):
             try:
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
+                    training_run_obj.completed_at = datetime.datetime.now()
+                    training_run_obj.completed_at_model_id = self.model_store.get_active()
+                    self.training_run_store.update(training_run_obj)
                     break
                 _, round_data = self.round(session_config, str(current_round), session_id)
                 logger.info("Round completed with status {}".format(round_data.status))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
 
-            session_config.model_id = self.model_store.get_active()
+            session_config.model_id = self._get_active_model_id(session_id)
 
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
+            training_run_obj.completed_at = datetime.datetime.now()
+            training_run_obj.completed_at_model_id = self.model_store.get_active()
+            self.training_run_store.update(training_run_obj)
+            logger.info("Session finished.")
         self._state = ReducerState.idle
 
         self.set_session_config(session_id, session_config.to_dict())

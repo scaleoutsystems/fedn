@@ -257,3 +257,14 @@ class AttributeModel(MyAbstractBase):
     sender_name: Mapped[str]
     sender_role: Mapped[str]
     sender_client_id: Mapped[Optional[str]]
+
+
+class RunModel(MyAbstractBase):
+    __tablename__ = "training_runs"
+
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    completed_at_model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    round_timeout: Mapped[int]
+    rounds: Mapped[Optional[int]]
+    completed_at: Mapped[Optional[datetime]]
