@@ -153,7 +153,7 @@ class RoundHandler:
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
-        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
             buffer_size = len(clients)
         else:
@@ -238,11 +238,8 @@ class RoundHandler:
         # Request forward pass from all active clients.
         self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
-        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
-        if int(config["buffer_size"]) == -1:
-            buffer_size = len(clients)
-        else:
-            buffer_size = int(config["buffer_size"])
+        # the round should terminate when all clients have completed
+        buffer_size = len(clients)
 
         # Wait / block until the round termination policy has been met.
         self.update_handler.waitforit(config, buffer_size=buffer_size)
@@ -291,11 +288,8 @@ class RoundHandler:
 
         self.server.request_backward_pass(session_id=config["session_id"], gradient_id=config["model_id"], config=config, clients=clients)
 
-        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
-        if int(config["buffer_size"]) == -1:
-            buffer_size = len(clients)
-        else:
-            buffer_size = int(config["buffer_size"])
+        # the round should terminate when all clients have completed
+        buffer_size = len(clients)
 
         self.update_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
 
@@ -560,11 +554,18 @@ class RoundHandler:
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             active_round = self.server.round_store.get(round_meta["round_id"])
-                            if "combiners" not in active_round:
-                                active_round["combiners"] = []
-                            active_round["combiners"].append(round_meta)
+                            # if "combiners" not in active_round:
+                            #     active_round["combiners"] = []
+                            # active_round["combiners"].append(round_meta)
 
-                            updated = self.server.round_store.update(active_round["id"], active_round)
+                            # updated = self.server.round_store.update(active_round["id"], active_round)
+
+                            active_round.combiners.append(round_meta)
+                            try:
+                                self.server.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Forward pass: Failed to update round data in round store. {}".format(e))
+                                raise Exception("Forward passFailed to update round data in round store.")
 
                         elif round_config["task"] == "backward":
                             tic = time.time()
@@ -573,7 +574,13 @@ class RoundHandler:
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             active_round = self.server.round_store.get(round_meta["round_id"])
-                            updated = self.server.round_store.update(active_round["id"], active_round)
+                            # updated = self.server.round_store.update(active_round["id"], active_round)
+                            active_round.combiners.append(round_meta)
+                            try:
+                                self.server.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Backward pass: Failed to update round data in round store. {}".format(e))
+                                raise Exception("Backward pass: Failed to update round data in round store.")
                         else:
                             logger.warning("config contains unkown task type.")
                     else:

@@ -3,8 +3,8 @@ import tempfile
 import time
 
 import numpy as np
+import torch
 
-# import torch
 from fedn.common.log_config import logger
 from fedn.utils.helpers.helperbase import HelperBase
 
@@ -38,8 +38,6 @@ class Helper(HelperBase):
         with open(path, "wb") as f:
             np.savez_compressed(f, **processed_dict)
 
-        # Small delay to ensure file is fully written
-        time.sleep(0.1)
         return path
 
     def load(self, path):
@@ -66,8 +64,7 @@ class Helper(HelperBase):
             raise
 
         try:
-            # data = torch.load(data_path, weights_only=True)
-            data = np.load(data_path)
+            data = torch.load(data_path, weights_only=True)
             if is_train:
                 targets = data["y_train"]
             else:

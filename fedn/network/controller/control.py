@@ -240,23 +240,23 @@ class Control(ControlBase):
             logger.error("Session not found.")
             return
 
-        session_config = session["session_config"]
+        session_config = session.session_config
 
-        if not session_config or not isinstance(session_config, dict):
-            logger.error("Session not properly configured.")
+        if not session_config:
+            logger.error("Splitlearning session not properly configured.")
             return
 
         if round_timeout is not None:
-            session_config["round_timeout"] = round_timeout
+            session_config.round_timeout = round_timeout
 
         self._state = ReducerState.monitoring
 
         last_round = self.get_latest_round_id()
 
         for combiner in self.network.get_combiners():
-            combiner.set_aggregator(session_config["aggregator"])
+            combiner.set_aggregator(session_config.aggregator)
 
-        session_config["session_id"] = session_id
+        session_config.session_id = session_id
 
         self.set_session_status(session_id, "Started")
 
@@ -268,20 +268,22 @@ class Control(ControlBase):
                 current_round = round
 
             try:
-                if self.get_session_status(session_config["session_id"]) == "Terminated":
+                if self.get_session_status(session_config.session_id) == "Terminated":
                     logger.info("Session terminated.")
                     break
-                _, round_data = self.splitlearning_round(session_config, str(current_round))
+                _, round_obj = self.splitlearning_round(session_config, str(current_round), session_id)
+                if round_obj:
+                    logger.info("Split learning round completed with status {}".format(round_obj.status))
+                else:
+                    logger.error("Split learning round failed - no round data returned")
             except TypeError as e:
                 logger.error("Failed to execute split learning round: {0}".format(e))
 
-            logger.info("Split learning round completed with status {}".format(round_data["status"]))
-
-        if self.get_session_status(session_config["session_id"]) == "Started":
-            self.set_session_status(session_config["session_id"], "Finished")
+        if self.get_session_status(session_config.session_id) == "Started":
+            self.set_session_status(session_config.session_id, "Finished")
         self._state = ReducerState.idle
 
-        self.set_session_config(session_id, session_config)
+        self.set_session_config(session_id, session_config.to_dict())
 
     def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
         """Execute one global round.
@@ -435,13 +437,17 @@ class Control(ControlBase):
         self.set_round_status(round_id, "Finished")
         return model_id, self.round_store.get(round_id)
 
-    def splitlearning_round(self, session_config: RoundConfig, round_id: str):
+    def splitlearning_round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
         """Execute one global split learning round
 
         :param session_config: The session config
+        :type session_config: SessionConfigDTO
         :param round_id: The round id
+        :type round_id: str
+        :param session_id: The session id
+        :type session_id: str
         """
-        session_id = session_config["session_id"]
+        # session_id = session_config.session_id
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -450,8 +456,10 @@ class Control(ControlBase):
             return None, self.round_store.get(round_id)
 
         # 1) FORWARD PASS - specified through "task": "forward"
-        forward_config = copy.deepcopy(session_config)
+        forward_config = session_config.to_dict()
         forward_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": False, "session_id": session_id})
+
+        self.set_round_config(round_id, forward_config)
 
         participating_combiners = self.get_participating_combiners(forward_config)
 
@@ -472,7 +480,7 @@ class Control(ControlBase):
 
         @retry(
             wait=wait_random(min=1.0, max=2.0),
-            stop=stop_after_delay(session_config["round_timeout"]),
+            stop=stop_after_delay(session_config.round_timeout),
             retry_error_callback=do_if_round_times_out,
             retry=retry_if_exception_type(CombinersNotDoneException),
         )
@@ -482,12 +490,12 @@ class Control(ControlBase):
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
                 return False
-            if "combiners" not in round:
-                logger.info("Waiting for combiners to calculate gradients (forward pass)...")
+            if len(round.combiners) < 1:
+                logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("Combiners have not yet reported.")
 
-            if len(round["combiners"]) < len(participating_combiners):
-                logger.info("Waiting for combiners to calculate gradients (forward pass)...")
+            if len(round.combiners) < len(participating_combiners):
+                logger.info("Waiting for combiners to update model...")
                 raise CombinersNotDoneException("All combiners have not yet reported.")
 
             return True
@@ -502,17 +510,17 @@ class Control(ControlBase):
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.round_store.get(round_id)
-            combiners = round["combiners"]
-            return combiners
+            if len(round.combiners) != len(participating_combiners):
+                raise KeyError("Combiners have not yet reported.")
 
-        _ = check_combiners_done_reporting()
+        check_combiners_done_reporting()
 
         logger.info("CONTROLLER: Forward pass completed.")
 
         # NOTE: Only works for one combiner
         # get model id and send it to backward pass
         round = self.round_store.get(round_id)
-
+        round = round.to_dict()
         for combiner in round["combiners"]:
             try:
                 model_id = combiner["model_id"]
@@ -529,19 +537,32 @@ class Control(ControlBase):
         logger.info("CONTROLLER: starting backward pass with model/gradient id: {}".format(model_id))
 
         # 2) BACKWARD PASS
-        backward_config = copy.deepcopy(session_config)
-        backward_config.update({"rounds": 1, "round_id": round_id, "task": "backward", "session_id": session_id, "model_id": model_id})
+        try:
+            backward_config = session_config.to_dict()
+            backward_config.update({"rounds": 1, "round_id": round_id, "task": "backward", "session_id": session_id, "model_id": model_id})
 
-        participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
-        _ = self.request_model_updates(participating_combiners)
+            participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
+            result = self.request_model_updates(participating_combiners)
 
-        logger.info("CONTROLLER: Backward pass completed.")
+            if not result:
+                logger.error("Backward pass failed - no result from model updates")
+                self.set_round_status(round_id, "Failed")
+                return None, self.round_store.get(round_id)
+
+            logger.info("CONTROLLER: Backward pass completed successfully")
+            self.set_round_status(round_id, "Success")
+
+        except Exception as e:
+            logger.error(f"Backward pass failed with error: {e}")
+            self.set_round_status(round_id, "Failed")
+            return None, self.round_store.get(round_id)
 
         # 3) Validation
-        validate = session_config["validate"]
+        validate = session_config.validate
         if validate:
             logger.info("CONTROLLER: Starting Split Learning Validation round")
-            validate_config = copy.deepcopy(session_config)
+            # validate_config = copy.deepcopy(session_config)
+            validate_config = session_config.to_dict()
             validate_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": True, "session_id": session_id})
             validating_combiners = [(combiner, validate_config) for combiner, _ in participating_combiners]
 

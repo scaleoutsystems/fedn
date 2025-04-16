@@ -637,6 +637,12 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        is_splitlearning = aggregator == "splitlearningagg"
+        if is_splitlearning:
+            return self.start_splitlearning_session(
+                name, model_id, round_timeout, rounds, round_buffer_size, delete_models, validate, min_clients, requested_clients
+            )
+
         if model_id is None:
             response = requests.get(self._get_url_api_v1("models/active"), verify=self.verify, headers=self.headers)
             if response.status_code == 200:
@@ -706,7 +712,7 @@ class APIClient:
         min_clients: int = 1,
         requested_clients: int = 8,
     ):
-        """Start a new session.
+        """Start a new splitlearning session.
 
         :param name: The name of the session
         :type name: str

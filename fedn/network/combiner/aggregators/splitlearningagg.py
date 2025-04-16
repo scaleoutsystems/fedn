@@ -114,9 +114,17 @@ class Aggregator(AggregatorBase):
 
         # instantiate server model
         if self.model is None:
-            input_features = concatenated_embeddings.shape[1]
-            self.model = ServerModel(input_features)
+            self.input_features = concatenated_embeddings.shape[1]
+            self.model = ServerModel(self.input_features)
             self.model.to(self.device)
+
+        # check if concatenated_embeddings matches the input features of the server model
+        if concatenated_embeddings.shape[1] != self.input_features:
+            logger.error(
+                f"Server-side input feature mismatch: Received {concatenated_embeddings.shape[1]} input features, but expected {self.input_features}. \
+                This is likely because one of the clients dropped out."
+            )
+            raise ValueError
 
         if is_validate == "False":
             # split learning forward pass with gradient calculation

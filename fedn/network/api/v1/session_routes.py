@@ -452,14 +452,14 @@ def start_splitlearning_session():
 
         session = session_store.get(session_id)
 
-        session_config = session["session_config"]
-        min_clients = session_config["clients_required"]
+        session_config = session.session_config
+        min_clients = session_config.clients_required
 
         if control.state() == ReducerState.monitoring:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
-            rounds = session_config["rounds"]
+            rounds = session_config.rounds
         nr_available_clients = _get_number_of_available_clients()
 
         if nr_available_clients < min_clients:
