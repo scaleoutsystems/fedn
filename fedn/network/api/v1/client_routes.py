@@ -5,8 +5,9 @@ from flask import Blueprint, jsonify, request
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import client_store, control, get_checksum, package_store
+from fedn.network.api.shared import get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
@@ -114,11 +115,12 @@ def get_clients():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        clients = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = client_store.count(**kwargs)
+        clients = db.client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.client_store.count(**kwargs)
         response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
@@ -199,11 +201,12 @@ def list_clients():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        clients = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = client_store.count(**kwargs)
+        clients = db.client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.client_store.count(**kwargs)
         response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
@@ -265,8 +268,9 @@ def get_clients_count():
                     type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = client_store.count(**kwargs)
+        count = db.client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -319,8 +323,9 @@ def clients_count():
                     type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = client_store.count(**kwargs)
+        count = db.client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -363,7 +368,8 @@ def get_client(id: str):
                         type: string
     """
     try:
-        client = client_store.get(id)
+        db = Control.instance().db
+        client = db.client_store.get(id)
         if client is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         response = client.to_dict()
@@ -406,7 +412,8 @@ def delete_client(id: str):
                         type: string
     """
     try:
-        result: bool = client_store.delete(id)
+        db = Control.instance().db
+        result: bool = db.client_store.delete(id)
         if result is False:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
@@ -457,6 +464,8 @@ def add_client():
                         type: string
     """
     try:
+        db = Control.instance().db
+        network = Control.instance().network
         json_data = request.get_json()
         remote_addr = request.remote_addr
 
@@ -467,7 +476,7 @@ def add_client():
         helper_type: str = ""
 
         if package == "remote":
-            package_object = package_store.get_active()
+            package_object = db.package_store.get_active()
             if package_object is None:
                 return jsonify(
                     {
@@ -481,7 +490,7 @@ def add_client():
             helper_type = ""
 
         if preferred_combiner:
-            combiner = control.network.get_combiner(preferred_combiner)
+            combiner = network.get_combiner(preferred_combiner)
             if combiner is None:
                 return jsonify(
                     {
@@ -491,11 +500,11 @@ def add_client():
                     400,
                 )
         else:
-            combiner = control.network.find_available_combiner()
+            combiner = network.find_available_combiner()
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
-        if client_store.get(client_id) is None:
+        if db.client_store.get(client_id) is None:
             logger.info("Adding client {}".format(client_id))
 
             last_seen = datetime.now()
@@ -511,7 +520,7 @@ def add_client():
                 last_seen=last_seen,
             )
 
-            added_client = client_store.add(new_client)
+            added_client = db.client_store.add(new_client)
             client_id = added_client.client_id
 
         payload = {

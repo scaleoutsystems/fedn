@@ -1,7 +1,7 @@
 import graphene
 import pymongo
 
-from fedn.network.api.shared import model_store, session_store, status_store, validation_store
+from fedn.network.controller.control import Control
 
 
 class ActorType(graphene.ObjectType):
@@ -49,8 +49,9 @@ class ModelType(graphene.ObjectType):
     validations = graphene.List(ValidationType)
 
     def resolve_validations(self, info):
+        db = Control.instance().db
         kwargs = {"modelId": self["model"]}
-        result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
         return result
 
@@ -82,22 +83,25 @@ class SessionType(graphene.ObjectType):
         return self["session_config"]
 
     def resolve_models(self, info):
+        db = Control.instance().db
         kwargs = {"session_id": self["session_id"]}
-        all_models = model_store.list(**kwargs)
+        all_models = db.model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
 
         return result
 
     def resolve_validations(self, info):
+        db = Control.instance().db
         kwargs = {"sessionId": self["session_id"]}
-        result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
 
         return result
 
     def resolve_statuses(self, info):
+        db = Control.instance().db
         kwargs = {"sessionId": self["session_id"]}
-        result = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         result = [status.to_dict() for status in result]
 
         return result
@@ -144,58 +148,66 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_session(root, info, id: str = None):
-        result = session_store.get(id)
+        db = Control.instance().db
+        result = db.session_store.get(id)
 
         return result.to_dict()
 
     def resolve_sessions(root, info, name: str = None):
+        db = Control.instance().db
         if name:
             kwargs = {"name": name}
         else:
             kwargs = {}
-        all_sessions = session_store.list(**kwargs)
+        all_sessions = db.session_store.list(**kwargs)
         result = [session.to_dict() for session in all_sessions]
         return result
 
     def resolve_model(root, info, id: str = None):
-        result = model_store.get(id).to_dict()
+        db = Control.instance().db
+        result = db.model_store.get(id).to_dict()
 
         return result
 
     def resolve_models(root, info, session_id: str = None):
+        db = Control.instance().db
         if session_id:
             kwargs = {"session_id": session_id}
         else:
             kwargs = {}
-        all_models = model_store.list(**kwargs)
+        all_models = db.model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
         return result
 
     def resolve_validation(root, info, id: str = None):
-        result = validation_store.get(id).to_dict()
+        db = Control.instance().db
+        result = db.validation_store.get(id).to_dict()
 
         return result
 
     def resolve_validations(root, info, session_id: str = None):
+        db = Control.instance().db
         if session_id:
             kwargs = {"session_id": session_id}
-            result = validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            result = validation_store.list(0, 0, None)
+            result = db.validation_store.list(0, 0, None)
 
         return [validation.to_dict() for validation in result]
 
     def resolve_status(root, info, id: str = None):
-        result = status_store.get(id).to_dict()
+        db = Control.instance().db
+        result = db.status_store.get(id).to_dict()
 
         return result
 
     def resolve_statuses(root, info, session_id: str = None):
+        db = Control.instance().db
         if session_id:
             kwargs = {"sessionId": session_id}
-            result = status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = db.status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
         else:
-            result = status_store.list(0, 0, None)
+            result = db.status_store.list(0, 0, None)
 
         return [status.to_dict() for status in result]
 

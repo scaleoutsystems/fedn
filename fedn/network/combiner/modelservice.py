@@ -149,16 +149,7 @@ def serialize_model_to_BytesIO(model, helper):
 class ModelService(rpc.ModelServiceServicer):
     """Service for handling download and upload of models to the server."""
 
-    _instance = None
-
-    def __new____(cls, force_new_instance=False):
-        """Create a new instance of the ModelService class."""
-        if cls._instance is None or force_new_instance:
-            cls._instance = super(ModelService, cls).__new__(cls)
-            cls._instance._init_temp_model_storage()
-        return cls._instance
-
-    def _init_temp_model_storage(self):
+    def __init__(self):
         """Initialize the temporary model storage."""
         self.temp_model_storage = TempModelStorage()
 

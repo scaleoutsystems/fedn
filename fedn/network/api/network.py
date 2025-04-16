@@ -1,11 +1,10 @@
 import os
+from typing import List
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
-from fedn.network.storage.statestore.stores.client_store import ClientStore
-from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
-from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.dbconnection import DatabaseConnection
 
 __all__ = ("Network",)
 
@@ -16,12 +15,11 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, network_id: str, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
+    def __init__(self, control, network_id: str, dbconn: DatabaseConnection, load_balancer=None):
         """ """
-        self.combiner_store = combiner_store
-        self.client_store = client_store
         self.control = control
         self.id = network_id
+        self.db = dbconn
 
         if not load_balancer:
             self.load_balancer = LeastPacked(self)
@@ -42,13 +40,13 @@ class Network:
                 return combiner
         return None
 
-    def get_combiners(self):
+    def get_combiners(self) -> List[CombinerInterface]:
         """Get all combiners in the network.
 
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        result = self.combiner_store.list(limit=0, skip=0, sort_key=None)
+        result = self.db.combiner_store.list(limit=0, skip=0, sort_key=None)
         combiners = []
         for combiner in result:
             name = combiner.name.upper()
@@ -87,32 +85,3 @@ class Network:
         """
         # TODO: Implement strategy to handle an unavailable combiner.
         logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
-
-    # TODO: This method is not used in the current version of FEDn.
-    def add_client(self, client: ClientDTO):
-        """Add a new client to the network.
-
-        :param client: The client instance object
-        :type client: dict
-        :return: None
-        """
-        if self.get_client(client["client_id"]):
-            return
-
-        logger.info("adding client {}".format(client.to_dict()))
-        self.client_store.add(client)
-
-    # TODO: This method is not used in the current version of FEDn.
-    def get_client(self, client_id: str):
-        """Get client by client_id.
-
-        :param client_id: client_id of client
-        :type client_id: str
-        :return: The client instance object
-        :rtype: ObjectId
-        """
-        try:
-            client = self.client_store.get(client_id)
-            return client
-        except Exception:
-            return None

@@ -2,13 +2,15 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_controller_config
+from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control
 from fedn.network.api.v1 import _routes
 from fedn.network.api.v1.graphql.schema import schema
+from fedn.network.controller.control import Control
 from fedn.network.state import ReducerStateToString
+from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.s3.repository import Repository
 
 custom_url_prefix = os.environ.get("FEDN_CUSTOM_URL_PREFIX", False)
 app = Flask(__name__)
@@ -60,7 +62,7 @@ def get_controller_status():
     return: The status as a json object.
     rtype: json
     """
-    return jsonify({"state": ReducerStateToString(control.state())}), 200
+    return jsonify({"state": ReducerStateToString(Control.instance().state())}), 200
 
 
 if custom_url_prefix:
@@ -484,6 +486,16 @@ def start_server_api():
     port = config["port"]
     host = "0.0.0.0"
     debug = config["debug"]
+
+    network_id = get_network_config()
+    modelstorage_config = get_modelstorage_config()
+    statestore_config = get_statestore_config()
+
+    # TODO: Initialize database with config instead of reading it under the hood
+    db = DatabaseConnection(statestore_config, network_id)
+    repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
+    Control.create_instance(network_id, repository, db)
+
     if debug:
         app.run(debug=debug, port=port, host=host)
     else:

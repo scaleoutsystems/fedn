@@ -13,7 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
-from fedn.common.config import get_network_config, get_statestore_config
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
 from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
@@ -45,35 +44,14 @@ class DatabaseConnection:
     model_store: ModelStore
     session_store: SessionStore
     analytic_store: AnalyticStore
-    metric_store: SQLMetricStore
+    metric_store: MetricStore
     attribute_store: AttributeStore
     training_run_store: RunStore
 
-    def __new__(cls, *, force_create_new: bool = False) -> "DatabaseConnection":
-        """Create a new instance of DatabaseConnection or return the existing singleton instance.
-
-        Args:
-            force_create_new (bool): If True, a new instance will be created regardless of the singleton pattern. Only used for testing purpose.
-
-        Returns:
-            DatabaseConnection: A new instance if force_create_new is True, otherwise the existing singleton instance.
-
-        """
-        if cls._instance is None or force_create_new:
-            obj = super(DatabaseConnection, cls).__new__(cls)
-            obj._init_connection()
-            cls._instance = obj
-
-        return cls._instance
-
-    def _init_connection(self) -> None:
+    def __init__(self, statestore_config, network_id):
         self.type: str = None
         self.mdb: Database = None
         self.Session: sessionmaker = None
-
-        statestore_config = get_statestore_config()
-        network_id = get_network_config()
-
         self.type = statestore_config["type"]
 
         if self.type == "MongoDB":
@@ -111,6 +89,7 @@ class DatabaseConnection:
             attribute_store = SQLAttributeStore(Session)
             training_run_store = SQLRunStore(Session)
             self.Session = Session
+
         else:
             raise ValueError("Unknown statestore type")
 
@@ -127,12 +106,6 @@ class DatabaseConnection:
         self.metric_store: SQLMetricStore = metric_store
         self.attribute_store: AttributeStore = attribute_store
         self.training_run_store: RunStore = training_run_store
-
-    def close(self) -> None:
-        """Close the database connection."""
-        if DatabaseConnection._instance == self:
-            DatabaseConnection._instance = None
-        # Let the garbage collector handle the rest for now
 
     def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
