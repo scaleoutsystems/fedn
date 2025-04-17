@@ -58,6 +58,7 @@ class SessionModel(MyAbstractBase):
     session_config_id: Mapped[str] = mapped_column(ForeignKey("session_configs.id"))
     session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session", cascade="all, delete-orphan", single_parent=True)
     models: Mapped[List["ModelModel"]] = relationship(back_populates="session")
+    seed_model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
 
 
 class ModelModel(MyAbstractBase):

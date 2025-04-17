@@ -54,6 +54,7 @@ class SessionDTO(BaseDTO):
     name: str = Field(None)
     status: Optional[str] = Field("Created")
     session_config: SessionConfigDTO = Field(SessionConfigDTO())
+    seed_model_id: Optional[str] = Field(None)
 
     @validator
     def validate(self):
