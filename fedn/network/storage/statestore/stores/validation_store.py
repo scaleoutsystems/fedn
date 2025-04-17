@@ -1,9 +1,9 @@
 from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import ValidationModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -45,7 +45,7 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
     def __init__(self, Session):
         super().__init__(Session, ValidationModel)
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=SortOrder.DESCENDING, **kwargs):
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)

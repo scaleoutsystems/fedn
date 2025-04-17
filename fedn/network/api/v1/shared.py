@@ -1,6 +1,6 @@
 from typing import Tuple
 
-import pymongo
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 api_version = "v1"
 
@@ -40,9 +40,9 @@ def get_typed_list_headers(
     skip: int = get_skip(headers)
 
     if sort_order is not None:
-        sort_order = pymongo.ASCENDING if sort_order.lower() == "asc" else pymongo.DESCENDING
+        sort_order = SortOrder.ASCENDING if sort_order.lower() == "asc" else SortOrder.DESCENDING
     else:
-        sort_order = pymongo.DESCENDING
+        sort_order = SortOrder.DESCENDING
 
     return limit, skip, sort_key, sort_order
 

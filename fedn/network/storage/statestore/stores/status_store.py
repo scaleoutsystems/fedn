@@ -1,9 +1,9 @@
 from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import StatusModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -52,7 +52,7 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
         super().__init__(Session, StatusModel)
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=SortOrder.DESCENDING, **kwargs):
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key: str = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)

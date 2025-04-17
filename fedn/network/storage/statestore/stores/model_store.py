@@ -1,14 +1,13 @@
 from abc import abstractmethod
 from typing import Dict, List
 
-import pymongo
 from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import select
 from sqlalchemy.orm import aliased
 
 from fedn.network.storage.statestore.stores.dto import ModelDTO
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import ModelModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -84,7 +83,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
             return self._dto_from_document(document)
         raise EntityNotFound(f"Entity with id {id} not found")
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs):
         kwargs["key"] = "models"
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
 

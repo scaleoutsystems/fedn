@@ -3,13 +3,13 @@ import itertools
 import time
 import uuid
 
-import pymongo
 import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.dto.session import (
     SessionConfigDTO, SessionDTO)
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 @pytest.fixture
@@ -76,7 +76,7 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"status":"test_status4"}, {"status":"blah"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

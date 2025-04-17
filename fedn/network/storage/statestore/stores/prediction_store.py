@@ -1,9 +1,9 @@
 from typing import Dict, List
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto import PredictionDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import PredictionModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -46,7 +46,7 @@ class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionMode
     def __init__(self, Session):
         super().__init__(Session, PredictionModel)
 
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PredictionDTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[PredictionDTO]:
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
