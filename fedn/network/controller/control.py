@@ -148,7 +148,7 @@ class Control(ControlBase):
 
         return None
 
-    def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
+    def start_session(self, session_id: str, rounds: int, round_timeout: int, model_name_prefix: Optional[str] = None) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -200,6 +200,12 @@ class Control(ControlBase):
 
         training_run_obj = self.db.training_run_store.add(training_run_obj)
 
+        count_models_of_session = 0
+
+        if model_name_prefix is not None:
+            count_models_of_session = self.db.model_store.count(session_id=session_id)
+            count_models_of_session += 1
+
         for round in range(1, rounds + 1):
             if last_round:
                 current_round = last_round + round
@@ -213,7 +219,13 @@ class Control(ControlBase):
                     training_run_obj.completed_at_model_id = self.db.model_store.get_active()
                     self.db.training_run_store.update(training_run_obj)
                     break
-                _, round_data = self.round(session_config, str(current_round), session_id)
+                _, round_data = self.round(
+                    session_config=session_config,
+                    round_id=str(current_round),
+                    session_id=session_id,
+                    model_name=f"{model_name_prefix}_{count_models_of_session}" if model_name_prefix else None,
+                )
+                count_models_of_session += 1
                 logger.info("Round completed with status {}".format(round_data.status))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
@@ -264,7 +276,7 @@ class Control(ControlBase):
                 combiner.submit(config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
-    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
+    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str, model_name: Optional[str] = None) -> tuple:
         """Execute one global round.
 
         : param session_config: The session config.
@@ -374,7 +386,7 @@ class Control(ControlBase):
             logger.info("Committing global model to model trail...")
             tic = time.time()
             model_id = str(uuid.uuid4())
-            self.commit(model_id, model, session_id)
+            self.commit(model_id=model_id, model=model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:

@@ -413,6 +413,10 @@ def start_session():
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
         round_timeout: int = data.get("round_timeout", None)
+        model_name_prefix: str = data.get("model_name_prefix", None)
+
+        if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
+            model_name_prefix = None
 
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
@@ -437,7 +441,7 @@ def start_session():
         if model is None:
             return jsonify({"message": "Session seed model not found"}), 400
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix)).start()
 
         return jsonify({"message": "Session started"}), 200
     except Exception as e:
