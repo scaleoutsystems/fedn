@@ -21,7 +21,7 @@ class CombinerHookInterface:
         self.channel = grpc.insecure_channel(
             self.hook_service_host,
             options=[
-                ("grpc.keepalive_time_ms", 30000),  # 30 seconds ping interval
+                ("grpc.keepalive_time_ms", 300_000),  # 5 min ping interval
                 ("grpc.keepalive_timeout_ms", 5000),  # 5 seconds timeout for a response
                 ("grpc.keepalive_permit_without_calls", 1),  # allow keepalives even with no active calls
                 ("grpc.enable_retries", 1),  # automatic retries
