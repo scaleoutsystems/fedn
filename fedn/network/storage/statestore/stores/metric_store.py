@@ -1,9 +1,9 @@
 from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import MetricModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -37,7 +37,7 @@ class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def __init__(self, session):
         super().__init__(session, MetricModel)
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs):
         sort_key = _translate_key_sql(sort_key)
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         return super().list(limit, skip, sort_key, sort_order, **kwargs)

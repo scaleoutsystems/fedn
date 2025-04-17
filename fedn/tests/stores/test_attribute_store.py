@@ -1,6 +1,5 @@
 from typing import List
 import pytest
-import pymongo
 
 import datetime
 import uuid
@@ -8,6 +7,7 @@ import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 
@@ -58,19 +58,18 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"sender.name":"test_sender_name1"}, {"key":"data"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 class TestAttributeStore:
 
-    def test_get_attributes_for_client(self, db_connections_with_data):
+    def test_get_attributes_for_client(self, db_connections_with_data: List[tuple[str, DatabaseConnection]]):
         for (name1, db_1) in db_connections_with_data:
             client_id = "test_sender_id"
             attributes_distinct = db_1.attribute_store.get_attributes_for_client(client_id)
-            attributes_all = db_1.attribute_store.list(limit=0, skip=0, sort_key="committed_at", sort_order=pymongo.ASCENDING, **{"sender.client_id": client_id})
-            print([a.to_dict() for a in attributes_all])
+            attributes_all = db_1.attribute_store.list(limit=0, skip=0, sort_key="committed_at", sort_order=SortOrder.ASCENDING, **{"sender.client_id": client_id})
             attributes_distinct_2 = [attributes_all[0], attributes_all[-1]]
             assert len(attributes_distinct) == len(attributes_distinct_2)
             # assert that the attributes are equal as sets 

@@ -1,5 +1,4 @@
 import pytest
-import pymongo
 
 import itertools
 import datetime
@@ -7,6 +6,7 @@ import uuid
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 @pytest.fixture
 def test_packages():
@@ -47,7 +47,7 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"description":"Test package2"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

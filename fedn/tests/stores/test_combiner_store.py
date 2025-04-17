@@ -1,5 +1,5 @@
 import pytest
-import pymongo
+
 
 import itertools
 import datetime
@@ -7,6 +7,7 @@ import uuid
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import CombinerDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 @pytest.fixture
@@ -70,7 +71,7 @@ def options():
                     "invalid_key") 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"ip":"123:13:12:3"}, {"address":"test_address1"}, {"fqdn":"", "name":"test_combiner77"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

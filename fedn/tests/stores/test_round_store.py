@@ -1,6 +1,5 @@
 from typing import Tuple
 import pytest
-import pymongo
 
 import datetime
 import uuid
@@ -9,6 +8,7 @@ import itertools
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.model import ModelDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 
@@ -67,7 +67,7 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"status":"test_status4,test_status5"}, {"status":"blah"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

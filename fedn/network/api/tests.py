@@ -29,7 +29,6 @@ from unittest.mock import patch, MagicMock
 
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
-import pymongo
 
 from fedn.network.storage.statestore.stores.dto.client import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
@@ -38,7 +37,8 @@ from fedn.network.storage.statestore.stores.dto.package import PackageDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
-from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO  # noqa: F401
+from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder 
 
 entitites = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations', 'metrics']
 keys = ['client_id', 'combiner_id', 'model_id', 'package_id', 'round_id', 'session_id', 'status_id', 'validation_id', 'metric_id']
@@ -55,7 +55,7 @@ class MockStore:
     def update(self, item):
         pass
 
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs):
         pass
 
     def count(self, **kwargs):
@@ -147,23 +147,23 @@ class NetworkAPITests(unittest.TestCase):
 
             self.assertEqual(id, expected_return_id)
 
-        self.db.client_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.client_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.client_store.list.assert_called_once()
-        self.db.combiner_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.combiner_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.combiner_store.list.assert_called_once()
-        self.db.model_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.model_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.model_store.list.assert_called_once()
-        self.db.package_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.package_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.package_store.list.assert_called_once()
-        self.db.round_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.round_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.round_store.list.assert_called_once()        
-        self.db.session_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.session_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.session_store.list.assert_called_once()
-        self.db.status_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.status_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.status_store.list.assert_called_once()
-        self.db.validation_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.validation_store.list.assert_called_once()
-        self.db.metric_store.list.assert_called_with(0, 0, None, pymongo.DESCENDING)
+        self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.metric_store.list.assert_called_once()
    
         for entity in entitites:
@@ -177,15 +177,15 @@ class NetworkAPITests(unittest.TestCase):
             # Assert response
             self.assertEqual(response.status_code, 200)
 
-        self.db.client_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.combiner_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.model_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.package_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.round_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)        
-        self.db.session_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.status_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.validation_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
-        self.db.metric_store.list.assert_called_with(10, 10, "test", pymongo.ASCENDING)
+        self.db.client_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.combiner_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.model_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.package_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.round_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)        
+        self.db.session_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.status_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.validation_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.metric_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
            
 
 if __name__ == '__main__':

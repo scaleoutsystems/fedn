@@ -4,7 +4,6 @@ import time
 import uuid
 from typing import Optional
 
-import pymongo
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 from fedn.common.log_config import logger
@@ -17,6 +16,7 @@ from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 class UnsupportedStorageBackend(Exception):
@@ -137,12 +137,12 @@ class Control(ControlBase):
         :return: The active model ID.
         :rtype: str
         """
-        last_model_of_session = self.db.model_store.list(1, 0, "committed_at", pymongo.DESCENDING, session_id=session_id)
+        last_model_of_session = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING, session_id=session_id)
         if len(last_model_of_session) > 0:
             return last_model_of_session[0].model_id
 
         # if no model is found for the session, get the last model in the model chain
-        last_model = self.db.model_store.list(1, 0, "committed_at", pymongo.DESCENDING)
+        last_model = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING)
         if len(last_model) > 0:
             return last_model[0].model_id
 

@@ -1,7 +1,7 @@
 import graphene
-import pymongo
 
 from fedn.network.controller.control import Control
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 class ActorType(graphene.ObjectType):
@@ -51,7 +51,7 @@ class ModelType(graphene.ObjectType):
     def resolve_validations(self, info):
         db = Control.instance().db
         kwargs = {"modelId": self["model"]}
-        result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
         return result
 
@@ -93,7 +93,7 @@ class SessionType(graphene.ObjectType):
     def resolve_validations(self, info):
         db = Control.instance().db
         kwargs = {"sessionId": self["session_id"]}
-        result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
 
         return result
@@ -101,7 +101,7 @@ class SessionType(graphene.ObjectType):
     def resolve_statuses(self, info):
         db = Control.instance().db
         kwargs = {"sessionId": self["session_id"]}
-        result = db.status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+        result = db.status_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [status.to_dict() for status in result]
 
         return result
@@ -189,7 +189,7 @@ class Query(graphene.ObjectType):
         db = Control.instance().db
         if session_id:
             kwargs = {"session_id": session_id}
-            result = db.validation_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         else:
             result = db.validation_store.list(0, 0, None)
 
@@ -205,7 +205,7 @@ class Query(graphene.ObjectType):
         db = Control.instance().db
         if session_id:
             kwargs = {"sessionId": session_id}
-            result = db.status_store.list(0, 0, None, sort_order=pymongo.DESCENDING, **kwargs)
+            result = db.status_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         else:
             result = db.status_store.list(0, 0, None)
 

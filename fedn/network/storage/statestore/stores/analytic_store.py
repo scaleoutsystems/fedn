@@ -5,6 +5,7 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.store import MongoDBStore, Store, from_document
 
 
@@ -28,7 +29,7 @@ class MongoDBAnalyticStore(AnalyticStore, MongoDBStore[AnalyticDTO]):
         result = self.database[self.collection].delete_many({"sender_id": sender_id, "committed_at": {"$lt": time_threshold}})
         return result.deleted_count
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs) -> List[AnalyticDTO]:
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=SortOrder.DESCENDING, **kwargs) -> List[AnalyticDTO]:
         return super().list(limit, skip, sort_key or "committed_at", sort_order, **kwargs)
 
     def _document_from_dto(self, item: AnalyticDTO) -> Dict:

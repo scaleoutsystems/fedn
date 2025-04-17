@@ -1,20 +1,20 @@
-from typing import Dict
+from typing import Dict, List
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import AttributeModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
 class AttributeStore(Store[AttributeDTO]):
-    def get_attributes_for_client(self, client_id: str) -> Dict:
+    def get_attributes_for_client(self, client_id: str) -> List[AttributeDTO]:
         """Get all attributes for a specific client.
 
         This method returns the most recent attributes for the given client_id.
         """
-        attributes = self.list(limit=0, skip=0, sort_key="committed_at", sort_order=pymongo.DESCENDING, **{"sender.client_id": client_id})
+        attributes = self.list(limit=0, skip=0, sort_key="committed_at", sort_order=SortOrder.DESCENDING, **{"sender.client_id": client_id})
         keys = {attribute.key for attribute in attributes}
 
         result = []
@@ -50,7 +50,7 @@ class SQLAttributeStore(AttributeStore, SQLStore[AttributeDTO, AttributeModel]):
     def __init__(self, session):
         super().__init__(session, AttributeModel)
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs):
         sort_key = _translate_key_sql(sort_key)
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
