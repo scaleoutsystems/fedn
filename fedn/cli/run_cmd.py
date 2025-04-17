@@ -7,7 +7,10 @@ import yaml
 
 from fedn.cli.main import main
 from fedn.cli.shared import apply_config
+from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.common.log_config import logger
+from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.s3.repository import Repository
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
 
 
@@ -218,5 +221,14 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
 
     from fedn.network.combiner.combiner import Combiner
 
-    combiner = Combiner(config)
+    modelstorage_config = get_modelstorage_config()
+    statestore_config = get_statestore_config()
+    network_id = get_network_config()
+
+    # TODO: set storage_type ?
+    repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
+
+    db = DatabaseConnection(statestore_config, network_id)
+
+    combiner = Combiner(config, repository, db)
     combiner.run()

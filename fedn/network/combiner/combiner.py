@@ -16,20 +16,11 @@ import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.shared import (
-    analytic_store,
-    client_store,
-    combiner_store,
-    metric_store,
-    prediction_store,
-    repository,
-    round_store,
-    status_store,
-    validation_store,
-)
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
+from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
@@ -99,7 +90,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     :type config: dict
     """
 
-    def __init__(self, config):
+    _instance: "Combiner"
+
+    def __init__(self, config, repository: Repository, db: DatabaseConnection):
         """Initialize Combiner server."""
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
@@ -124,11 +117,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set up model repository
         self.repository = repository
-
-        self.round_store = round_store
+        self.db = db
 
         # Check if combiner already exists in statestore
-        if combiner_store.get_by_name(config["name"]) is None:
+        if self.db.combiner_store.get_by_name(config["name"]) is None:
             new_combiner = CombinerDTO()
             new_combiner.port = config["port"]
             new_combiner.fqdn = config["fqdn"]
@@ -137,19 +129,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             new_combiner.parent = "localhost"
             new_combiner.ip = ""
             new_combiner.updated_at = str(datetime.now())
-            combiner_store.add(new_combiner)
+            self.db.combiner_store.add(new_combiner)
 
         # Fetch all clients previously connected to the combiner
         # If a client and a combiner goes down at the same time,
         # the client will be stuck listed as "online" in the statestore.
         # Set the status to offline for previous clients.
-        previous_clients = client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, combiner=self.id)
+        previous_clients = self.db.client_store.list(limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, combiner=self.id)
         logger.info(f"Found {len(previous_clients)} previous clients")
         logger.info("Updating previous clients status to offline")
         for client in previous_clients:
             client.status = "offline"
             try:
-                client_store.update(client)
+                self.db.client_store.update(client)
             except Exception as e:
                 logger.error(f"Failed to update previous client status: {e}")
 
@@ -161,11 +153,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             grpc_server_config = ServerConfig(port=config["port"], secure=False)
 
+        # Set up model service
+        modelservice = ModelService()
+
         # Create gRPC server
-        self.server = Server(self, grpc_server_config)
+        self.server = Server(self, modelservice, grpc_server_config)
 
         # Set up round controller
-        self.round_handler = RoundHandler(self)
+        self.round_handler = RoundHandler(self, repository, modelservice)
 
         # Start thread for round controller
         threading.Thread(target=self.round_handler.run, daemon=True).start()
@@ -175,6 +170,25 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Start the gRPC server
         self.server.start()
+
+    @classmethod
+    def create_instance(cls, config: CombinerConfig, repository: Repository, db: DatabaseConnection):
+        """Create a new singleton instance of the combiner.
+
+        :param config: configuration for the combiner
+        :type config: dict
+        :return: the instance of the combiner
+        :rtype: :class:`fedn.network.combiner.server.Combiner`
+        """
+        cls._instance = cls(config, repository, db)
+        return cls._instance
+
+    @classmethod
+    def instance(cls):
+        """Get the singleton instance of the combiner."""
+        if cls._instance is None:
+            raise Exception("Combiner instance not created yet.")
+        return cls._instance
 
     def __whoami(self, client, instance):
         """Set the client id and role in a proto message.
@@ -399,14 +413,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
-                client_to_update = client_store.get(client)
+                client_to_update = self.db.client_store.get(client)
                 client_to_update.status = "online"
-                client_store.update(client_to_update)
+                self.db.client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
-                client_to_update = client_store.get(client)
+                client_to_update = self.db.client_store.get(client)
                 client_to_update.status = "offline"
-                client_store.update(client_to_update)
+                self.db.client_store.update(client_to_update)
 
         return clients["active_clients"]
 
@@ -441,7 +455,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         data = MessageToDict(status, preserving_proto_field_name=True)
         status = StatusDTO().populate_with(data)
-        status_store.add(status)
+        self.db.status_store.add(status)
 
     def _flush_model_update_queue(self):
         """Clear the model update queue (aggregator).
@@ -671,7 +685,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 }
             )
             try:
-                analytic_store.add(analytic)
+                self.db.analytic_store.add(analytic)
             except Exception as e:
                 logger.error(f"GRPC: SendHeartbeat error: {e}")
 
@@ -713,14 +727,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.clients[client.client_id]["status"] = "online"
         try:
             # If the client is already in the client store, update the status
-            client_to_update = client_store.get(client.client_id)
+            client_to_update = self.db.client_store.get(client.client_id)
             if client_to_update is not None:
                 client_to_update.status = "online"
                 client_to_update.last_seen = datetime.now()
-                client_store.update(client_to_update)
+                self.db.client_store.update(client_to_update)
             else:
                 new_client = ClientDTO(client_id=client.client_id, name=client.name, status="online", last_seen=datetime.now(), combiner=self.id)
-                client_store.add(new_client)
+                self.db.client_store.add(new_client)
 
         except Exception as e:
             logger.error(f"Failed to update client status: {str(e)}")
@@ -772,7 +786,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         data = MessageToDict(validation, preserving_proto_field_name=True)
         validationdto = ValidationDTO(**data)
         try:
-            result = validation_store.add(validationdto)
+            result = self.db.validation_store.add(validationdto)
             logger.info("Model validation registered: {}".format(result))
         except Exception as e:
             logger.error(f"Failed to register model validation: {e}")
@@ -791,7 +805,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         data = MessageToDict(request, preserving_proto_field_name=True)
         validationdto = ValidationDTO(**data)
-        validation_store.add(validationdto)
+        self.db.validation_store.add(validationdto)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelValidation {} from client  {}".format(response, response.sender.name)
@@ -812,7 +826,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         data = MessageToDict(request, preserving_proto_field_name=True)
 
         prediction = PredictionDTO(**data)
-        prediction_store.add(prediction)
+        self.db.prediction_store.add(prediction)
 
         response = fedn.Response()
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
@@ -835,7 +849,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for metric in metrics:
             new_metric = MetricDTO(**metric, **metric_msg)
             try:
-                metric_store.add(new_metric)
+                self.db.metric_store.add(new_metric)
             except Exception as e:
                 logger.error(f"Failed to register model metric: {e}")
 
@@ -854,7 +868,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         for attribute in attributes:
             new_attribute = AttributeDTO(**attribute, **attribute_msg)
             try:
-                DatabaseConnection().attribute_store.add(new_attribute)
+                self.db.attribute_store.add(new_attribute)
             except Exception as e:
                 logger.error(f"Failed to register model attribute: {e}")
 

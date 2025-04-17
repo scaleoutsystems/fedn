@@ -4,8 +4,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, model_store, prediction_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
 
 bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predictions")
 
@@ -20,6 +20,9 @@ def start_session():
     type: rounds: int
     """
     try:
+        db = Control.instance().db
+        control = Control.instance()
+
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         prediction_id: str = data.get("prediction_id")
 
@@ -29,12 +32,12 @@ def start_session():
         session_config = {"prediction_id": prediction_id}
 
         if data.get("model_id") is None:
-            count = model_store.count()
+            count = db.model_store.count()
             if count == 0:
                 return jsonify({"message": "No models available"}), 400
         else:
             model_id = data.get("model_id")
-            model = model_store.get(model_id)
+            model = db.model_store.get(model_id)
             if model is None:
                 return jsonify({"message": f"Model {model_id} not found"}), 404
             session_config["model_id"] = model_id
@@ -166,11 +169,12 @@ def get_predictions():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = prediction_store.count(**kwargs)
+        result = db.prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.prediction_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
@@ -263,11 +267,12 @@ def list_predictions():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        result = prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = prediction_store.count(**kwargs)
+        result = db.prediction_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.prediction_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
 
         return jsonify(response), 200
