@@ -1,4 +1,4 @@
-from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random
+from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, np
 
 # See allowed_imports for what packages you can use in this class.
 
