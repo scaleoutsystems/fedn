@@ -70,6 +70,7 @@ class ModelModel(MyAbstractBase):
     session_configs: Mapped[List["SessionConfigModel"]] = relationship()
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     session: Mapped[Optional["SessionModel"]] = relationship(back_populates="models")
+    session_seed_model_relationship: Mapped[Optional["SessionModel"]] = relationship(back_populates="seed_model")
 
 
 class RoundConfigModel(MyAbstractBase):
