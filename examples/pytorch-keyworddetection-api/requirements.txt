@@ -1,5 +1,5 @@
 fedn
-torch==2.5.1
+torch==2.6.0
 torchaudio==2.5.1
 torcheval==0.0.7
 pyloudnorm==0.1.1
