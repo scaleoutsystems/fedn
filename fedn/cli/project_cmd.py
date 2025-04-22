@@ -49,17 +49,19 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 
 
 @click.option("-n", "--name", required=False, default=None, help="Name of new project.")
-@click.option("-d", "--description", required=False, default=None, help="Description of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
+@click.option("--branch", required=False, default = None, help="Studio branch (default main). Requires admin in Studio")
+@click.option("--image", required=False, default = None,help="Container image. Requires admin in Studio")
+@click.option("--repository", required=False, default = None, help="Container image repository. Requires admin in Studio")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False):
+def create_project(ctx, name: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, branch: str = None,
+ image: str = None, repo: str = None):
     """Create project.
     :param ctx:
     """
-    # Check if user can create project
     studio_api = True
     url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/create", usr_api=studio_api)
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -68,23 +70,18 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
     if _token:
         headers["Authorization"] = _token
-    if not no_interactive:
-        if name is None:
-            name = input("Please enter a project name: ")
-        if description is None:
-            description = input("Please enter a project description (optional): ")
-    else:
-        if name is None:
+    if name is None:
+        if no_interactive:
             click.secho("Project name is required.", fg="red")
             return
-        if description is None:
-            description = ""
-    if len(name) > 46 or len(description) >= 255:
+            name = input("Please enter a project name: ")
+    if len(name) > 46:
         click.secho("Project name or description too long.", fg="red")
     else:
         # Call the authentication API
         try:
-            requests.post(url, data={"name": name, "description": description}, headers=headers)
+            requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repo}, headers=headers
+                )
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
         click.secho("Project created.", fg="green")
@@ -92,17 +89,21 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("-no-header", "--no-header", required=False, help="list projects without headers")
 @project_cmd.command("list")
 @click.pass_context
-def list_projects(ctx, protocol: str = None, host: str = None):
+def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool = False):
     """Return:
     ------
     - result: list of projects
 
     """
     studio_api = True
-
-    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers={}, usr_api=studio_api, usr_token=True)
+    if no_header:
+        headers = {}
+    else:
+        headers = {}
+    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers=headers, usr_api=studio_api, usr_token=True)
 
     if response.status_code == 200:
         response_json = response.json()
