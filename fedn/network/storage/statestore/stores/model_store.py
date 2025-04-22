@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, List
 
-from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import select
 from sqlalchemy.orm import aliased
