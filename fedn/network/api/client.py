@@ -269,6 +269,8 @@ class APIClient:
         """
         _headers = self.headers.copy()
         _headers["X-Limit"] = "1"
+        _headers["X-Sort-Key"] = "committed_at"
+        _headers["X-Sort-Order"] = "desc"
 
         response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
         _json = response.json()

@@ -216,7 +216,7 @@ class Control(ControlBase):
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
                     training_run_obj.completed_at = datetime.datetime.now()
-                    training_run_obj.completed_at_model_id = self.db.model_store.get_active()
+                    training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
                     self.db.training_run_store.update(training_run_obj)
                     break
                 _, round_data = self.round(
@@ -235,7 +235,7 @@ class Control(ControlBase):
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
             training_run_obj.completed_at = datetime.datetime.now()
-            training_run_obj.completed_at_model_id = self.db.model_store.get_active()
+            training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
             self.db.training_run_store.update(training_run_obj)
             logger.info("Session finished.")
         self._state = ReducerState.idle
@@ -382,11 +382,11 @@ class Control(ControlBase):
             return None, self.db.round_store.get(round_id)
 
         # Commit the new global model to the model trail
+        model_id: Optional[str] = None
         if model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
-            model_id = str(uuid.uuid4())
-            self.commit(model_id=model_id, model=model, session_id=session_id, name=model_name)
+            model_id = self.commit(model=model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
@@ -400,7 +400,7 @@ class Control(ControlBase):
         if session_config.validate:
             combiner_config = session_config.to_dict()
             combiner_config["round_id"] = round_id
-            combiner_config["model_id"] = self.db.model_store.get_active()
+            combiner_config["model_id"] = model_id
             combiner_config["task"] = "validation"
             combiner_config["session_id"] = session_id
 
