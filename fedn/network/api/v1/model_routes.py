@@ -840,3 +840,27 @@ def upload_model():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+# deprecated
+
+
+@bp.route("/active", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_active_model():
+    return jsonify(
+        {
+            "error": "This endpoint has been deprecated and is no longer available."
+            + "The active model concept is no longer used in Fedn. Please use the /models endpoint to retrieve models.",
+        }
+    ), 410
+
+
+@bp.route("/active", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def set_active_model():
+    return jsonify(
+        {
+            "error": "This endpoint has been deprecated and is no longer available." + "The active model concept is no longer used in Fedn.",
+        }
+    ), 410
