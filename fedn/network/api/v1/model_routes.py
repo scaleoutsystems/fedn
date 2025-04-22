@@ -861,6 +861,6 @@ def get_active_model():
 def set_active_model():
     return jsonify(
         {
-            "error": "This endpoint has been deprecated and is no longer available." + "The active model concept is no longer used in Fedn.",
+            "error": "This endpoint has been deprecated and is no longer available. " + "The active model concept is no longer used in Fedn.",
         }
     ), 410
