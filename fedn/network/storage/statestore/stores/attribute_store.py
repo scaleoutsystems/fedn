@@ -48,7 +48,7 @@ def _translate_key_sql(key: str):
 
 class SQLAttributeStore(AttributeStore, SQLStore[AttributeDTO, AttributeModel]):
     def __init__(self, session):
-        super().__init__(session, AttributeModel)
+        super().__init__(session, AttributeModel, "attribute_id")
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs):
         sort_key = _translate_key_sql(sort_key)

@@ -163,7 +163,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
 class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
-        super().__init__(Session, PackageModel)
+        super().__init__(Session, PackageModel, "package_id")
 
     def set_active(self, id: str):
         with self.Session() as session:
