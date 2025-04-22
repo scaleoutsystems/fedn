@@ -177,7 +177,7 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
-            if provided_functions.get("aggregate", False):
+            if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                 model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
