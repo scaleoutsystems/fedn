@@ -20,7 +20,7 @@ class ServerFunctions(ServerFunctionsBase):
         self.round += 1
         return {"learning_rate": self.lr}
 
-    def running_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
+    def incremental_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
         # Initialize the global model during the first aggregation.
 
         # Use the client metadata to get the number of examples the client has.
@@ -36,7 +36,7 @@ class ServerFunctions(ServerFunctionsBase):
 
         print(f"Model aggregated with {num_examples} examples.")
 
-    def get_running_aggregate_model(self) -> List[np.ndarray]:
+    def get_incremental_aggregate_model(self) -> List[np.ndarray]:
         # Return the current running aggregate global model and reset it.
         ret = self.global_model
         self.global_model = None

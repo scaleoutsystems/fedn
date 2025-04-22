@@ -87,7 +87,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             metadata = json.loads(request.metadata)
             # dictionary contains: [model, client_metadata] in that order for each key
             self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
-            self.check_running_aggregate(client_id)
+            self.check_incremental_aggregate(client_id)
             return fedn.ClientMetaResponse(status="Metadata stored")
         except Exception as e:
             logger.exception("Error handling store metadata request: %s", e)
@@ -103,20 +103,20 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
                 logger.info(f"Received client model from client {client_id}")
                 # dictionary contains: [model, client_metadata] in that order for each key
                 self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
-            self.check_running_aggregate(client_id)
+            self.check_incremental_aggregate(client_id)
             return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
         except Exception as e:
             logger.exception("Error handling store model request: %s", e)
 
-    def check_running_aggregate(self, client_id):
+    def check_incremental_aggregate(self, client_id):
         # incremental aggregation (memory secure)
         if client_id == "global_model":
             return
         model_and_metadata_received = len(self.client_updates[client_id]) == 2
-        if model_and_metadata_received and self.implemented_functions["running_aggregate"]:
+        if model_and_metadata_received and self.implemented_functions["incremental_aggregate"]:
             client_model = self.client_updates[client_id][0]
             client_metadata = self.client_updates[client_id][1]
-            self.server_functions.running_aggregate(client_id, client_model, client_metadata, self.previous_global)
+            self.server_functions.incremental_aggregate(client_id, client_model, client_metadata, self.previous_global)
             del self.client_updates[client_id]
 
     def HandleAggregation(self, request, context):
@@ -131,8 +131,8 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         """
         try:
             logger.info(f"Receieved aggregation request: {request.aggregate}")
-            if self.implemented_functions["running_aggregate"]:
-                aggregated_model = self.server_functions.get_running_aggregate_model()
+            if self.implemented_functions["incremental_aggregate"]:
+                aggregated_model = self.server_functions.get_incremental_aggregate_model()
             else:
                 aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
 
@@ -168,7 +168,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.server_functions_code = server_functions_code
             self.implemented_functions = {}
             self._instansiate_server_functions_code()
-            functions = ["client_selection", "client_settings", "aggregate", "running_aggregate"]
+            functions = ["client_selection", "client_settings", "aggregate", "incremental_aggregate"]
             for func in functions:
                 if func in self.server_functions_code:
                     logger.info(f"String {func} found in server functions code, assuming function is implemented.")

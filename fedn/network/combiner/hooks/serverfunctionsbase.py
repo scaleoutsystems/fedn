@@ -65,7 +65,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def running_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
+    def incremental_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
         """Aggregates a list of parameters from clients.
 
         Args:
@@ -86,7 +86,7 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
-    def get_running_aggregate_model(self) -> List[np.ndarray]:
+    def get_incremental_aggregate_model(self) -> List[np.ndarray]:
         """Returns the current running model.
 
         Returns
