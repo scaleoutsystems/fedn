@@ -657,6 +657,7 @@ class APIClient:
             self._get_url_api_v1("sessions/"),
             json={
                 "name": name,
+                "seed_model_id": model_id,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
