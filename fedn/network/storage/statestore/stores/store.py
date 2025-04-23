@@ -176,16 +176,10 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         else:
             raise ValueError(f"Invalid sort order: {_sort_order}")
 
-        if sort_key and sort_key != self.primary_key:
-            cursor = (
-                self.database[self.collection]
-                .find(kwargs)
-                .sort({sort_key: _sort_order, self.primary_key: pymongo.DESCENDING})
-                .skip(skip or 0)
-                .limit(limit or 0)
-            )
+        if sort_key and sort_key != "committed_at":
+            cursor = self.database[self.collection].find(kwargs).sort({sort_key: _sort_order, "committed_at": _sort_order}).skip(skip or 0).limit(limit or 0)
         else:
-            cursor = self.database[self.collection].find(kwargs).sort(self.primary_key, pymongo.DESCENDING).skip(skip or 0).limit(limit or 0)
+            cursor = self.database[self.collection].find(kwargs).sort("committed_at", _sort_order).skip(skip or 0).limit(limit or 0)
 
         return [self._dto_from_document(document) for document in cursor]
 
@@ -204,10 +198,11 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
 class SQLStore(Store[DTO], Generic[DTO, MODEL]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL], primary_key: str) -> None:
         """Initialize SQLStore."""
         self.SQLModel = SQLModel
         self.Session = Session
+        self.primary_key = primary_key
 
     def get(self, id: str) -> DTO:
         with self.Session() as session:
@@ -267,16 +262,22 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
     def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         with self.Session() as session:
             stmt = select(self.SQLModel)
+            if sort_key == self.primary_key:
+                sort_key = "id"
 
             for key, value in kwargs.items():
+                if key == self.primary_key:
+                    key = "id"
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
             _sort_order = sort_order or SortOrder.DESCENDING
             if _sort_order not in (SortOrder.DESCENDING, SortOrder.ASCENDING):
                 raise ValueError(f"Invalid sort order: {_sort_order}")
 
-            secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
-            if sort_key and sort_key in self.SQLModel.__table__.columns:
+            secondary_sort_obj = self.SQLModel.__table__.columns.get("committed_at")
+            if _sort_order == SortOrder.DESCENDING:
+                secondary_sort_obj = secondary_sort_obj.desc()
+            if sort_key and sort_key in self.SQLModel.__table__.columns and sort_key != "committed_at":
                 sort_obj = self.SQLModel.__table__.columns.get(sort_key)
                 if _sort_order == SortOrder.DESCENDING:
                     sort_obj = sort_obj.desc()

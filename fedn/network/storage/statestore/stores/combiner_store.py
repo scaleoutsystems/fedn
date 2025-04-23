@@ -34,7 +34,7 @@ class MongoDBCombinerStore(CombinerStore, MongoDBStore[CombinerDTO]):
 
 class SQLCombinerStore(CombinerStore, SQLStore[CombinerDTO, CombinerModel]):
     def __init__(self, Session):
-        super().__init__(Session, CombinerModel)
+        super().__init__(Session, CombinerModel, "combiner_id")
 
     def get_by_name(self, name: str) -> CombinerDTO:
         with self.Session() as session:
