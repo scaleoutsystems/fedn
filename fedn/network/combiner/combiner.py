@@ -884,8 +884,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Received Telemetry from {}".format(request.sender.name))
         telemetry_msg = MessageToDict(request, preserving_proto_field_name=True)
         telemetries = telemetry_msg.pop("telemetries")
-
         for telemetry in telemetries:
+            telemetry = {"value": 0.0, **telemetry}
             new_telemetry = TelemetryDTO(**telemetry, **telemetry_msg)
             try:
                 self.db.telemetry_store.add(new_telemetry)
