@@ -30,7 +30,7 @@ def get_telemetries():
 
 @bp.route("/", methods=["POST"])
 @jwt_auth_required(role="admin")
-def add_telemetrys():
+def add_telemetries():
     try:
         db = Control.instance().db
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
