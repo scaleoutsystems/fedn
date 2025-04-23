@@ -206,7 +206,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 
 class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
     def __init__(self, Session):
-        super().__init__(Session, ModelModel)
+        super().__init__(Session, ModelModel, "model_id")
 
     def update(self, item: ModelDTO) -> ModelDTO:
         return self.sql_update(item)
