@@ -27,6 +27,7 @@ from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
@@ -871,6 +872,25 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 self.db.attribute_store.add(new_attribute)
             except Exception as e:
                 logger.error(f"Failed to register model attribute: {e}")
+
+        return fedn.Response()
+
+    def SendTelemetryMessage(self, request, context):
+        """Send a telemetry message.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.TelemetryMessage`
+        """
+        logger.info("Received Telemetry from {}".format(request.sender.name))
+        telemetry_msg = MessageToDict(request, preserving_proto_field_name=True)
+        telemetries = telemetry_msg.pop("telemetries")
+
+        for telemetry in telemetries:
+            new_telemetry = TelemetryDTO(**telemetry, **telemetry_msg)
+            try:
+                self.db.telemetry_store.add(new_telemetry)
+            except Exception as e:
+                logger.error(f"Failed to register telemetry: {e}")
 
         return fedn.Response()
 

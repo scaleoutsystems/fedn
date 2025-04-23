@@ -254,6 +254,20 @@ class GrpcHandler:
             return False
         return True
 
+    def send_telemetry(self, telemetry: fedn.TelemetryMessage) -> bool:
+        """Send a telemetry message to the combiner."""
+        try:
+            logger.info("Sending telemetry to combiner.")
+            _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendTelemetry): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
+            return False
+        return True
+
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
