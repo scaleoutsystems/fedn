@@ -12,16 +12,16 @@ bp = Blueprint("telemetry", __name__, url_prefix=f"/api/{api_version}/telemetry"
 
 @bp.route("/", methods=["GET"])
 @jwt_auth_required(role="admin")
-def get_telemetrys():
+def get_telemetries():
     try:
         db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        telemetrys = db.telemetry_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        telemetries = db.telemetry_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = db.telemetry_store.count(**kwargs)
 
-        response = {"count": count, "result": [telemetry.to_dict() for telemetry in telemetrys]}
+        response = {"count": count, "result": [telemetry.to_dict() for telemetry in telemetries]}
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
