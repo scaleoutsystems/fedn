@@ -355,6 +355,7 @@ class GrpcHandler:
     def create_validation_message(
         self,
         sender_name: str,
+        sender_client_id: str,
         receiver_name: str,
         receiver_role: fedn.Role,
         model_id: str,
@@ -365,6 +366,7 @@ class GrpcHandler:
         """Create a validation message."""
         validation = fedn.ModelValidation()
         validation.sender.name = sender_name
+        validation.sender.client_id = sender_client_id
         validation.sender.role = fedn.CLIENT
         validation.receiver.name = receiver_name
         validation.receiver.role = receiver_role
