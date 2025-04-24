@@ -43,4 +43,4 @@ for i in $(seq 0 $(($FEDN_NR_CLIENTS - 1))); do
 done
 popd
 sleep 5
-pytest .ci/tests/studio/tests.py
+pytest .ci/tests/studio/tests.py -x
