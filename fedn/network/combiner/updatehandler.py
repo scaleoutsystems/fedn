@@ -53,8 +53,6 @@ class UpdateHandler:
         :type model_id: str
         """
         try:
-            logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
-
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)
             if valid_update:

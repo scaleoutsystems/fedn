@@ -6,7 +6,7 @@
             "type": "python",
             "request": "launch",
             "module": "pytest",
-            "justMyCode": true
+            "justMyCode": false
         },
         {
             "args": [
@@ -17,7 +17,7 @@
             "type": "python",
             "request": "launch",
             "module": "pytest",
-            "justMyCode": true
+            "justMyCode": false
         },
         {
             "name": "Run current file",

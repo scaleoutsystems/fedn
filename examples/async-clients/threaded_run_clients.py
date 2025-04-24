@@ -1,9 +1,6 @@
 """This scripts starts N_CLIENTS using the SDK.
 
 
-
-
-
 If you are running with a local deploy of FEDn
 using docker compose, you need to make sure that clients
 are able to resolve the name "combiner" to 127.0.0.1
@@ -26,10 +23,16 @@ import numpy as np
 from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
 
+import random
 from config import settings
 from fedn import FednClient
+import json
 
 HELPER_MODULE = "numpyhelper"
+
+log_lock = threading.Lock()
+
+LOG_FILE = "/Users/sigvard/Desktop/client_update.json" # Logging file for all clients
 
 
 def get_api_url(host: str, port: int = None, secure: bool = False):
@@ -62,9 +65,9 @@ def load_model(model_bytes_io: BytesIO):
 
 def callback_train(client_id, client_name):
     def on_train(in_model, client_settings):
-        print("Running training callback...")
+        print(in_model)
+        start_time = time.perf_counter()
         model = load_model(in_model)
-
         X_train, y_train, _, _ = make_data()
         epochs = settings["N_EPOCHS"]
         for i in range(epochs):
@@ -87,10 +90,23 @@ def callback_train(client_id, client_name):
         }
 
         metadata = {"training_metadata": training_metadata}
+        
+        train_time = time.perf_counter() - start_time
 
+        log_entry = {"client_id": client_id,
+                     "client_name": client_name,
+                     "train_time": train_time,
+                     "time stamp": time.time()
+                     }
+        
+
+        with log_lock:
+            with open(LOG_FILE, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
+
+        
         return out_model, metadata
     return on_train
-
 
 def on_validate(in_model):
     model = load_model(in_model)
@@ -135,11 +151,9 @@ def run_client(online_for=120, name="client", client_id=None):
 
         url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
 
-        # print("url: ", url)
-        # print("token: ", settings["CLIENT_TOKEN"])
-        # print("controller config: ", controller_config)
         result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
         #combiner_config.host = "100.84.229.36"
+        combiner_config.host = "127.0.0.1"
         fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
         threading.Thread(target=fl_client.run, daemon=True).start()
@@ -148,20 +162,21 @@ def run_client(online_for=120, name="client", client_id=None):
 
 
 if __name__ == "__main__":
-    # We start N_CLIENTS independent client processes
-    processes = []
+    # We start N_CLIENTS independent client threads
+    threads = []
     for i in range(settings["N_CLIENTS"]):
         time.sleep(0.01)
-        p = Process(
+        t = threading.Thread(
             target=run_client,
             args=(
                 settings["CLIENTS_ONLINE_FOR_SECONDS"],
                 "client{}".format(i + 1),
-                str(uuid.uuid4()),
-            ),
+                str(uuid.uuid4())),
+                daemon=False
         )
-        processes.append(p)
-        p.start()
+        
+        threads.append(t)
+        t.start()
 
-    for p in processes:
-        p.join()
+    for t in threads:
+        t.join()
