@@ -130,7 +130,8 @@ def print_response(response, entity_name: str, so):
     else:
         click.echo(f"Error: {response.status_code}")
 
-def pretty_print_projects(data):
+
+def pretty_print_projects(data, no_header):
     """Prints the project information in tabular format.
     :param data:
         type: array
@@ -139,21 +140,16 @@ def pretty_print_projects(data):
     """
     if not isinstance(data, list):
         data = [data]
+
     headers = ["Name", "ID", "Owner", "Status", "Created At", "FEDn Version"]
 
     # Prepare rows
     rows = []
     for i in data:
-        rows.append([
-            i.get("name", ""),
-            i.get("slug", ""),
-            i.get("owner_username", ""),
-            i.get("status", ""),
-            i.get("created_at", ""),
-            i.get("app_version", "")
-        ])
+        rows.append([i.get("name", ""), i.get("slug", ""), i.get("owner_username", ""), i.get("status", ""), i.get("created_at", ""), i.get("app_version", "")])
 
     # Calculate column widths
+
     col_widths = [len(h) for h in headers]
     for row in rows:
         for idx, value in enumerate(row):
@@ -164,13 +160,13 @@ def pretty_print_projects(data):
         return " | ".join(f"{str(val):<{col_widths[idx]}}" for idx, val in enumerate(row))
 
     # Print header
-    print(format_row(headers))
-    print("-+-".join("-" * w for w in col_widths))
+    if not no_header:
+        print(format_row(headers))
+        print("-+-".join("-" * w for w in col_widths))
 
     # Print rows
     for row in rows:
         click.secho(format_row(row))
-
 
 
 def set_context(context_path, context_data):

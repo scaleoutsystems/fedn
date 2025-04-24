@@ -2,8 +2,9 @@ import os
 
 import click
 import requests
+
 from .main import main
-from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, print_response, pretty_print_projects, set_context
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, pretty_print_projects, print_response, set_context
 
 
 @main.group("project")
@@ -54,8 +55,7 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 @click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, description: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, no_header: bool = False
-):
+def create_project(ctx, name: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, no_header: bool = False):
     """Create project.
     :param ctx:
     """
@@ -74,18 +74,16 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
             return
         name = input("Please enter a project name: ")
     if len(name) > 46:
-        click.secho("Project name or description too long.", fg="red")
+        click.secho("Project name too long.", fg="red")
     else:
         # Call the authentication API
         try:
             response = requests.post(url, data={"name": name}, headers=headers)
             response_project = response.json().get("project")
-            if not no_header:
-                pretty_print_projects(response_project)
+            pretty_print_projects(response_project, no_header)
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
         click.secho("Project successfully created.", fg="green")
-
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
@@ -93,7 +91,7 @@ def create_project(ctx, name: str = None, description: str = None, protocol: str
 @click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("list")
 @click.pass_context
-def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool=False):
+def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool = False):
     """Return:
     ------
     - result: list of projects
@@ -106,18 +104,7 @@ def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool=F
     if response.status_code == 200:
         response_json = response.json()
         if len(response_json) > 0:
-            context_path = os.path.join(HOME_DIR, ".fedn")
-            context_data = get_context(context_path)
-            active_project = context_data.get("Active project id")
-            if no_header:
-                for i in response_json:
-                    project_name = i.get("slug")
-                    if project_name == active_project:
-                        click.secho(f"{project_name} (active)", fg="green")
-                    else:
-                        click.secho(project_name)
-            else:
-                pretty_print_projects(response_json)
+            pretty_print_projects(response_json, no_header)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
