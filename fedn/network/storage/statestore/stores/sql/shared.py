@@ -97,6 +97,7 @@ class RoundConfigModel(MyAbstractBase):
     round_id: Mapped[str]
     rounds: Mapped[int]
     client_settings: Mapped[Optional[Dict]] = mapped_column(JSON)
+    is_validate: Mapped[bool]
 
 
 class RoundCombinerDataModel(MyAbstractBase):
