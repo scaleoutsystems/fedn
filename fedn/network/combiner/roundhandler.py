@@ -553,8 +553,7 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            active_round = self.server.round_store.get(round_meta["round_id"])
-                            # if "combiners" not in active_round:
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])  # if "combiners" not in active_round:
                             #     active_round["combiners"] = []
                             # active_round["combiners"].append(round_meta)
 
@@ -562,7 +561,7 @@ class RoundHandler:
 
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.round_store.update(active_round)
+                                self.server.db.round_store.update(active_round)
                             except Exception as e:
                                 logger.error("Forward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Forward passFailed to update round data in round store.")
@@ -573,11 +572,11 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            active_round = self.server.round_store.get(round_meta["round_id"])
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])
                             # updated = self.server.round_store.update(active_round["id"], active_round)
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.round_store.update(active_round)
+                                self.server.db.round_store.update(active_round)
                             except Exception as e:
                                 logger.error("Backward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Backward pass: Failed to update round data in round store.")

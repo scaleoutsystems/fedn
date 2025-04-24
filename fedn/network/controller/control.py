@@ -293,7 +293,7 @@ class Control(ControlBase):
 
         self._state = ReducerState.instructing
 
-        session = self.session_store.get(session_id)
+        session = self.db.session_store.get(session_id)
 
         if not session:
             logger.error("Session not found.")
@@ -512,7 +512,7 @@ class Control(ControlBase):
         if len(self.network.get_combiners()) < 1:
             logger.warning("Round cannot start, no combiners connected!")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # 1) FORWARD PASS - specified through "task": "forward"
         forward_config = session_config.to_dict()
@@ -525,7 +525,7 @@ class Control(ControlBase):
         if not self.evaluate_round_start_policy(participating_combiners):
             logger.warning("Round start policy not met, skipping round!")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         logger.info("CONTROLLER: Requesting forward pass")
         # Request forward pass using existing method
@@ -544,7 +544,7 @@ class Control(ControlBase):
             retry=retry_if_exception_type(CombinersNotDoneException),
         )
         def combiners_done():
-            round = self.round_store.get(round_id)
+            round = self.db.round_store.get(round_id)
             session_status = self.get_session_status(session_id)
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
@@ -561,14 +561,14 @@ class Control(ControlBase):
 
         combiners_are_done = combiners_done()
         if not combiners_are_done:
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
         # so we need some robustness here.
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
-            round = self.round_store.get(round_id)
+            round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
                 raise KeyError("Combiners have not yet reported.")
 
@@ -578,7 +578,7 @@ class Control(ControlBase):
 
         # NOTE: Only works for one combiner
         # get model id and send it to backward pass
-        round = self.round_store.get(round_id)
+        round = self.db.round_store.get(round_id)
         round = round.to_dict()
         for combiner in round["combiners"]:
             try:
@@ -586,12 +586,12 @@ class Control(ControlBase):
             except KeyError:
                 logger.error("Forward pass failed - no model_id in combiner response")
                 self.set_round_status(round_id, "Failed")
-                return None, self.round_store.get(round_id)
+                return None, self.db.round_store.get(round_id)
 
         if model_id is None:
             logger.error("Forward pass failed - no model_id in combiner response")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         logger.info("CONTROLLER: starting backward pass with model/gradient id: {}".format(model_id))
 
@@ -606,7 +606,7 @@ class Control(ControlBase):
             if not result:
                 logger.error("Backward pass failed - no result from model updates")
                 self.set_round_status(round_id, "Failed")
-                return None, self.round_store.get(round_id)
+                return None, self.db.round_store.get(round_id)
 
             logger.info("CONTROLLER: Backward pass completed successfully")
             self.set_round_status(round_id, "Success")
@@ -614,7 +614,7 @@ class Control(ControlBase):
         except Exception as e:
             logger.error(f"Backward pass failed with error: {e}")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # 3) Validation
         validate = session_config.validate
@@ -636,7 +636,7 @@ class Control(ControlBase):
             logger.info("Controller: Split Learning Validation completed")
 
         self.set_round_status(round_id, "Finished")
-        return None, self.round_store.get(round_id)
+        return None, self.db.round_store.get(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.
