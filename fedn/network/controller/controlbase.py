@@ -12,6 +12,7 @@ from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -223,7 +224,7 @@ class ControlBase(ABC):
             cl.append((combiner, response))
         return cl
 
-    def commit(self, model_id: str, model: dict = None, session_id: str = None, name: str = None):
+    def commit(self, model: dict = None, session_id: str = None, name: str = None) -> str:
         """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
 
         :param model_id: Unique identifier for the model to commit.
@@ -245,16 +246,14 @@ class ControlBase(ABC):
 
         logger.info("Committing model {} to global model trail in statestore...".format(model_id))
 
-        active_model: str = None
-
-        try:
-            active_model = self.db.model_store.get_active()
-        except Exception:
-            logger.info("No active model, adding...")
-
         parent_model = None
-        if active_model and session_id:
-            parent_model = active_model
+        if session_id:
+            last_model_of_session = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING, session_id=session_id)
+            if len(last_model_of_session) == 1:
+                parent_model = last_model_of_session[0].model_id
+            else:
+                session = self.db.session_store.get(session_id)
+                parent_model = session.seed_model_id
 
         new_model = ModelDTO()
         new_model.model_id = model_id
@@ -268,7 +267,7 @@ class ControlBase(ABC):
             logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")
 
-        self.db.model_store.set_active(model_id)
+        return model_id
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():

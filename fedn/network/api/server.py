@@ -356,7 +356,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def get_latest_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 
@@ -369,7 +369,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def set_current_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 
@@ -382,7 +382,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def get_initial_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 

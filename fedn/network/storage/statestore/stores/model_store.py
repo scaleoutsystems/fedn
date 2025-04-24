@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Dict, List
 
-from bson import ObjectId
 from pymongo.database import Database
 from sqlalchemy import select
 from sqlalchemy.orm import aliased
@@ -41,23 +40,6 @@ class ModelStore(Store[ModelDTO]):
     def get_leaf_nodes(self) -> List[ModelDTO]:
         """List orphans
         return: A list of entities
-        """
-        pass
-
-    @abstractmethod
-    def get_active(self) -> str:
-        """Get the active model
-        return: The active model id (str)
-        """
-        pass
-
-    @abstractmethod
-    def set_active(self, id: str) -> bool:
-        """Set the active model
-        param id: The id of the entity
-            type: str
-            description: The id of the entity, can be either the id or the model (property)
-        return: True if successful
         """
         pass
 
@@ -166,31 +148,6 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
 
         return result
 
-    def get_active(self) -> str:
-        active_model = self.database[self.collection].find_one({"key": "current_model"})
-
-        if active_model is None:
-            return None
-
-        return active_model["model"]
-
-    def set_active(self, id: str) -> bool:
-        kwargs = {"key": "models"}
-        if ObjectId.is_valid(id):
-            id_obj = ObjectId(id)
-            kwargs["_id"] = id_obj
-        else:
-            kwargs["model"] = id
-
-        model = self.database[self.collection].find_one(kwargs)
-
-        if model is None:
-            return False
-
-        self.database[self.collection].update_one({"key": "current_model"}, {"$set": {"model": model["model"]}}, upsert=True)
-
-        return True
-
     def _document_from_dto(self, item: ModelDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
         item_dict["model"] = item_dict.pop("model_id")
@@ -268,29 +225,6 @@ class SQLModelStore(ModelStore, SQLStore[ModelDTO, ModelModel]):
                 result.append(self._dto_from_orm_model(item))
 
             return result
-
-    def get_active(self) -> str:
-        with self.Session() as session:
-            active_stmt = select(ModelModel).where(ModelModel.active)
-            active_item = session.scalars(active_stmt).first()
-            if active_item:
-                return active_item.id
-            return None
-
-    def set_active(self, id: str) -> bool:
-        with self.Session() as session:
-            stmt = select(ModelModel).where(ModelModel.id == id)
-            item = session.scalars(stmt).first()
-            if item is None:
-                return False
-
-            active_stmt = select(ModelModel).where(ModelModel.active)
-            active_items = session.scalars(active_stmt).all()
-            for item in active_items:
-                item.active = False
-            item.active = True
-            session.commit()
-        return True
 
     def _update_orm_model_from_dto(self, entity: ModelModel, item: ModelDTO):
         item_dict = item.to_db(exclude_unset=False)
