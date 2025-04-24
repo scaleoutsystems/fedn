@@ -51,11 +51,24 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 @click.option("-n", "--name", required=False, default=None, help="Name of new project.")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@click.option("--branch", required=False, default=None, help="Studio branch (default main). Requires admin in Studio")
+@click.option("--image", required=False, default=None, help="Container image. Requires admin in Studio")
+@click.option("--repository", required=False, default=None, help="Container image repository. Requires admin in Studio")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
 @click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("create")
 @click.pass_context
-def create_project(ctx, name: str = None, protocol: str = None, host: str = None, no_interactive: bool = False, no_header: bool = False):
+def create_project(
+    ctx,
+    name: str = None,
+    protocol: str = None,
+    host: str = None,
+    no_interactive: bool = False,
+    no_header: bool = False,
+    branch: str = None,
+    image: str = None,
+    repository: str = None,
+):
     """Create project.
     :param ctx:
     """
@@ -78,7 +91,7 @@ def create_project(ctx, name: str = None, protocol: str = None, host: str = None
     else:
         # Call the authentication API
         try:
-            response = requests.post(url, data={"name": name}, headers=headers)
+            response = requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repository}, headers=headers)
             response_project = response.json().get("project")
             pretty_print_projects(response_project, no_header)
         except requests.exceptions.RequestException as e:
