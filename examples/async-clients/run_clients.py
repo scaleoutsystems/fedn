@@ -68,50 +68,27 @@ def callback_train(client_id, client_name):
         for i in range(epochs):
             model.partial_fit(X_train, y_train)
 
-def on_train(in_model, client_settings):
-    print("Running training callback...")
-    epochs = settings["N_EPOCHS"]
+    # Prepare updated model parameters
+    updated_parameters = model.coefs_ + model.intercepts_
+    out_model = BytesIO()
+    np.savez_compressed(out_model, **{str(i): w for i, w in enumerate(updated_parameters)})
+    out_model.seek(0)
 
-    # model = load_model(in_model)
-
-    # X_train, y_train, _, _ = make_data()
-    # for i in range(epochs):
-    #     model.partial_fit(X_train, y_train)
-
-        # Prepare updated model parameters
-        updated_parameters = model.coefs_ + model.intercepts_
-        out_model = BytesIO()
-        np.savez_compressed(out_model, **{str(i): w for i, w in enumerate(updated_parameters)})
-        out_model.seek(0)
-    # # Prepare updated model parameters
-    # updated_parameters = model.coefs_ + model.intercepts_
-    # out_model = BytesIO()
-    # np.savez_compressed(out_model, **{str(i): w for i, w in enumerate(updated_parameters)})
-    # out_model.seek(0)
-
-    out_model = in_model
-
-        # Metadata needed for aggregation server side
-        training_metadata = {
-            "num_examples": len(X_train),
-            "training_metadata": {
-                "epochs": epochs,
-                "batch_size": len(X_train),
-                "learning_rate": model.learning_rate_init,
-            },
-        }
     # Metadata needed for aggregation server side
     training_metadata = {
-        "num_examples": 1,
+        "num_examples": len(X_train),
         "training_metadata": {
             "epochs": epochs,
-            "batch_size": 1,
-            "learning_rate": 0.01,
+            "batch_size": len(X_train),
+            "learning_rate": model.learning_rate_init,
         },
     }
 
         metadata = {"training_metadata": training_metadata}
+        metadata = {"training_metadata": training_metadata}
 
+        return out_model, metadata
+    return on_train
         return out_model, metadata
     return on_train
 
@@ -157,18 +134,12 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
 
     for i in range(settings["N_CYCLES"]):
         # Sample a delay until the client starts
-        t_start = np.random.randint(1, settings["CLIENTS_MAX_DELAY"])
+        t_start = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
         time.sleep(t_start)
-    delay = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])
-    print(f"Starting {name} in {delay} seconds")
-    time.sleep(delay)
 
-        fl_client = FednClient(train_callback=callback_train(client_id, name), validate_callback=on_validate)
+        fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
         fl_client.set_name(name)
         fl_client.set_client_id(client_id)
-    fl_client = FednClient(train_callback=on_train, validate_callback=on_validate)
-    fl_client.set_name(name)
-    fl_client.set_client_id(client_id)
 
     if no_discovery:
         combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
@@ -181,14 +152,11 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
 
         url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
 
-        # print("url: ", url)
-        # print("token: ", settings["CLIENT_TOKEN"])
-        # print("controller config: ", controller_config)
         result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
         #combiner_config.host = "100.84.229.36"
         fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
-    fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
+        fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
     if intermittent:
         for i in range(settings["N_CYCLES"]):
@@ -206,33 +174,19 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
         fl_client.run()
 
 if __name__ == "__main__":
-    @click.command()
-    @click.option("--name", "-n", default="client", help="Base name for clients (will be appended with number)")
-    @click.option("--no-discovery", is_flag=True, help="Connect to combiner without discovery service")
-    @click.option("--intermittent", is_flag=True, help="Use intermittent connection/disconnection mode")
-    def main(name, no_discovery, intermittent):
-        """Launch multiple federated learning clients that run concurrently.
-
-        This script starts N_CLIENTS (from config) client processes that connect to a FEDn network.
-        Use --name to set a base name for clients, --no-discovery to connect directly to a combiner,
-        and --intermittent to simulate clients that periodically disconnect and reconnect.
-        """
-        # We start N_CLIENTS independent client processes
-        processes = []
-        for i in range(settings["N_CLIENTS"]):
-            p = Process(
-                target=run_client,
-                args=(
-                    f"{name}_{i + 1}",
-                    str(uuid.uuid4()),
-                    no_discovery,
-                    intermittent,
-                    settings["CLIENTS_ONLINE_FOR_SECONDS"],
-                ),
-            )
-            processes.append(p)
-
-            p.start()
+    # We start N_CLIENTS independent client processes
+    processes = []
+    for i in range(settings["N_CLIENTS"]):
+        p = Process(
+            target=run_client,
+            args=(
+                settings["CLIENTS_ONLINE_FOR_SECONDS"],
+                "client{}".format(i + 1),
+                str(uuid.uuid4()),
+            ),
+        )
+        processes.append(p)
+        p.start()
 
         for p in processes:
             p.join()
