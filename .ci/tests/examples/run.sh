@@ -46,8 +46,14 @@ python ../../.ci/tests/examples/wait_for.py clients
 >&2 echo "Upload seed"
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
 
->&2 echo "Start session"
-python ../../.ci/tests/examples/api_test.py start_session --name "session" --rounds 3 --helper "$helper"
+if [ "$example" == "server-functions" ]; then
+    >&2 echo "Start serverfunctions session"
+    python ../../.ci/tests/examples/api_test.py start_sf_session --name "session" --rounds 3 --helper "$helper"
+else
+    >&2 echo "Start session"
+    python ../../.ci/tests/examples/api_test.py start_session --name "session" --rounds 3 --helper "$helper"
+fi
+
 
 >&2 echo "Checking rounds success"
 python ../../.ci/tests/examples/wait_for.py rounds

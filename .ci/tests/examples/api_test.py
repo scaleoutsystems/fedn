@@ -129,6 +129,11 @@ def test_api_get_methods():
     print("Validations count: ", validations_count, flush=True)
 
 
+def start_sf_session(name, rounds, helper):
+    from server_functions import ServerFunctions
+    client = APIClient(host="localhost", port=8092)
+    client.start_session(name=name, rounds=rounds, helper=helper, server_functions=ServerFunctions)
+
 if __name__ == '__main__':
 
     client = APIClient(host="localhost", port=8092)
@@ -136,6 +141,7 @@ if __name__ == '__main__':
         'set_seed': client.set_active_model,
         'set_package': client.set_active_package,
         'start_session': client.start_session,
+        'start_sf_session': start_sf_session,
         'get_client_config': _download_config,
         'test_api_get_methods': test_api_get_methods,
     })
