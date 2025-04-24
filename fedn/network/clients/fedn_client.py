@@ -544,8 +544,10 @@ class FednClient:
         logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
-    def run(self, with_telemetry=True) -> None:
+    def run(self, with_telemetry=False, with_heartbeat=False) -> None:
         """Run the client."""
+        if with_heartbeat:
+            threading.Thread(target=self.send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
         if with_telemetry:
             threading.Thread(target=self.default_telemetry_loop, daemon=True).start()
         try:

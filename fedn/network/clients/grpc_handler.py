@@ -18,23 +18,17 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
-KEEPALIVE_TIME_MS = 1 * 1000  # send keepalive ping every 60 seconds
-# wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIME_MS = 5 * 1000  # send keepalive ping every 5 second
+# wait 30 seconds for keepalive ping ack before considering connection dead
 KEEPALIVE_TIMEOUT_MS = 30 * 1000
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
-MAX_CONNECTION_IDLE_MS = 30000
-MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
-CLIENT_IDLE_TIMEOUT_MS = 30000
+
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
     ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-    ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
-    ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
-    ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
-    ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
 ]
 
 GRPC_SECURE_PORT = 443
@@ -90,7 +84,11 @@ class GrpcHandler:
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
-            self.channel = grpc.secure_channel(f"{host}:{port}", credentials)
+            self.channel = grpc.secure_channel(
+                f"{host}:{port}",
+                credentials,
+                options=GRPC_OPTIONS,
+            )
             return
 
         credentials = grpc.ssl_channel_credentials()
