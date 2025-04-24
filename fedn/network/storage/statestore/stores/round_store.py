@@ -5,6 +5,7 @@ import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import (
     RoundCombinerDataModel,
     RoundCombinerModel,
@@ -45,13 +46,13 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
 
 class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
     def __init__(self, Session):
-        super().__init__(Session, RoundModel)
+        super().__init__(Session, RoundModel, "round_id")
 
     def update(self, item: RoundDTO) -> RoundDTO:
         return self.sql_update(item)
 
     def get_latest_round_id(self) -> int:
-        rounds = self.list(limit=1, skip=0, sort_key="round_id", sort_order=pymongo.DESCENDING)
+        rounds = self.list(limit=1, skip=0, sort_key="round_id", sort_order=SortOrder.DESCENDING)
         if any(rounds):
             return int(rounds[0].round_id)
         else:

@@ -1,5 +1,4 @@
 import pytest
-import pymongo
 
 import datetime
 import uuid
@@ -7,6 +6,7 @@ import itertools
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 @pytest.fixture
 def test_validations():
@@ -55,7 +55,7 @@ def options():
                         ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"data":"test_data6"}, {"data":""})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

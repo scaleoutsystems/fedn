@@ -1,6 +1,5 @@
 from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
@@ -15,7 +14,6 @@ class SessionStore(Store[SessionDTO]):
 class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "session_id")
-        self.database[self.collection].create_index([("session_id", pymongo.DESCENDING)])
 
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.mongo_update(item)
@@ -34,7 +32,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
 
 class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
-        super().__init__(Session, SessionModel)
+        super().__init__(Session, SessionModel, "session_id")
 
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.sql_update(item)

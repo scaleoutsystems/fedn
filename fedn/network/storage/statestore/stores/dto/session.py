@@ -34,13 +34,13 @@ class SessionConfigDTO(DictDTO):
         if not self.model_id:
             raise ValidationError("model_id", "Model ID is required")
 
-        if not self.delete_models_storage:
+        if self.delete_models_storage is None:
             raise ValidationError("delete_models_storage", "Delete models storage is required")
 
         if not self.clients_required:
             raise ValidationError("clients_required", "Clients required is required")
 
-        if not self.validate:
+        if self.validate is None:
             raise ValidationError("validate", "Validate is required")
 
         if not self.helper_type:
@@ -51,11 +51,7 @@ class SessionDTO(BaseDTO):
     """Session data transfer object."""
 
     session_id: str = PrimaryID(None)
-    name: str = Field(None)
+    name: Optional[str] = Field(None)
     status: Optional[str] = Field("Created")
     session_config: SessionConfigDTO = Field(SessionConfigDTO())
-
-    @validator
-    def validate(self):
-        if not self.name:
-            raise ValidationError("name", "Name is required")
+    seed_model_id: Optional[str] = Field(None)

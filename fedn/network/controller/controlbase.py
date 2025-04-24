@@ -1,22 +1,18 @@
 import os
 from abc import ABC, abstractmethod
-from typing import Any, Tuple
+from typing import Any, Dict, List, Tuple
 
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
 from fedn.network.api.network import Network
-from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.state import ReducerState
+from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.stores.client_store import ClientStore
-from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
 from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
-from fedn.network.storage.statestore.stores.model_store import ModelStore
-from fedn.network.storage.statestore.stores.package_store import PackageStore
-from fedn.network.storage.statestore.stores.round_store import RoundStore
-from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 # Maximum number of tries to connect to statestore and retrieve storage configuration
 MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
@@ -42,28 +38,23 @@ class ControlBase(ABC):
     :type statestore: :class:`fedn.network.statestore.statestorebase.StateStoreBase`
     """
 
+    repository: Repository
+
     @abstractmethod
     def __init__(
         self,
         network_id: str,
-        session_store: MongoDBSessionStore,
-        model_store: ModelStore,
-        round_store: RoundStore,
-        package_store: PackageStore,
-        combiner_store: CombinerStore,
-        client_store: ClientStore,
-        model_repository: Repository,
+        repository: Repository,
+        db: DatabaseConnection,
     ):
         """Constructor."""
         self._state = ReducerState.setup
 
-        self.session_store = session_store
-        self.model_store = model_store
-        self.round_store = round_store
-        self.package_store = package_store
-        self.network = Network(self, network_id, combiner_store, client_store)
+        self.network = Network(self, network_id, db)
 
-        self.model_repository = model_repository
+        self.repository = repository
+
+        self.db = db
 
         self._state = ReducerState.idle
 
@@ -84,7 +75,7 @@ class ControlBase(ABC):
         helper_type: str = None
 
         try:
-            active_package = self.package_store.get_active()
+            active_package = self.db.package_store.get_active()
             helper_type = active_package.helper
         except Exception:
             logger.error("Failed to get active helper")
@@ -114,11 +105,11 @@ class ControlBase(ABC):
             return False
 
     def get_latest_round_id(self) -> int:
-        return self.round_store.get_latest_round_id()
+        return self.db.round_store.get_latest_round_id()
 
     def get_compute_package_name(self):
         """:return:"""
-        definition = self.package_store.get_active()
+        definition = self.db.package_store.get_active()
         if definition:
             try:
                 package_name = definition.storage_file_name
@@ -131,7 +122,7 @@ class ControlBase(ABC):
 
     def set_compute_package(self, filename, path):
         """Persist the configuration for the compute package."""
-        self.model_repository.set_compute_package(filename, path)
+        self.repository.set_compute_package(filename, path)
 
     def get_compute_package(self, compute_package=""):
         """:param compute_package:
@@ -140,7 +131,7 @@ class ControlBase(ABC):
         if compute_package == "":
             compute_package = self.get_compute_package_name()
         if compute_package:
-            return self.model_repository.get_compute_package(compute_package)
+            return self.repository.get_compute_package(compute_package)
         else:
             return None
 
@@ -152,9 +143,9 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        session = self.session_store.get(session_id)
+        session = self.db.session_store.get(session_id)
         session.status = status
-        self.session_store.update(session)
+        self.db.session_store.update(session)
 
     def get_session_status(self, session_id: str):
         """Get the status of a session.
@@ -164,7 +155,7 @@ class ControlBase(ABC):
         :return: The status
         :rtype: str
         """
-        session = self.session_store.get(session_id)
+        session = self.db.session_store.get(session_id)
         return session.status
 
     def set_session_config(self, session_id: str, config: dict) -> Tuple[bool, Any]:
@@ -175,15 +166,15 @@ class ControlBase(ABC):
         :param config: The session config
         :type config: dict
         """
-        session = self.session_store.get(session_id)
+        session = self.db.session_store.get(session_id)
         session.session_config.patch_with(config)
 
-        self.session_store.update(session)
+        self.db.session_store.update(session)
 
     def create_round(self, round_data):
         """Initialize a new round in backend db."""
         round = RoundDTO(**round_data)
-        self.round_store.add(round)
+        self.db.round_store.add(round)
 
     def set_round_data(self, round_id: str, round_data: dict):
         """Set round data.
@@ -193,9 +184,9 @@ class ControlBase(ABC):
         :param round_data: The status
         :type status: dict
         """
-        round = self.round_store.get(round_id)
+        round = self.db.round_store.get(round_id)
         round.round_data = round_data
-        self.round_store.update(round)
+        self.db.round_store.update(round)
 
     def set_round_status(self, round_id: str, status: str):
         """Set the round round stats.
@@ -205,9 +196,9 @@ class ControlBase(ABC):
         :param status: The status
         :type status: str
         """
-        round = self.round_store.get(round_id)
+        round = self.db.round_store.get(round_id)
         round.status = status
-        self.round_store.update(round)
+        self.db.round_store.update(round)
 
     def set_round_config(self, round_id: str, round_config: RoundConfig):
         """Upate round in backend db.
@@ -217,9 +208,9 @@ class ControlBase(ABC):
         :param round_config: The round configuration
         :type round_config: dict
         """
-        round = self.round_store.get(round_id)
+        round = self.db.round_store.get(round_id)
         round.round_config = round_config
-        self.round_store.update(round)
+        self.db.round_store.update(round)
 
     def request_model_updates(self, combiners):
         """Ask Combiner server to produce a model update.
@@ -233,7 +224,7 @@ class ControlBase(ABC):
             cl.append((combiner, response))
         return cl
 
-    def commit(self, model_id: str, model: dict = None, session_id: str = None, name: str = None):
+    def commit(self, model: dict = None, session_id: str = None, name: str = None) -> str:
         """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
 
         :param model_id: Unique identifier for the model to commit.
@@ -248,23 +239,21 @@ class ControlBase(ABC):
             outfile_name = helper.save(model)
             logger.info("Saving model file temporarily to {}".format(outfile_name))
             logger.info("CONTROL: Uploading model to Minio...")
-            model_id = self.model_repository.set_model(outfile_name, is_file=True)
+            model_id = self.repository.set_model(outfile_name, is_file=True)
 
             logger.info("CONTROL: Deleting temporary model file...")
             os.unlink(outfile_name)
 
         logger.info("Committing model {} to global model trail in statestore...".format(model_id))
 
-        active_model: str = None
-
-        try:
-            active_model = self.model_store.get_active()
-        except Exception:
-            logger.info("No active model, adding...")
-
         parent_model = None
-        if active_model and session_id:
-            parent_model = active_model
+        if session_id:
+            last_model_of_session = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING, session_id=session_id)
+            if len(last_model_of_session) == 1:
+                parent_model = last_model_of_session[0].model_id
+            else:
+                session = self.db.session_store.get(session_id)
+                parent_model = session.seed_model_id
 
         new_model = ModelDTO()
         new_model.model_id = model_id
@@ -273,12 +262,12 @@ class ControlBase(ABC):
         new_model.name = name
 
         try:
-            self.model_store.add(new_model)
+            self.db.model_store.add(new_model)
         except Exception as e:
             logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")
 
-        self.model_store.set_active(model_id)
+        return model_id
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():
@@ -286,7 +275,7 @@ class ControlBase(ABC):
                 return combiner
         return None
 
-    def get_participating_combiners(self, combiner_round_config):
+    def get_participating_combiners(self, combiner_round_config) -> List[Tuple[CombinerInterface, Dict]]:
         """Assemble a list of combiners able to participate in a round as
         descibed by combiner_round_config.
         """

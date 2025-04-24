@@ -65,6 +65,38 @@ class ServerFunctionsBase(ABC):
         """
         pass
 
+    def incremental_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
+        """Aggregates a list of parameters from clients.
+
+        Args:
+        ----
+            client_id: str: the id of the client sending the model.
+
+            model (list[np.ndarray]): A list of parameters representing a model as numpy arrays.
+
+            client_metadata (Dict): A dictionary containing metadata from the client update.
+
+            previous_global (list[np.ndarray]): A list of parameters representing the previous global model as numpy arrays.
+
+        Returns:
+        -------
+            list[np.ndarray]: A list of numpy arrays representing the aggregated
+            parameters across all clients.
+
+        """
+        pass
+
+    def get_incremental_aggregate_model(self) -> List[np.ndarray]:
+        """Returns the current running model.
+
+        Returns
+        -------
+            list[np.ndarray]: A list of numpy arrays representing the aggregated
+            parameters across all clients.
+
+        """
+        pass
+
 
 # base implementation
 class ServerFunctions(ServerFunctionsBase):

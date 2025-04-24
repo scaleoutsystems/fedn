@@ -2,11 +2,11 @@ import datetime
 import itertools
 import uuid
 
-import pymongo
 import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"parent_model":"test_parent_model2"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

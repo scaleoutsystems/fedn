@@ -161,6 +161,8 @@ class FednClient:
             if response.status_code == HTTP_STATUS_OK:
                 logger.info("Connect to FEDn Api - Client assigned to controller")
                 json_response = response.json()
+                self.set_client_id(json_response["client_id"])
+                self.set_name(json.get("name", json_response["client_id"]))
                 combiner_config = GrpcConnectionOptions.from_dict(json_response)
                 return ConnectToApiResult.Assigned, combiner_config
 
@@ -543,6 +545,27 @@ class FednClient:
             meta=meta,
         )
 
+    def log_attributes(self, attributes: dict) -> bool:
+        """Log the attributes to the server.
+
+        Args:
+            attributes (dict): The attributes to log.
+
+        Returns:
+            bool: True if the attributes were logged successfully, False otherwise.
+
+        """
+        message = fedn.AttributeMessage()
+        message.sender.name = self.name
+        message.sender.client_id = self.client_id
+        message.sender.role = fedn.Role.CLIENT
+        message.timestamp.GetCurrentTime()
+
+        for key, value in attributes.items():
+            message.attributes.add(key=key, value=value)
+
+        return self.grpc_handler.send_attributes(message)
+
     def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> fedn.ModelUpdate:
         """Create an update message."""
         return self.grpc_handler.create_update_message(
@@ -558,6 +581,7 @@ class FednClient:
         """Create a validation message."""
         return self.grpc_handler.create_validation_message(
             sender_name=self.name,
+            sender_client_id=self.client_id,
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
             model_id=request.model_id,

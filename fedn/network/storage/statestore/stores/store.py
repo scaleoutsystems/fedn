@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session as SessionClass
 
 from fedn.network.storage.statestore.stores.dto.shared import BaseDTO
-from fedn.network.storage.statestore.stores.shared import EntityNotFound
+from fedn.network.storage.statestore.stores.shared import EntityNotFound, SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 
 MODEL = TypeVar("MODEL", bound=MyAbstractBase)
@@ -87,14 +87,14 @@ class Store(ABC, Generic[DTO]):
         pass
 
     @abstractmethod
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         """Select entities.
 
         Args:
             limit (int): The maximum number of entities to return
             skip (int): The number of entities to skip
             sort_key (str): The key to sort by
-            sort_order (pymongo.DESCENDING | pymongo.ASCENDING): The order to sort by
+            sort_order (SortOrder.DESCENDING | SortOrder.ASCENDING): The order to sort by
             kwargs (dict): Additional query parameters
 
         Returns:
@@ -167,18 +167,19 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
-    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
-        _sort_order = sort_order or pymongo.DESCENDING
-        if sort_key and sort_key != self.primary_key:
-            cursor = (
-                self.database[self.collection]
-                .find(kwargs)
-                .sort({sort_key: _sort_order, self.primary_key: pymongo.DESCENDING})
-                .skip(skip or 0)
-                .limit(limit or 0)
-            )
+    def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
+        _sort_order = sort_order or SortOrder.DESCENDING
+        if _sort_order == SortOrder.DESCENDING:
+            _sort_order = pymongo.DESCENDING
+        elif _sort_order == SortOrder.ASCENDING:
+            _sort_order = pymongo.ASCENDING
         else:
-            cursor = self.database[self.collection].find(kwargs).sort(self.primary_key, pymongo.DESCENDING).skip(skip or 0).limit(limit or 0)
+            raise ValueError(f"Invalid sort order: {_sort_order}")
+
+        if sort_key and sort_key != "committed_at":
+            cursor = self.database[self.collection].find(kwargs).sort({sort_key: _sort_order, "committed_at": _sort_order}).skip(skip or 0).limit(limit or 0)
+        else:
+            cursor = self.database[self.collection].find(kwargs).sort("committed_at", _sort_order).skip(skip or 0).limit(limit or 0)
 
         return [self._dto_from_document(document) for document in cursor]
 
@@ -197,10 +198,11 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
 class SQLStore(Store[DTO], Generic[DTO, MODEL]):
     """Base SQL store implementation."""
 
-    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL]) -> None:
+    def __init__(self, Session: Type[SessionClass], SQLModel: Type[MODEL], primary_key: str) -> None:
         """Initialize SQLStore."""
         self.SQLModel = SQLModel
         self.Session = Session
+        self.primary_key = primary_key
 
     def get(self, id: str) -> DTO:
         with self.Session() as session:
@@ -257,19 +259,27 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return True
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[DTO]:
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         with self.Session() as session:
             stmt = select(self.SQLModel)
+            if sort_key == self.primary_key:
+                sort_key = "id"
 
             for key, value in kwargs.items():
+                if key == self.primary_key:
+                    key = "id"
                 stmt = stmt.where(getattr(self.SQLModel, key) == value)
 
-            _sort_order = sort_order or pymongo.DESCENDING
+            _sort_order = sort_order or SortOrder.DESCENDING
+            if _sort_order not in (SortOrder.DESCENDING, SortOrder.ASCENDING):
+                raise ValueError(f"Invalid sort order: {_sort_order}")
 
-            secondary_sort_obj = self.SQLModel.__table__.columns.get("id").desc()
-            if sort_key and sort_key in self.SQLModel.__table__.columns:
+            secondary_sort_obj = self.SQLModel.__table__.columns.get("committed_at")
+            if _sort_order == SortOrder.DESCENDING:
+                secondary_sort_obj = secondary_sort_obj.desc()
+            if sort_key and sort_key in self.SQLModel.__table__.columns and sort_key != "committed_at":
                 sort_obj = self.SQLModel.__table__.columns.get(sort_key)
-                if _sort_order == pymongo.DESCENDING:
+                if _sort_order == SortOrder.DESCENDING:
                     sort_obj = sort_obj.desc()
 
                 stmt = stmt.order_by(sort_obj, secondary_sort_obj)

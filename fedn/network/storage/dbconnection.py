@@ -13,50 +13,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
-from fedn.common.config import get_network_config, get_statestore_config
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
+from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
-from fedn.network.storage.statestore.stores.metric_store import MongoDBMetricStore, SQLMetricStore
+from fedn.network.storage.statestore.stores.metric_store import MetricStore, MongoDBMetricStore, SQLMetricStore
 from fedn.network.storage.statestore.stores.model_store import ModelStore, MongoDBModelStore, SQLModelStore
 from fedn.network.storage.statestore.stores.package_store import MongoDBPackageStore, PackageStore, SQLPackageStore
 from fedn.network.storage.statestore.stores.prediction_store import MongoDBPredictionStore, PredictionStore, SQLPredictionStore
 from fedn.network.storage.statestore.stores.round_store import MongoDBRoundStore, RoundStore, SQLRoundStore
+from fedn.network.storage.statestore.stores.run_store import MongoDBRunStore, RunStore, SQLRunStore
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
-
-
-class StoreContainer:
-    """A container for various store instances."""
-
-    def __init__(  # noqa: PLR0913
-        self,
-        client_store: ClientStore,
-        validation_store: ValidationStore,
-        combiner_store: CombinerStore,
-        status_store: StatusStore,
-        prediction_store: PredictionStore,
-        round_store: RoundStore,
-        package_store: PackageStore,
-        model_store: ModelStore,
-        session_store: SessionStore,
-        analytic_store: AnalyticStore,
-        metric_store: SQLMetricStore,
-    ) -> None:
-        """Initialize the StoreContainer with various store instances."""
-        self.client_store = client_store
-        self.validation_store = validation_store
-        self.combiner_store = combiner_store
-        self.status_store = status_store
-        self.prediction_store = prediction_store
-        self.round_store = round_store
-        self.package_store = package_store
-        self.model_store = model_store
-        self.session_store = session_store
-        self.analytic_store = analytic_store
-        self.metric_store = metric_store
 
 
 class DatabaseConnection:
@@ -64,31 +34,24 @@ class DatabaseConnection:
 
     _instance = None
 
-    def __new__(cls, *, force_create_new: bool = False) -> "DatabaseConnection":
-        """Create a new instance of DatabaseConnection or return the existing singleton instance.
+    client_store: ClientStore
+    validation_store: ValidationStore
+    combiner_store: CombinerStore
+    status_store: StatusStore
+    prediction_store: PredictionStore
+    round_store: RoundStore
+    package_store: PackageStore
+    model_store: ModelStore
+    session_store: SessionStore
+    analytic_store: AnalyticStore
+    metric_store: MetricStore
+    attribute_store: AttributeStore
+    training_run_store: RunStore
 
-        Args:
-            force_create_new (bool): If True, a new instance will be created regardless of the singleton pattern. Only used for testing purpose.
-
-        Returns:
-            DatabaseConnection: A new instance if force_create_new is True, otherwise the existing singleton instance.
-
-        """
-        if cls._instance is None or force_create_new:
-            obj = super(DatabaseConnection, cls).__new__(cls)
-            obj._init_connection()
-            cls._instance = obj
-
-        return cls._instance
-
-    def _init_connection(self) -> None:
+    def __init__(self, statestore_config, network_id):
         self.type: str = None
         self.mdb: Database = None
         self.Session: sessionmaker = None
-
-        statestore_config = get_statestore_config()
-        network_id = get_network_config()
-
         self.type = statestore_config["type"]
 
         if self.type == "MongoDB":
@@ -105,6 +68,8 @@ class DatabaseConnection:
             session_store = MongoDBSessionStore(mdb, "control.sessions")
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
+            attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
+            training_run_store = MongoDBRunStore(mdb, "control.training_runs")
             self.mdb = mdb
 
         elif self.type in ["SQLite", "PostgreSQL"]:
@@ -121,28 +86,26 @@ class DatabaseConnection:
             session_store = SQLSessionStore(Session)
             analytic_store = None
             metric_store = SQLMetricStore(Session)
-
+            attribute_store = SQLAttributeStore(Session)
+            training_run_store = SQLRunStore(Session)
             self.Session = Session
+
         else:
             raise ValueError("Unknown statestore type")
 
-        self.sc = StoreContainer(
-            client_store,
-            validation_store,
-            combiner_store,
-            status_store,
-            prediction_store,
-            round_store,
-            package_store,
-            model_store,
-            session_store,
-            analytic_store,
-            metric_store,
-        )
-
-    def close(self) -> None:
-        """Close the database connection."""
-        pass
+        self.analytic_store: AnalyticStore = analytic_store
+        self.client_store: ClientStore = client_store
+        self.validation_store: ValidationStore = validation_store
+        self.combiner_store: CombinerStore = combiner_store
+        self.status_store: StatusStore = status_store
+        self.prediction_store: PredictionStore = prediction_store
+        self.round_store: RoundStore = round_store
+        self.package_store: PackageStore = package_store
+        self.model_store: ModelStore = model_store
+        self.session_store: SessionStore = session_store
+        self.metric_store: SQLMetricStore = metric_store
+        self.attribute_store: AttributeStore = attribute_store
+        self.training_run_store: RunStore = training_run_store
 
     def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
@@ -170,47 +133,3 @@ class DatabaseConnection:
         MyAbstractBase.metadata.create_all(engine, checkfirst=True)
 
         return Session
-
-    def get_stores(self) -> StoreContainer:
-        """Get the StoreContainer instance."""
-        return self.sc
-
-    @property
-    def client_store(self) -> ClientStore:
-        return self.sc.client_store
-
-    @property
-    def validation_store(self) -> ValidationStore:
-        return self.sc.validation_store
-
-    @property
-    def combiner_store(self) -> CombinerStore:
-        return self.sc.combiner_store
-
-    @property
-    def status_store(self) -> StatusStore:
-        return self.sc.status_store
-
-    @property
-    def prediction_store(self) -> PredictionStore:
-        return self.sc.prediction_store
-
-    @property
-    def round_store(self) -> RoundStore:
-        return self.sc.round_store
-
-    @property
-    def package_store(self) -> PackageStore:
-        return self.sc.package_store
-
-    @property
-    def model_store(self) -> ModelStore:
-        return self.sc.model_store
-
-    @property
-    def session_store(self) -> SessionStore:
-        return self.sc.session_store
-
-    @property
-    def analytic_store(self) -> AnalyticStore:
-        return self.sc.analytic_store

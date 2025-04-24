@@ -3,13 +3,13 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Dict, List
 
-import pymongo
 from pymongo.database import Database
 from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
 from fedn.network.storage.statestore.stores.dto import PackageDTO
 from fedn.network.storage.statestore.stores.dto.package import validate_helper
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -94,7 +94,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
         kwargs = {"key": "active"}
         return self.database[self.collection].delete_one(kwargs).deleted_count == 1
 
-    def list(self, limit=0, skip=0, sort_key=None, sort_order=pymongo.DESCENDING, **kwargs) -> List[PackageDTO]:
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[PackageDTO]:
         kwargs["key"] = "package_trail"
         packages = super().list(limit, skip, sort_key, sort_order, **kwargs)
 
@@ -163,7 +163,7 @@ class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
 
 class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
-        super().__init__(Session, PackageModel)
+        super().__init__(Session, PackageModel, "package_id")
 
     def set_active(self, id: str):
         with self.Session() as session:

@@ -1,12 +1,13 @@
 import datetime
 import itertools
+from typing import List
 import uuid
 
-import pymongo
 import pytest
 
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 @pytest.fixture
@@ -30,7 +31,7 @@ def test_client():
     return c
 
 @pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
+def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients: List[ClientDTO]):
     for c in test_clients:
         mongo_connection.client_store.add(c)
         postgres_connection.client_store.add(c)
@@ -52,11 +53,12 @@ def options():
                     "client_id",
                     "last_seen",
                     "ip", # None unique key 
-                    "invalid_key"
+                    "invalid_key",
+                    "committed_at"
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"ip":"121.12.32.22"}, {"combiner":"test_combiner", "status":"test_status"}, {"name":"test_client1", "status":"test_status2"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

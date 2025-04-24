@@ -1,9 +1,9 @@
 from typing import Dict
 
-import pymongo
 from pymongo.database import Database
 
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 from fedn.network.storage.statestore.stores.sql.shared import StatusModel, from_orm_model
 from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
@@ -50,9 +50,9 @@ def _translate_key_sql(key: str) -> str:
 
 class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
-        super().__init__(Session, StatusModel)
+        super().__init__(Session, StatusModel, "status_id")
 
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
+    def list(self, limit: int, skip: int, sort_key: str, sort_order=SortOrder.DESCENDING, **kwargs):
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
         sort_key: str = _translate_key_sql(sort_key)
         return super().list(limit, skip, sort_key, sort_order, **kwargs)
@@ -66,7 +66,6 @@ class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
         item_dict["id"] = item_dict.pop("status_id", None)
 
         sender: Dict = item_dict.pop("sender", {})
-
         item_dict["sender_name"] = sender.get("name")
         item_dict["sender_role"] = sender.get("role")
 
