@@ -1,0 +1,35 @@
+# Compose schema version
+version: '3.4'
+
+# Overriding requirements
+
+x-env: &defaults
+  GET_HOSTS_FROM: dns
+  FEDN_PACKAGE_EXTRACT_DIR: package
+  FEDN_NUM_DATA_SPLITS: 2
+
+services:
+
+  client1:
+    extends:
+      file: ${HOST_REPO_DIR:-.}/docker-compose.yaml
+      service: client
+    environment:
+      <<: *defaults
+      FEDN_DATA_PATH: /app/package/data/clients/1/mnist.pt
+    deploy:
+      replicas: 1
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+
+  client2:
+    extends:
+      file: ${HOST_REPO_DIR:-.}/docker-compose.yaml
+      service: client
+    environment:
+      <<: *defaults
+      FEDN_DATA_PATH: /app/package/data/clients/2/mnist.pt
+    deploy:
+      replicas: 1
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
