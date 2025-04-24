@@ -455,16 +455,21 @@ def start_session():
 def start_splitlearning_session():
     """Starts a new split learning session."""
     try:
+        db = Control.instance().db
+        control = Control.instance()
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
         round_timeout: int = data.get("round_timeout", None)
+        model_name_prefix: str = data.get("model_name_prefix", None)
+
+        if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
+            model_name_prefix = None
 
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session = session_store.get(session_id)
-
+        session = db.session_store.get(session_id)
         session_config = session.session_config
         min_clients = session_config.clients_required
 
