@@ -131,7 +131,7 @@ def test_api_get_methods():
 
 def start_sf_session(name, rounds, helper):
     import sys, os # not-floating-import
-    sys.path.insert(0, os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples', 'server-functions')))
+    sys.path.insert(0, os.path.abspath('/home/runner/work/fedn/fedn/examples/server-functions'))
     from server_functions import ServerFunctions # not-floating-import
     client = APIClient(host="localhost", port=8092)
     client.start_session(name=name, rounds=rounds, helper=helper, server_functions=ServerFunctions)
