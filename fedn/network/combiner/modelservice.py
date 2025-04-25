@@ -150,6 +150,7 @@ class ModelService(rpc.ModelServiceServicer):
     """Service for handling download and upload of models to the server."""
 
     def __init__(self):
+        """Initialize the temporary model storage."""
         self.temp_model_storage = TempModelStorage()
 
     def exist(self, model_id):

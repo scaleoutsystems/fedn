@@ -11,6 +11,7 @@ class RoundConfigDTO(SessionConfigDTO):
     task: str = Field(None)
     rounds: int = Field(None)
     round_id: str = Field(None)
+    client_settings: Optional[dict] = Field({})
 
 
 class RoundReduceDTO(DictDTO):
@@ -57,7 +58,7 @@ class RoundCombinerDTO(DictDTO):
     """RoundCombiner data transfer object."""
 
     round_id: Optional[str] = Field(None)
-    model_id: str = Field(None)
+    model_id: Optional[str] = Field(None)
     name: str = Field(None)
     status: str = Field(None)
     time_exec_training: float = Field(None)

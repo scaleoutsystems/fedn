@@ -10,9 +10,9 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
-from fedn.network.combiner.modelservice import serialize_model_to_BytesIO
-from fedn.network.combiner.shared import modelservice, repository
+from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
 from fedn.network.combiner.updatehandler import UpdateHandler
+from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
 
@@ -93,7 +93,7 @@ class RoundHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, server: "Combiner"):
+    def __init__(self, server: "Combiner", repository: Repository, modelservice: ModelService):
         """Initialize the RoundHandler."""
         self.round_configs = queue.Queue()
         self.storage = repository
@@ -177,7 +177,7 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
-            if provided_functions.get("aggregate", False):
+            if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                 model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
@@ -379,11 +379,11 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            active_round = self.server.round_store.get(round_meta["round_id"])
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])
 
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.round_store.update(active_round)
+                                self.server.db.round_store.update(active_round)
                             except Exception as e:
                                 logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")

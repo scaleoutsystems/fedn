@@ -7,9 +7,9 @@ from werkzeug.security import safe_join
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, package_store, repository
 from fedn.network.api.shared import get_checksum as _get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
@@ -121,11 +121,12 @@ def get_packages():
 
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = package_store.count(**kwargs)
+        packages = db.package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.package_store.count(**kwargs)
         response = {"count": count, "result": [result.to_dict() for result in packages]}
 
         return jsonify(response), 200
@@ -208,11 +209,12 @@ def list_packages():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        packages = package_store.list(limit, skip, sort_key, sort_order, **kwargs)
-        count = package_store.count(**kwargs)
+        packages = db.package_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.package_store.count(**kwargs)
         response = {"count": count, "result": [result.to_dict() for result in packages]}
 
         return jsonify(response), 200
@@ -274,8 +276,9 @@ def get_packages_count():
 
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = package_store.count(**kwargs)
+        count = db.package_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -337,8 +340,9 @@ def packages_count():
                     type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = package_store.count(**kwargs)
+        count = db.package_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -381,7 +385,8 @@ def get_package(id: str):
                         type: string
     """
     try:
-        response = package_store.get(id)
+        db = Control.instance().db
+        response = db.package_store.get(id)
         if response is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
@@ -420,7 +425,8 @@ def get_active_package():
                         type: string
     """
     try:
-        response = package_store.get_active()
+        db = Control.instance().db
+        response = db.package_store.get_active()
         if response is None:
             return jsonify({"message": "Entity not found"}), 404
 
@@ -455,9 +461,10 @@ def set_active_package():
                         type: string
     """
     try:
+        db = Control.instance().db
         data = request.json
         package_id = data["id"]
-        response = package_store.set_active(package_id)
+        response = db.package_store.set_active(package_id)
 
         if response:
             return jsonify({"message": "Active package set"}), 200
@@ -500,7 +507,8 @@ def delete_active_package():
                         type: string
     """
     try:
-        result = package_store.delete_active()
+        db = Control.instance().db
+        result = db.package_store.delete_active()
         if result is False:
             return jsonify({"message": "Entity not found"}), 404
         return jsonify({"message": "Active package deleted"}), 200
@@ -557,6 +565,9 @@ def upload_package():
               type: string
     """
     try:
+        db = Control.instance().db
+        repository = Control.instance().repository
+
         data = request.form.to_dict()
         file = request.files["file"]
         file_name = file.filename
@@ -565,10 +576,11 @@ def upload_package():
 
         new_package = PackageDTO().populate_with(data)
 
-        package = package_store.add(new_package)
+        package = db.package_store.add(new_package)
 
         storage_file_name = package.storage_file_name
         try:
+            # TODO: Saving both in S3 and local file system??
             file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, storage_file_name)
             if not os.path.exists(FEDN_COMPUTE_PACKAGE_DIR):
                 os.makedirs(FEDN_COMPUTE_PACKAGE_DIR, exist_ok=True)
@@ -576,10 +588,10 @@ def upload_package():
             repository.set_compute_package(storage_file_name, file_path)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
-            package_store.delete(package.package_id)
+            db.package_store.delete(package.package_id)
             return jsonify({"message": "An unexpected error occurred"}), 500
 
-        package_store.set_active(package.package_id)
+        db.package_store.set_active(package.package_id)
         return jsonify({"message": "Package uploaded"}), 200
     except ValidationError as e:
         logger.error(f"Validation error: {e}")
@@ -633,14 +645,17 @@ def download_package():
                     message:
                         type: string
     """
-    name = request.args.get("name", None)
+    db = Control.instance().db
+    control = Control.instance()
 
+    name = request.args.get("name", None)
     if name is None:
-        active_package = package_store.get_active()
+        active_package = db.package_store.get_active()
         if active_package is None:
             return jsonify({"message": "No active package"}), 404
         name = active_package.storage_file_name
     try:
+        # TODO: This implementation does not implement a lock since each thread will create their own lock
         mutex = threading.Lock()
         mutex.acquire()
 

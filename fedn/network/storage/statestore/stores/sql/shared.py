@@ -1,8 +1,8 @@
 import uuid
 from datetime import datetime
-from typing import List, Optional, Type
+from typing import Dict, List, Optional, Type
 
-from sqlalchemy import ForeignKey, MetaData, String
+from sqlalchemy import JSON, ForeignKey, MetaData, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 constraint_naming_conventions = {
@@ -55,9 +55,14 @@ class SessionModel(MyAbstractBase):
 
     name: Mapped[Optional[str]] = mapped_column(String(255))
     status: Mapped[str] = mapped_column(String(255))
+
     session_config_id: Mapped[str] = mapped_column(ForeignKey("session_configs.id"))
     session_config: Mapped["SessionConfigModel"] = relationship(back_populates="session", cascade="all, delete-orphan", single_parent=True)
-    models: Mapped[List["ModelModel"]] = relationship(back_populates="session")
+
+    models: Mapped[List["ModelModel"]] = relationship(back_populates="session", foreign_keys="ModelModel.session_id")
+
+    seed_model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    seed_model: Mapped[Optional["ModelModel"]] = relationship(foreign_keys="[SessionModel.seed_model_id]")
 
 
 class ModelModel(MyAbstractBase):
@@ -66,9 +71,11 @@ class ModelModel(MyAbstractBase):
     active: Mapped[bool] = mapped_column(default=False)
     parent_model: Mapped[Optional[str]] = mapped_column(String(255))
     name: Mapped[Optional[str]] = mapped_column(String(255))
+
     session_configs: Mapped[List["SessionConfigModel"]] = relationship()
+
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
-    session: Mapped[Optional["SessionModel"]] = relationship(back_populates="models")
+    session: Mapped[Optional["SessionModel"]] = relationship(back_populates="models", foreign_keys="[ModelModel.session_id]")
 
 
 class RoundConfigModel(MyAbstractBase):
@@ -89,6 +96,7 @@ class RoundConfigModel(MyAbstractBase):
     task: Mapped[str] = mapped_column(String(255))
     round_id: Mapped[str]
     rounds: Mapped[int]
+    client_settings: Mapped[Optional[Dict]] = mapped_column(JSON)
 
 
 class RoundCombinerDataModel(MyAbstractBase):
@@ -234,7 +242,7 @@ class MetricModel(MyAbstractBase):
     # Client timestamp
     timestamp: Mapped[Optional[datetime]]
 
-    sender_id: Mapped[str]
+    sender_name: Mapped[str]
     sender_role: Mapped[str]
 
     model_id: Mapped[str] = mapped_column(ForeignKey("models.id"))
@@ -242,3 +250,28 @@ class MetricModel(MyAbstractBase):
 
     session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
     round_id: Mapped[Optional[str]] = mapped_column(ForeignKey("rounds.id"))
+
+
+class AttributeModel(MyAbstractBase):
+    __tablename__ = "attributes"
+
+    key: Mapped[str] = mapped_column(String(255))
+    value: Mapped[str]
+
+    # Client timestamp
+    timestamp: Mapped[Optional[datetime]]
+
+    sender_name: Mapped[str]
+    sender_role: Mapped[str]
+    sender_client_id: Mapped[Optional[str]]
+
+
+class RunModel(MyAbstractBase):
+    __tablename__ = "training_runs"
+
+    session_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sessions.id"))
+    model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    completed_at_model_id: Mapped[Optional[str]] = mapped_column(ForeignKey("models.id"))
+    round_timeout: Mapped[int]
+    rounds: Mapped[Optional[int]]
+    completed_at: Mapped[Optional[datetime]]

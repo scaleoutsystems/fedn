@@ -72,7 +72,6 @@ def create_project(
     """Create project.
     :param ctx:
     """
-    # Check if user can create project
     studio_api = True
     url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/create", usr_api=studio_api)
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -111,8 +110,8 @@ def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool =
 
     """
     studio_api = True
-
-    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers={}, usr_api=studio_api, usr_token=True)
+    headers = {}
+    response = get_response(protocol=protocol, host=host, port=None, endpoint="projects", token=None, headers=headers, usr_api=studio_api, usr_token=True)
 
     if response.status_code == 200:
         response_json = response.json()
@@ -144,6 +143,38 @@ def get_project(ctx, id: str = None, protocol: str = None, host: str = None):
             click.secho(f"No project with id '{id}' exists.", fg="red")
         else:
             print_response(response, "project", True)
+    else:
+        click.secho(f"Unexpected error: {response.status_code}", fg="red")
+
+
+@click.option("-id", "--id", required=True, default=None, help="Name of new project.")
+@click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
+@click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
+@project_cmd.command("update")
+@click.pass_context
+def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
+    """Update project to latest version.
+    :param ctx:
+    """
+    # Check if user can create project
+    studio_api = True
+
+    response = get_response(protocol=protocol, host=host, port=None, endpoint=f"projects/{id}", token=None, headers={}, usr_api=studio_api, usr_token=False)
+    if response.status_code == 200:
+        url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/update", usr_api=studio_api)
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+
+        _token = get_token(None, True)
+
+        if _token:
+            headers["Authorization"] = _token
+
+        # Call the authentication API
+        try:
+            requests.post(url, data={"slug": id}, headers=headers)
+        except requests.exceptions.RequestException as e:
+            click.secho(str(e), fg="red")
+        click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 

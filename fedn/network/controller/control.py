@@ -2,6 +2,7 @@ import copy
 import datetime
 import time
 import uuid
+from typing import Optional
 
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
@@ -11,14 +12,11 @@ from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.state import ReducerState
+from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.stores.client_store import ClientStore
-from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
-from fedn.network.storage.statestore.stores.model_store import ModelStore
-from fedn.network.storage.statestore.stores.package_store import PackageStore
-from fedn.network.storage.statestore.stores.round_store import RoundStore
-from fedn.network.storage.statestore.stores.session_store import SessionStore
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 class UnsupportedStorageBackend(Exception):
@@ -96,42 +94,77 @@ class Control(ControlBase):
     :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
     """
 
+    _instance: "Control"
+
     def __init__(
         self,
         network_id: str,
-        session_store: SessionStore,
-        model_store: ModelStore,
-        round_store: RoundStore,
-        package_store: PackageStore,
-        combiner_store: CombinerStore,
-        client_store: ClientStore,
-        model_repository: Repository,
+        repository: Repository,
+        db: DatabaseConnection,
     ):
         """Constructor method."""
-        super().__init__(network_id, session_store, model_store, round_store, package_store, combiner_store, client_store, model_repository)
+        super().__init__(network_id, repository, db)
         self.name = "DefaultControl"
 
-    def start_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
+    @classmethod
+    def instance(cls) -> "Control":
+        """Get the singleton instance of the Control class."""
+        if Control._instance is None:
+            raise Exception("Control instance not initialized")
+        return Control._instance
+
+    @classmethod
+    def create_instance(cls, network_id: str, repository: Repository, db: DatabaseConnection) -> "Control":
+        """Create a singleton instance of the Control class.
+
+        :param network_id: The network ID.
+        :type network_id: str
+        :param repository: The repository instance.
+        :type repository: Repository
+        :param db: The database connection instance.
+        :type db: DatabaseConnection
+        :return: The Control instance.
+        :rtype: Control
+        """
+        cls._instance = cls(network_id, repository, db)
+        return cls._instance
+
+    def _get_active_model_id(self, session_id: str) -> Optional[str]:
+        """Get the active model for a session.
+
+        :param session_id: The session ID.
+        :type session_id: str
+        :return: The active model ID.
+        :rtype: str
+        """
+        last_model_of_session = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING, session_id=session_id)
+        if len(last_model_of_session) > 0:
+            return last_model_of_session[0].model_id
+
+        # if no model is found for the session, get the last model in the model chain
+        last_model = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING)
+        if len(last_model) > 0:
+            return last_model[0].model_id
+
+        return None
+
+    def start_session(self, session_id: str, rounds: int, round_timeout: int, model_name_prefix: Optional[str] = None) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
 
-        model_set: bool = False
-
         try:
-            active_model_id = self.model_store.get_active()
-            if active_model_id not in ["", " "]:
-                model_set = True
+            active_model_id = self._get_active_model_id(session_id)
+            if not active_model_id or active_model_id in ["", " "]:
+                logger.warning("No model in model chain, please provide a seed model!")
+                return
         except Exception:
-            logger.error("Failed to get active model")
-
-        if not model_set:
-            logger.warning("No model in model chain, please provide a seed model!")
+            logger.error("Failed to get latest model of session and model chain.")
             return
 
         self._state = ReducerState.instructing
 
-        session = self.session_store.get(session_id)
+        session = self.db.session_store.get(session_id)
 
         if not session:
             logger.error("Session not found.")
@@ -159,6 +192,20 @@ class Control(ControlBase):
 
         self.set_session_status(session_id, "Started")
 
+        training_run_obj = RunDTO()
+        training_run_obj.session_id = session_id
+        training_run_obj.model_id = active_model_id
+        training_run_obj.round_timeout = session_config.round_timeout
+        training_run_obj.rounds = rounds
+
+        training_run_obj = self.db.training_run_store.add(training_run_obj)
+
+        count_models_of_session = 0
+
+        if model_name_prefix is not None:
+            count_models_of_session = self.db.model_store.count(session_id=session_id)
+            count_models_of_session += 1
+
         for round in range(1, rounds + 1):
             if last_round:
                 current_round = last_round + round
@@ -168,16 +215,29 @@ class Control(ControlBase):
             try:
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
+                    training_run_obj.completed_at = datetime.datetime.now()
+                    training_run_obj.completed_at_model_id = self.db.model_store.get_active()
+                    self.db.training_run_store.update(training_run_obj)
                     break
-                _, round_data = self.round(session_config, str(current_round), session_id)
+                _, round_data = self.round(
+                    session_config=session_config,
+                    round_id=str(current_round),
+                    session_id=session_id,
+                    model_name=f"{model_name_prefix}_{count_models_of_session}" if model_name_prefix else None,
+                )
+                count_models_of_session += 1
                 logger.info("Round completed with status {}".format(round_data.status))
             except TypeError as e:
                 logger.error("Failed to execute round: {0}".format(e))
 
-            session_config.model_id = self.model_store.get_active()
+            session_config.model_id = self._get_active_model_id(session_id)
 
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
+            training_run_obj.completed_at = datetime.datetime.now()
+            training_run_obj.completed_at_model_id = self.db.model_store.get_active()
+            self.db.training_run_store.update(training_run_obj)
+            logger.info("Session finished.")
         self._state = ReducerState.idle
 
         self.set_session_config(session_id, session_config.to_dict())
@@ -198,7 +258,7 @@ class Control(ControlBase):
             return
 
         if "model_id" not in config.keys():
-            config["model_id"] = self.model_store.get_active()
+            config["model_id"] = self.db.model_store.get_active()
 
         config["committed_at"] = datetime.datetime.now()
         config["task"] = "prediction"
@@ -216,7 +276,7 @@ class Control(ControlBase):
                 combiner.submit(config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
-    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str):
+    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str, model_name: Optional[str] = None) -> tuple:
         """Execute one global round.
 
         : param session_config: The session config.
@@ -230,7 +290,7 @@ class Control(ControlBase):
         if len(self.network.get_combiners()) < 1:
             logger.warning("Round cannot start, no combiners connected!")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # Assemble round config for this global round
         round_config = session_config.to_dict()
@@ -252,7 +312,7 @@ class Control(ControlBase):
         else:
             logger.warning("Round start policy not met, skipping round!")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # Ask participating combiners to coordinate model updates
         _ = self.request_model_updates(participating_combiners)
@@ -271,7 +331,7 @@ class Control(ControlBase):
             retry=retry_if_exception_type(CombinersNotDoneException),
         )
         def combiners_done():
-            round = self.round_store.get(round_id)
+            round = self.db.round_store.get(round_id)
             session_status = self.get_session_status(session_id)
             if session_status == "Terminated":
                 self.set_round_status(round_id, "Terminated")
@@ -288,51 +348,51 @@ class Control(ControlBase):
 
         combiners_are_done = combiners_done()
         if not combiners_are_done:
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
         # so we need some robustness here.
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
-            round = self.round_store.get(round_id)
+            round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
                 raise KeyError("Combiners have not yet reported.")
 
         check_combiners_done_reporting()
 
-        round = self.round_store.get(round_id)
+        round = self.db.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round.to_dict())
         if not round_valid:
             logger.error("Round failed. Invalid - evaluate_round_validity_policy: False")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         logger.info("Reducing combiner level models...")
         # Reduce combiner models into a new global model
         round_data = {}
         try:
-            round = self.round_store.get(round_id)
+            round = self.db.round_store.get(round_id)
             model, data = self.reduce(round.combiners.to_dict())
             round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:
             logger.error("Failed to reduce models from combiners, reason: {}".format(e))
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         # Commit the new global model to the model trail
         if model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
             model_id = str(uuid.uuid4())
-            self.commit(model_id, model, session_id)
+            self.commit(model_id=model_id, model=model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
             logger.error("Failed to commit model to global model trail.")
             self.set_round_status(round_id, "Failed")
-            return None, self.round_store.get(round_id)
+            return None, self.db.round_store.get(round_id)
 
         self.set_round_status(round_id, "Success")
 
@@ -340,14 +400,14 @@ class Control(ControlBase):
         if session_config.validate:
             combiner_config = session_config.to_dict()
             combiner_config["round_id"] = round_id
-            combiner_config["model_id"] = self.model_store.get_active()
+            combiner_config["model_id"] = self.db.model_store.get_active()
             combiner_config["task"] = "validation"
             combiner_config["session_id"] = session_id
 
             helper_type: str = None
 
             try:
-                active_package = self.package_store.get_active()
+                active_package = self.db.package_store.get_active()
                 helper_type = active_package.helper
             except Exception:
                 logger.error("Failed to get active helper")
@@ -366,7 +426,7 @@ class Control(ControlBase):
 
         self.set_round_data(round_id, round_data)
         self.set_round_status(round_id, "Finished")
-        return model_id, self.round_store.get(round_id)
+        return model_id, self.db.round_store.get(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.
@@ -390,7 +450,7 @@ class Control(ControlBase):
 
             try:
                 tic = time.time()
-                data = self.model_repository.get_model(model_id)
+                data = self.repository.get_model(model_id)
                 meta["time_fetch_model"] += time.time() - tic
             except Exception as e:
                 logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
@@ -411,7 +471,7 @@ class Control(ControlBase):
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
 
-            self.model_repository.delete_model(model_id)
+            self.repository.delete_model(model_id)
 
         return model, meta
 
@@ -420,6 +480,8 @@ class Control(ControlBase):
 
         : param config: configuration for the prediction round
         """
+        # TODO: DEAD CODE?
+
         # Check/set instucting state
         if self.__state == ReducerState.instructing:
             logger.info("Already set in INSTRUCTING state")
@@ -447,6 +509,7 @@ class Control(ControlBase):
 
         : param config: configuration for the prediction round
         """
+        # TODO: DEAD CODE?
         # Init meta
         round_data = {}
 
@@ -457,7 +520,7 @@ class Control(ControlBase):
 
         # Setup combiner configuration
         combiner_config = copy.deepcopy(config)
-        combiner_config["model_id"] = self.model_store.get_active()
+        combiner_config["model_id"] = self.db.model_store.get_active()
         combiner_config["task"] = "prediction"
         combiner_config["helper_type"] = self.statestore.get_framework()
 

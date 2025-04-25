@@ -1,6 +1,5 @@
 from typing import Tuple
 import pytest
-import pymongo
 
 import datetime
 import uuid
@@ -9,6 +8,7 @@ import itertools
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.model import ModelDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
+from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
 
@@ -29,7 +29,7 @@ def test_round_model():
     round = RoundDTO(round_id=str(uuid.uuid4()), status="test_status6")
     round.round_config = {"aggregator":"test_aggregator", "buffer_size":100, "delete_models_storage":True, "clients_required":10,
                           "requested_clients":10,"helper_type":"test_helper_type", "model_id":model.model_id, "round_timeout":100,
-                          "validate":True, "round_id":round.round_id, "task":"test_task", "rounds":1}
+                          "validate":True, "round_id":round.round_id, "task":"test_task", "rounds":1, "client_settings":{"test_key":"test_value"}}
     
     round.round_data = {"time_commit":100}
     round.round_data.reduce = {"time_aggregate_model":100, "time_fetch_model":100, "time_load_model":100}
@@ -67,7 +67,7 @@ def options():
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
-    desc = (None, pymongo.DESCENDING, pymongo.ASCENDING)
+    desc = (None, SortOrder.DESCENDING, SortOrder.ASCENDING)
     opt_kwargs = ({}, {"status":"test_status4,test_status5"}, {"status":"blah"})
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))

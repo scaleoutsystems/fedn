@@ -4,9 +4,9 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, model_store, session_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.combiner.interfaces import CombinerUnavailableError
+from fedn.network.controller.control import Control
 from fedn.network.state import ReducerState
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
@@ -87,12 +87,13 @@ def get_sessions():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = db.session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
-        count = session_store.count(**kwargs)
+        count = db.session_store.count(**kwargs)
         result = [session.to_dict() for session in sessions]
 
         response = {"count": count, "result": result}
@@ -166,12 +167,13 @@ def list_sessions():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        sessions = session_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        sessions = db.session_store.list(limit, skip, sort_key, sort_order, **kwargs)
 
-        count = session_store.count(**kwargs)
+        count = db.session_store.count(**kwargs)
         result = [session.to_dict() for session in sessions]
 
         response = {"count": count, "result": result}
@@ -215,8 +217,9 @@ def get_sessions_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = session_store.count(**kwargs)
+        count = db.session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -261,8 +264,9 @@ def sessions_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = session_store.count(**kwargs)
+        count = db.session_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -305,7 +309,8 @@ def get_session(id: str):
                         type: string
     """
     try:
-        result = session_store.get(id)
+        db = Control.instance().db
+        result = db.session_store.get(id)
         if result is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         response = result.to_dict()
@@ -348,6 +353,7 @@ def post():
                         type: string
     """
     try:
+        db = Control.instance().db
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
 
         session_config = SessionConfigDTO()
@@ -358,7 +364,7 @@ def post():
         session.session_config = session_config
         session.populate_with(data)
 
-        result = session_store.add(session)
+        result = db.session_store.add(session)
 
         response = result.to_dict()
         status_code: int = 201
@@ -379,6 +385,7 @@ def post():
 
 
 def _get_number_of_available_clients():
+    control = Control.instance()
     result = 0
     for combiner in control.network.get_combiners():
         try:
@@ -400,15 +407,21 @@ def start_session():
     type: rounds: int
     """
     try:
+        db = Control.instance().db
+        control = Control.instance()
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
         round_timeout: int = data.get("round_timeout", None)
+        model_name_prefix: str = data.get("model_name_prefix", None)
+
+        if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
+            model_name_prefix = None
 
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
-        session = session_store.get(session_id)
+        session = db.session_store.get(session_id)
 
         session_config = session.session_config
         model_id = session_config.model_id
@@ -424,11 +437,11 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        model = model_store.get(model_id)
+        model = db.model_store.get(model_id)
         if model is None:
             return jsonify({"message": "Session seed model not found"}), 400
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout)).start()
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix)).start()
 
         return jsonify({"message": "Session started"}), 200
     except Exception as e:
@@ -476,18 +489,18 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        existing_session = session_store.get(id)
+        db = Control.instance().db
+        existing_session = db.session_store.get(id)
         if existing_session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-        session = SessionDTO()
-
         data = request.get_json()
-        data["session_id"] = id
+        # Remove session_id from the data if it exists
+        # since we are editing 'id' otherwise the user could change the id
+        data.pop("session_id", None)
 
-        session.patch_with(data, throw_on_extra_keys=False)
-
-        updated_session = session_store.update(session)
+        existing_session.patch_with(data, throw_on_extra_keys=False)
+        updated_session = db.session_store.update(existing_session)
 
         response = updated_session.to_dict()
         return jsonify(response), 200
@@ -549,7 +562,8 @@ def put_session(id: str):
                         type: string
     """
     try:
-        session = session_store.get(id)
+        db = Control.instance().db
+        session = db.session_store.get(id)
         if session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
@@ -557,7 +571,7 @@ def put_session(id: str):
         data["session_id"] = id
         session.populate_with(data)
 
-        updated_session = session_store.update(session)
+        updated_session = db.session_store.update(session)
 
         response = updated_session.to_dict()
         return jsonify(response), 200

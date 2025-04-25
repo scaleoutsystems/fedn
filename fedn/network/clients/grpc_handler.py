@@ -230,12 +230,28 @@ class GrpcHandler:
         """Send a model metric to the combiner."""
         try:
             logger.info("Sending model metric to combiner.")
-            _ = self.connectorStub.SendModelMetric(metric, metadata=self.metadata)
+            _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
         except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+            self._handle_grpc_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+            return False
         except Exception as e:
             logger.error(f"GRPC (SendModelMetric): An error occurred: {e}")
             self._handle_unknown_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+            return False
+        return True
+
+    def send_attributes(self, attribute: fedn.AttributeMessage) -> bool:
+        """Send a attribute message to the combiner."""
+        try:
+            logger.info("Sending attributes to combiner.")
+            _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendAttributeMessage): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
+            return False
         return True
 
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
@@ -384,10 +400,13 @@ class GrpcHandler:
 
         return prediction
 
-    def create_metric_message(self, sender_name: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str) -> fedn.ModelMetric:
+    def create_metric_message(
+        self, sender_name: str, sender_client_id: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str
+    ) -> fedn.ModelMetric:
         """Create a metric message."""
         metric = fedn.ModelMetric()
         metric.sender.name = sender_name
+        metric.sender.client_id = sender_client_id
         metric.sender.role = fedn.CLIENT
         metric.model_id = model_id
         if step is not None:

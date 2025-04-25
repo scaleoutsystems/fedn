@@ -1,5 +1,4 @@
 import io
-import os
 from io import BytesIO
 
 import numpy as np
@@ -7,12 +6,9 @@ from flask import Blueprint, jsonify, request, send_file
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import control, minio_repository, model_store, modelstorage_config
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
-from fedn.network.storage.statestore.stores.dto import ModelDTO
+from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
-
-# from fedn.network.storage.statestore.stores.shared import EntityNotFound
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -104,12 +100,13 @@ def get_models():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        models = db.model_store.list(limit, skip, sort_key, sort_order, **kwargs)
         result = [model.to_dict() for model in models]
-        count = model_store.count(**kwargs)
+        count = db.model_store.count(**kwargs)
         response = {"count": count, "result": result}
 
         return jsonify(response), 200
@@ -189,12 +186,13 @@ def list_models():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        models = model_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        models = db.model_store.list(limit, skip, sort_key, sort_order, **kwargs)
         result = [model.to_dict() for model in models]
-        count = model_store.count(**kwargs)
+        count = db.model_store.count(**kwargs)
         response = {"count": count, "result": result}
 
         return jsonify(response), 200
@@ -243,8 +241,9 @@ def get_models_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = model_store.count(**kwargs)
+        count = db.model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -296,8 +295,9 @@ def models_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = model_store.count(**kwargs)
+        count = db.model_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -340,7 +340,8 @@ def get_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id)
+        db = Control.instance().db
+        model = db.model_store.get(id)
 
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -392,19 +393,18 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        exsisting_model = model_store.get(id)
-        if exsisting_model is None:
+        db = Control.instance().db
+        existing_model = db.model_store.get(id)
+        if existing_model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-        model = ModelDTO()
-        model.model_id = id
-
         data = request.get_json()
+
         data.pop("model", None)
         data.pop("model_id", None)
-        model.patch_with(data, throw_on_extra_keys=False)
 
-        updated_model = model_store.update(model)
+        existing_model.patch_with(data, throw_on_extra_keys=False)
+        updated_model = db.model_store.update(existing_model)
 
         response = updated_model.to_dict()
         return jsonify(response), 200
@@ -466,7 +466,8 @@ def put_model(id: str):
                         type: string
     """
     try:
-        model = model_store.get(id)
+        db = Control.instance().db
+        model = db.model_store.get(id)
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         data = request.get_json()
@@ -474,7 +475,7 @@ def put_model(id: str):
         data["model_id"] = id
 
         model.populate_with(data)
-        new_model = model_store.update(model)
+        new_model = db.model_store.update(model)
         response = new_model.to_dict()
         return jsonify(response), 200
 
@@ -536,9 +537,10 @@ def get_descendants(id: str):
                         type: string
     """
     try:
+        db = Control.instance().db
         limit = get_limit(request.headers)
 
-        descendants = model_store.list_descendants(id, limit or 10)
+        descendants = db.model_store.list_descendants(id, limit or 10)
 
         if descendants is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -603,13 +605,14 @@ def get_ancestors(id: str):
                         type: string
     """
     try:
+        db = Control.instance().db
         limit = get_limit(request.headers)
         reverse = get_reverse(request.headers)
         include_self_param: str = request.args.get("include_self")
 
         include_self: bool = include_self_param and include_self_param.lower() == "true"
 
-        ancestors = model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
+        ancestors = db.model_store.list_ancestors(id, limit or 10, include_self=include_self, reverse=reverse)
         if ancestors is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
         response = [model.to_dict() for model in ancestors]
@@ -645,7 +648,8 @@ def get_leaf_nodes():
                     type: string
     """
     try:
-        leaf_nodes = model_store.get_leaf_nodes()
+        db = Control.instance().db
+        leaf_nodes = db.model_store.get_leaf_nodes()
         response = [model.to_dict() for model in leaf_nodes]
         return jsonify(response), 200
     except Exception as e:
@@ -687,13 +691,14 @@ def download(id: str):
                         type: string
     """
     try:
-        if minio_repository is not None:
-            model = model_store.get(id)
+        db = Control.instance().db
+        repository = Control.instance().repository
+        if repository is not None:
+            model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
-            file = minio_repository.get_artifact_stream(model.model_id, model_bucket)
+            file = repository.get_model_stream(model.model_id)
 
             return send_file(file, as_attachment=True, download_name=model.model_id)
         else:
@@ -742,13 +747,14 @@ def get_parameters(id: str):
                         type: string
     """
     try:
-        if minio_repository is not None:
-            model = model_store.get(id)
+        db = Control.instance().db
+        repository = Control.instance().repository
+        if repository is not None:
+            model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
-            model_bucket = os.environ.get("FEDN_MODEL_BUCKET", modelstorage_config["storage_config"]["storage_bucket"])
-            file = minio_repository.get_artifact_stream(model.model_id, model_bucket)
+            file = repository.get_model_stream(model.model_id)
 
             file_bytes = io.BytesIO()
             for chunk in file.stream(32 * 1024):
@@ -791,7 +797,8 @@ def get_active_model():
                         type: string
     """
     try:
-        active_model = model_store.get_active()
+        db = Control.instance().db
+        active_model = db.model_store.get_active()
         if active_model is None:
             return jsonify({"message": "No active model found"}), 404
 
@@ -831,10 +838,11 @@ def set_active_model():
                         type: string
     """
     try:
+        db = Control.instance().db
         data = request.get_json()
         model_id = data["id"]
 
-        response = model_store.set_active(model_id)
+        response = db.model_store.set_active(model_id)
 
         if response:
             return jsonify({"message": "Active model set"}), 200
@@ -873,6 +881,7 @@ def upload_model():
                         type: string
     """
     try:
+        control = Control.instance()
         data = request.form.to_dict()
         file = request.files["file"]
         name: str = data.get("name", None)
