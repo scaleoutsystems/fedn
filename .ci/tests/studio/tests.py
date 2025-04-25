@@ -4,12 +4,13 @@ import pytest
 from fedn import APIClient
 from fedn.cli.shared import get_token, get_project_url
 from server_functions import ServerFunctions
+from fedn.common.log_config import logger
 
 @pytest.fixture(scope="module")
 def fedn_client():
     token = get_token(token=None, usr_token=False)
     host = get_project_url("", "", None, False)
-    print(f"Connecting to {host}")
+    logger.info(f"Connecting to {host}")
     client = APIClient(host=host, token=token, secure=True, verify=True)
     return client
 
@@ -109,4 +110,4 @@ class TestFednStudio:
 
         # We could assert or test model convergence here
 
-        print("All tests passed!", flush=True)
+        logger.info("All tests passed!")
