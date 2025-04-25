@@ -8,7 +8,6 @@ from io import BytesIO
 from typing import Any, Callable, Optional, Union
 
 import grpc
-import psutil
 from google.protobuf.json_format import MessageToJson
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -108,17 +107,13 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float, cpu_utilisation: float) -> fedn.Response:
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(
-            sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id),
-            memory_utilisation=memory_utilisation,
-            cpu_utilisation=cpu_utilisation,
-        )
+        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
         try:
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
@@ -135,9 +130,7 @@ class GrpcHandler:
         send_heartbeat = True
         while send_heartbeat:
             try:
-                memory_usage = psutil.virtual_memory().percent
-                cpu_usage = psutil.cpu_percent(interval=update_frequency)
-                response = self.heartbeat(client_name, client_id, memory_usage, cpu_usage)
+                response = self.heartbeat(client_name, client_id)
             except grpc.RpcError as e:
                 self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
