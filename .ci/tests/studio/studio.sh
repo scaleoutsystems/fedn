@@ -43,6 +43,8 @@ for i in $(seq 0 $(($FEDN_NR_CLIENTS - 1))); do
 done
 popd
 sleep 5
+# add server functions so we can import it in start_session
+export PYTHONPATH="$PYTHONPATH:$(pwd)/examples/server-functions"
 pytest .ci/tests/studio/tests.py -x
 sleep 5
 # run with server functions

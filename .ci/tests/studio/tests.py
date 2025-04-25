@@ -3,7 +3,6 @@ import time
 import pytest
 from fedn import APIClient
 from fedn.cli.shared import get_token, get_project_url
-sys.path.append(os.path.abspath('../server-functions'))
 from server_functions import ServerFunctions
 
 @pytest.fixture(scope="module")
