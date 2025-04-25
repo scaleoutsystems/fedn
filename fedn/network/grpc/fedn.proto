@@ -119,6 +119,17 @@ message AttributeElem {
   string value = 2;
 }
 
+message TelemetryMessage {
+  Client sender = 1;
+  repeated TelemetryElem telemetries = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message TelemetryElem {
+  string key = 1;
+  float value = 2;
+}
+
 enum ModelStatus {
   OK = 0;
   IN_PROGRESS = 1;
@@ -286,6 +297,7 @@ service Combiner {
 
     rpc SendModelMetric(ModelMetric) returns (Response);
     rpc SendAttributeMessage(AttributeMessage) returns (Response);
+    rpc SendTelemetryMessage(TelemetryMessage) returns (Response);
 }
 
 message ProvidedFunctionsRequest {

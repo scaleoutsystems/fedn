@@ -8,7 +8,6 @@ from io import BytesIO
 from typing import Any, Callable, Optional, Union
 
 import grpc
-import psutil
 from google.protobuf.json_format import MessageToJson
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -18,23 +17,17 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
-KEEPALIVE_TIME_MS = 1 * 1000  # send keepalive ping every 60 seconds
-# wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIME_MS = 5 * 1000  # send keepalive ping every 5 second
+# wait 30 seconds for keepalive ping ack before considering connection dead
 KEEPALIVE_TIMEOUT_MS = 30 * 1000
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
-MAX_CONNECTION_IDLE_MS = 30000
-MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
-CLIENT_IDLE_TIMEOUT_MS = 30000
+
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
     ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-    ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
-    ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
-    ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
-    ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
 ]
 
 GRPC_SECURE_PORT = 443
@@ -90,7 +83,11 @@ class GrpcHandler:
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
-            self.channel = grpc.secure_channel(f"{host}:{port}", credentials)
+            self.channel = grpc.secure_channel(
+                f"{host}:{port}",
+                credentials,
+                options=GRPC_OPTIONS,
+            )
             return
 
         credentials = grpc.ssl_channel_credentials()
@@ -110,17 +107,13 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float, cpu_utilisation: float) -> fedn.Response:
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(
-            sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id),
-            memory_utilisation=memory_utilisation,
-            cpu_utilisation=cpu_utilisation,
-        )
+        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
         try:
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
@@ -137,9 +130,7 @@ class GrpcHandler:
         send_heartbeat = True
         while send_heartbeat:
             try:
-                memory_usage = psutil.virtual_memory().percent
-                cpu_usage = psutil.cpu_percent(interval=update_frequency)
-                response = self.heartbeat(client_name, client_id, memory_usage, cpu_usage)
+                response = self.heartbeat(client_name, client_id)
             except grpc.RpcError as e:
                 self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
@@ -251,6 +242,20 @@ class GrpcHandler:
         except Exception as e:
             logger.error(f"GRPC (SendAttributeMessage): An error occurred: {e}")
             self._handle_unknown_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
+            return False
+        return True
+
+    def send_telemetry(self, telemetry: fedn.TelemetryMessage) -> bool:
+        """Send a telemetry message to the combiner."""
+        try:
+            logger.info("Sending telemetry to combiner.")
+            _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendTelemetry): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
             return False
         return True
 
