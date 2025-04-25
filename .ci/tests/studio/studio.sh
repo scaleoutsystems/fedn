@@ -44,3 +44,7 @@ done
 popd
 sleep 5
 pytest .ci/tests/studio/tests.py -x
+sleep 5
+# run with server functions
+export FEDN_SERVER_FUNCTIONS="1"
+pytest .ci/tests/studio/tests.py -x
