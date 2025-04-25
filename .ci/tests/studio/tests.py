@@ -21,7 +21,7 @@ def fedn_env():
         "FEDN_ROUND_TIMEOUT": int(os.environ.get("FEDN_ROUND_TIMEOUT", 180)),
         "FEDN_BUFFER_SIZE": int(os.environ.get("FEDN_BUFFER_SIZE", -1)),
         "FEDN_NR_CLIENTS": int(os.environ.get("FEDN_NR_CLIENTS", 2)),
-        "FEDN_CLIENT_TIMEOUT": int(os.environ.get("FEDN_CLIENT_TIMEOUT", 60)),
+        "FEDN_CLIENT_TIMEOUT": int(os.environ.get("FEDN_CLIENT_TIMEOUT", 600)),
         "FEDN_FL_ALG": os.environ.get("FEDN_FL_ALG", "fedavg"),
         "FEDN_NR_EXPECTED_AGG": int(os.environ.get("FEDN_NR_EXPECTED_AGG", 2)), # Number of expected aggregated models per combiner
         "FEDN_SESSION_TIMEOUT": int(os.environ.get("FEDN_SESSION_TIMEOUT", 300)), # Session timeout in seconds, all rounds must be finished within this time
