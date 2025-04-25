@@ -46,7 +46,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
 
 class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
     def __init__(self, Session):
-        super().__init__(Session, RoundModel)
+        super().__init__(Session, RoundModel, "round_id")
 
     def update(self, item: RoundDTO) -> RoundDTO:
         return self.sql_update(item)

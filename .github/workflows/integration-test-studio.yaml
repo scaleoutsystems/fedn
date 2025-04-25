@@ -48,7 +48,7 @@ on:
 
 jobs:
   integration-test:
-    runs-on: [self-hosted, south]
+    runs-on: [self-hosted, north]
 
     steps:
     - name: Checkout repository

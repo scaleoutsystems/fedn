@@ -32,7 +32,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
 
 class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
-        super().__init__(Session, SessionModel)
+        super().__init__(Session, SessionModel, "session_id")
 
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.sql_update(item)

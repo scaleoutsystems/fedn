@@ -66,7 +66,7 @@ class MongoDBClientStore(ClientStore, MongoDBStore[ClientDTO]):
 
 class SQLClientStore(ClientStore, SQLStore[ClientDTO, ClientModel]):
     def __init__(self, Session):
-        super().__init__(Session, ClientModel)
+        super().__init__(Session, ClientModel, "client_id")
 
     def update(self, item: ClientDTO) -> ClientDTO:
         return self.sql_update(item)

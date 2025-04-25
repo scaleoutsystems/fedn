@@ -775,84 +775,6 @@ def get_parameters(id: str):
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-@bp.route("/active", methods=["GET"])
-@jwt_auth_required(role="admin")
-def get_active_model():
-    """Get active model
-    Retrieves the active model (id).
-    ---
-    tags:
-        - Models
-    responses:
-        200:
-            description: The active model id
-            schema:
-                type: string
-        500:
-            description: An error occurred
-            schema:
-                type: object
-                properties:
-                    message:
-                        type: string
-    """
-    try:
-        db = Control.instance().db
-        active_model = db.model_store.get_active()
-        if active_model is None:
-            return jsonify({"message": "No active model found"}), 404
-
-        response = active_model
-
-        return jsonify(response), 200
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        return jsonify({"message": "An unexpected error occurred"}), 500
-
-
-@bp.route("/active", methods=["PUT"])
-@jwt_auth_required(role="admin")
-def set_active_model():
-    """Set active model
-    Sets the active model (id).
-    ---
-    tags:
-        - Models
-    parameters:
-      - name: model
-        in: body
-        required: true
-        type: object
-        description: The model data to update
-    responses:
-        200:
-            description: The updated active model id
-            schema:
-                type: string
-        500:
-            description: An error occurred
-            schema:
-                type: object
-                properties:
-                    message:
-                        type: string
-    """
-    try:
-        db = Control.instance().db
-        data = request.get_json()
-        model_id = data["id"]
-
-        response = db.model_store.set_active(model_id)
-
-        if response:
-            return jsonify({"message": "Active model set"}), 200
-        else:
-            return jsonify({"message": "Failed to set active model"}), 500
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        return jsonify({"message": "An unexpected error occurred"}), 500
-
-
 @bp.route("/", methods=["POST"])
 @jwt_auth_required(role="admin")
 def upload_model():
@@ -895,7 +817,7 @@ def upload_model():
             logger.info(f"Loading model from file using helper {helper.name}")
             object.seek(0)
             model = helper.load(object)
-            control.commit(model_id=None, model=model, name=name)
+            control.commit(model=model, name=name)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             status_code = 400
@@ -918,3 +840,27 @@ def upload_model():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+# deprecated
+
+
+@bp.route("/active", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_active_model():
+    return jsonify(
+        {
+            "error": "This endpoint has been deprecated and is no longer available."
+            + "The active model concept is no longer used in Fedn. Please use the /models endpoint to retrieve models.",
+        }
+    ), 410
+
+
+@bp.route("/active", methods=["PUT"])
+@jwt_auth_required(role="admin")
+def set_active_model():
+    return jsonify(
+        {
+            "error": "This endpoint has been deprecated and is no longer available. " + "The active model concept is no longer used in Fedn.",
+        }
+    ), 410

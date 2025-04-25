@@ -29,7 +29,7 @@ class MongoDBRunStore(RunStore, MongoDBStore[RunDTO]):
 
 class SQLRunStore(RunStore, SQLStore[RunDTO, RunModel]):
     def __init__(self, session):
-        super().__init__(session, RunModel)
+        super().__init__(session, RunModel, "training_run_id")
 
     def _update_orm_model_from_dto(self, entity: RunModel, item: RunDTO):
         item_dict = item.to_db(exclude_unset=False)

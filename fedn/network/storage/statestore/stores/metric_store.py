@@ -35,7 +35,7 @@ def _translate_key_sql(key: str):
 
 class SQLMetricStore(MetricStore, SQLStore[MetricDTO, MetricModel]):
     def __init__(self, session):
-        super().__init__(session, MetricModel)
+        super().__init__(session, MetricModel, "metric_id")
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs):
         sort_key = _translate_key_sql(sort_key)

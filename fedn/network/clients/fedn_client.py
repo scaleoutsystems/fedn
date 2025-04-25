@@ -480,6 +480,7 @@ class FednClient:
         """Create a validation message."""
         return self.grpc_handler.create_validation_message(
             sender_name=self.name,
+            sender_client_id=self.client_id,
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
             model_id=request.model_id,

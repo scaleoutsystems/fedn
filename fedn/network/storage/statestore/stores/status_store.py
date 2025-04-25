@@ -50,7 +50,7 @@ def _translate_key_sql(key: str) -> str:
 
 class SQLStatusStore(StatusStore, SQLStore[StatusDTO, StatusModel]):
     def __init__(self, Session):
-        super().__init__(Session, StatusModel)
+        super().__init__(Session, StatusModel, "status_id")
 
     def list(self, limit: int, skip: int, sort_key: str, sort_order=SortOrder.DESCENDING, **kwargs):
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}
