@@ -639,20 +639,20 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
-        # if model_id is None:
-        #     headers = self.headers.copy()
-        #     headers["X-Limit"] = "1"
-        #     headers["X-Sort-Key"] = "committed_at"
-        #     headers["X-Sort-Order"] = "desc"
-        #     response = requests.get(self._get_url_api_v1("models"), verify=self.verify, headers=headers)
-        #     if response.status_code == 200:
-        #         json = response.json()
-        #         if "result" in json and len(json["result"]) > 0:
-        #             model_id = json["result"][0]["model_id"]
-        #         else:
-        #             return {"message": "No models found in the repository"}
-        #     else:
-        #         return response.json()
+        if model_id is None:
+            headers = self.headers.copy()
+            headers["X-Limit"] = "1"
+            headers["X-Sort-Key"] = "committed_at"
+            headers["X-Sort-Order"] = "desc"
+            response = requests.get(self._get_url_api_v1("models"), verify=self.verify, headers=headers)
+            if response.status_code == 200:
+                json = response.json()
+                if "result" in json and len(json["result"]) > 0:
+                    model_id = json["result"][0]["model_id"]
+                else:
+                    return {"message": "No models found in the repository"}
+            else:
+                return response.json()
 
         if helper is None:
             response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
