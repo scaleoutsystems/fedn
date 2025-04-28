@@ -1,4 +1,4 @@
-# python_env: python_env.yaml
+python_env: python_env.yaml
 entry_points:
   startup:
     command: python data.py

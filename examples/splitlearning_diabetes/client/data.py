@@ -50,7 +50,7 @@ def load_labels(data_path=None, is_train=True):
         return data["y_test"]
 
 
-def vertical_split(out_dir="data", n_splits=2):
+def vertical_split(out_dir="data", n_splits=2, data_path="../data/diabetes.csv"):
     """Generates *n_split* vertical datasplits for the diabetes dataset.
 
     param out_dir: Path to the output directory.
@@ -61,7 +61,8 @@ def vertical_split(out_dir="data", n_splits=2):
     if not os.path.exists(f"{out_dir}/clients"):
         os.makedirs(f"{out_dir}/clients")
 
-    df_diabetes = pd.read_csv("../data/diabetes.csv")
+    data_path = "/app/data/diabetes.csv" if os.getenv("USE_DOCKER_PATH") else "../data/diabetes.csv"
+    df_diabetes = pd.read_csv(data_path)
 
     # data preprocessing
     df_diabetes[["Glucose", "BloodPressure", "SkinThickness", "BMI"]] = df_diabetes[["Glucose", "BloodPressure", "SkinThickness", "BMI"]].replace(0, np.nan)

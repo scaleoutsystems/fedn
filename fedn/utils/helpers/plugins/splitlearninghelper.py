@@ -2,8 +2,8 @@ import os
 import tempfile
 
 import numpy as np
-import torch
 
+# import torch
 from fedn.common.log_config import logger
 from fedn.utils.helpers.helperbase import HelperBase
 
@@ -52,25 +52,6 @@ class Helper(HelperBase):
             return result_dict
         except Exception as e:
             logger.error(f"Error in splitlearninghelper: loading data from {path}: {str(e)}")
-            raise
-
-    def load_targets(self, is_train=True):
-        """Load target labels for split learning."""
-        try:
-            data_path = os.environ.get("FEDN_LABELS_PATH")
-        except Exception as e:
-            logger.error(f"FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt', {e}")
-            raise
-
-        try:
-            data = torch.load(data_path, weights_only=True)
-            if is_train:
-                targets = data["y_train"]
-            else:
-                targets = data["y_test"]
-            return targets.reshape(-1, 1)  # Reshape to match model output shape
-        except Exception as e:
-            logger.error(f"Error loading labels from {data_path}: {str(e)}")
             raise
 
     def get_tmp_path(self, suffix=".npz"):

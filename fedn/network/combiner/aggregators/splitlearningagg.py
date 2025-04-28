@@ -1,3 +1,4 @@
+import os
 import traceback
 
 import torch
@@ -158,7 +159,7 @@ class Aggregator(AggregatorBase):
         optimizer.zero_grad()
 
         output = self.model(concatenated_embeddings)
-        targets = helper.load_targets(is_train=True)
+        targets = self.load_targets(is_train=True)
         targets = targets.to(self.device)
 
         loss = criterion(output, targets)
@@ -180,7 +181,7 @@ class Aggregator(AggregatorBase):
         with torch.no_grad():
             criterion = nn.BCELoss()
             output = self.model(concatenated_embeddings)
-            targets = helper.load_targets(is_train=False)
+            targets = self.load_targets(is_train=False)
             targets = targets.to(self.device)
             # metric calculation
             test_loss = criterion(output, targets)
@@ -193,3 +194,22 @@ class Aggregator(AggregatorBase):
             validation_data = {"test_loss": test_loss, "test_accuracy": test_accuracy}
 
             return validation_data
+
+    def load_targets(self, is_train=True):
+        """Load target labels for split learning."""
+        try:
+            data_path = os.environ.get("FEDN_LABELS_PATH")
+        except Exception as e:
+            logger.error(f"FEDN_LABELS_PATH environment variable is not set. Set via export FEDN_LABELS_PATH='path/to/labels.pt', {e}")
+            raise
+
+        try:
+            data = torch.load(data_path, weights_only=True)
+            if is_train:
+                targets = data["y_train"]
+            else:
+                targets = data["y_test"]
+            return targets.reshape(-1, 1)  # Reshape to match model output shape
+        except Exception as e:
+            logger.error(f"Error loading labels from {data_path}: {str(e)}")
+            raise
