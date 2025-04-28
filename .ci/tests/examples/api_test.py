@@ -60,10 +60,13 @@ def test_api_get_methods():
 
     models_count = client.get_models_count()
     assert models_count
+    assert models_count == len(models["result"])
+    assert models_count == models["count"]
     print("Models count: ", models_count, flush=True)
 
     models_from_trail = client.get_model_trail()
     assert models_from_trail
+    assert len(models_from_trail) == models_count
     print("Models: ", models_from_trail, flush=True)
 
     active_model = client.get_active_model()

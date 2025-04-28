@@ -292,14 +292,15 @@ class APIClient:
         """
         if not id:
             model = self.get_active_model()
-            if "id" in model:
-                id = model["id"]
+            if "model_id" in model:
+                id = model["model_id"]
             else:
                 return model
 
         _headers = self.headers.copy()
 
         _count: int = n_max if n_max else self.get_models_count()
+
         _headers["X-Limit"] = str(_count)
         _headers["X-Reverse"] = "true" if reverse else "false"
 

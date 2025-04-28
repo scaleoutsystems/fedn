@@ -835,6 +835,11 @@ class CombinerStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.AttributeMessage.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
+        self.SendTelemetryMessage = channel.unary_unary(
+                '/fedn.Combiner/SendTelemetryMessage',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
 
 
 class CombinerServicer(object):
@@ -883,6 +888,12 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendTelemetryMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -919,6 +930,11 @@ def add_CombinerServicer_to_server(servicer, server):
             'SendAttributeMessage': grpc.unary_unary_rpc_method_handler(
                     servicer.SendAttributeMessage,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.AttributeMessage.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'SendTelemetryMessage': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendTelemetryMessage,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
     }
@@ -1110,6 +1126,33 @@ class Combiner(object):
             target,
             '/fedn.Combiner/SendAttributeMessage',
             network_dot_grpc_dot_fedn__pb2.AttributeMessage.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendTelemetryMessage(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/SendTelemetryMessage',
+            network_dot_grpc_dot_fedn__pb2.TelemetryMessage.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,
