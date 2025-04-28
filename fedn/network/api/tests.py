@@ -66,7 +66,6 @@ class NetworkAPITests(unittest.TestCase):
         self.app = fedn.network.api.server.app.test_client()
         self.db = MockDB()
 
-
         Control.create_instance("test_network", None, self.db)
 
 
@@ -329,11 +328,13 @@ class NetworkAPITests(unittest.TestCase):
         self.db.status_store.count.assert_called_with()
         self.db.validation_store.count.assert_called_with()
         self.db.metric_store.count.assert_called_with()
+        
         for entity in entitites:
             print(f"Testing {entity}")
             response = self.app.get(f'/api/v1/{entity}/count?property1=value1&property2=value2')
             # Assert response
             self.assertEqual(response.status_code, 200)
+        
         self.db.client_store.count.assert_called_with(property1="value1", property2="value2")
         self.db.combiner_store.count.assert_called_with(property1="value1", property2="value2")
         self.db.model_store.count.assert_called_with(property1="value1", property2="value2")
