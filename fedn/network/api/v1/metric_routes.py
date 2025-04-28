@@ -232,3 +232,48 @@ def list_metrics():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_metric(id: str):
+    """Get metric
+    Retrieves a metric based on the provided id.
+    ---
+    tags:
+      - Metrics
+    parameters:
+      - name: id
+      in: path
+      required: true
+      type: string
+      description: The id of the metric
+    responses:
+      200:
+        description: The metric
+        schema:
+          $ref: '#/definitions/Metric'
+      404:
+        description: The metric was not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+      500:
+        description: An error occurred
+        schema:
+          type: object
+          properties:
+            message:
+              type: string
+    """
+    try:
+        db = Control.instance().db
+        response = db.metric_store.get(id)
+        if response is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        return jsonify(response.to_dict()), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500

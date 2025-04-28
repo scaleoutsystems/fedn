@@ -1,28 +1,8 @@
 # Unittest for Flask API endpoints
 #
 # Run with:
-# python -m unittest fedn.tests.network.api.tests
-#
-# or
-#
-# python3 -m unittest fedn.tests.network.api.tests
-#
-# or
-#
-# python3 -m unittest fedn.tests.network.api.tests.NetworkAPITests
-#
-# or
-#
-# python -m unittest fedn.tests.network.api.tests.NetworkAPITests
-#
-# or
-#
-# python -m unittest fedn.tests.network.api.tests.NetworkAPITests.test_get_model_trail
-#
-# or
-#
-# python3 -m unittest fedn.tests.network.api.tests.NetworkAPITests.test_get_model_trail
-#
+# python -m unittest fedn.network.api.tests
+
 
 import unittest
 from unittest.mock import patch, MagicMock
@@ -111,6 +91,31 @@ class NetworkAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_endpoints(self):
+        """ Test get endpoints. """
+        expected_return_id = "test"
+        self.db.client_store.get = MagicMock(side_effect=lambda id: ClientDTO(client_id="test") if id == "test" else None)
+        self.db.combiner_store.get = MagicMock(side_effect=lambda id: CombinerDTO(combiner_id="test") if id == "test" else None)
+        self.db.model_store.get = MagicMock(side_effect=lambda id: ModelDTO(model_id="test") if id == "test" else None)
+        self.db.package_store.get = MagicMock(side_effect=lambda id: PackageDTO(package_id="test") if id == "test" else None)
+        self.db.round_store.get = MagicMock(side_effect=lambda id: RoundDTO(round_id="test") if id == "test" else None)
+        self.db.session_store.get = MagicMock(side_effect=lambda id: SessionDTO(session_id="test") if id == "test" else None)
+        self.db.status_store.get = MagicMock(side_effect=lambda id: StatusDTO(status_id="test") if id == "test" else None)
+        self.db.validation_store.get = MagicMock(side_effect=lambda id: ValidationDTO(validation_id="test") if id == "test" else None)
+        self.db.metric_store.get = MagicMock(side_effect=lambda id: MetricDTO(metric_id="test") if id == "test" else None)
+      
+        
+        for key,entity in zip(keys, entitites):
+            print(f"Testing {entity}")
+            response = self.app.get(f'/api/v1/{entity}/test')
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json[key], expected_return_id)
+            response = self.app.get(f'/api/v1/{entity}/test2') # does not exist
+            # Assert response
+            self.assertEqual(response.status_code, 404)
+            self.assertEqual(response.json['message'], "Entity with id: test2 not found")
+
+    def test_get_many_endpoints(self):
         """ Test allt get endpoints. """
         excepted_return_count = 1
         expected_return_id = "test"
