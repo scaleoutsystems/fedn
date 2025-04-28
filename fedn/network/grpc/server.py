@@ -35,7 +35,7 @@ class Server:
         MAX_PING_STRIKES = 2
 
         self.server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=350),
+            futures.ThreadPoolExecutor(max_workers=10000),
             interceptors=[JWTInterceptor()],
             options=[
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),

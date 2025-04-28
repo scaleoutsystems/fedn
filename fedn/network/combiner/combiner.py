@@ -622,6 +622,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         nr_active_clients = len(active_clients)
         if nr_active_clients < 20:
             logger.info("grpc.Combiner.ListActiveClients:  Active clients: {}".format(active_clients))
+            logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
         else:
             logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
 

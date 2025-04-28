@@ -29,7 +29,7 @@ HTTP_STATUS_NOT_FOUND = 404
 HTTP_STATUS_PACKAGE_MISSING = 203
 
 # Default timeout for requests
-REQUEST_TIMEOUT = 10  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 
 
 class GrpcConnectionOptions:

@@ -58,7 +58,7 @@ if REMOTE_LOG_SERVER:
 
     http_handler = StudioHTTPHandler(host=REMOTE_LOG_SERVER, url=REMOTE_LOG_PATH, method="POST", token=remote_token)
     http_handler.setLevel(rloglevel)
-    logger.addHandler(http_handler)
+    #logger.addHandler(http_handler)
 
 
 def set_log_level_from_string(level_str):

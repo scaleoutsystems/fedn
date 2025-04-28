@@ -49,6 +49,12 @@ def save_parameters(model, out_path):
 
     helper.save(parameters, out_path)
 
+def load_parameters(model_path):
+    helper = get_helper(HELPER_MODULE)
+    parameters = np.load(model_path)
+    
+    
+    return parameters
 
 def init_seed(out_path="seed.npz"):
     """Initialize seed model.
@@ -59,6 +65,7 @@ def init_seed(out_path="seed.npz"):
     # Init and save
     model = compile_model()
     save_parameters(model, out_path)
+
 
 
 if __name__ == "__main__":
