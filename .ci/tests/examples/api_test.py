@@ -32,6 +32,15 @@ def test_api_get_methods():
     assert clients_count
     print("Clients count: ", clients_count, flush=True)
 
+    client_id = clients["result"][0]["client_id"]
+    client_obj = client.get_client(client_id)
+    assert client_obj
+    assert client_id == client_obj["client_id"]
+    print("Client: ", client_obj, flush=True)
+    
+    assert clients_count == len(clients["result"])
+    assert clients_count == clients["count"]
+
     # --- Combiners --- #
 
     combiners = client.get_combiners()
@@ -45,6 +54,9 @@ def test_api_get_methods():
     combiner = client.get_combiner("combiner")
     assert combiner
     print("Combiner: ", combiner, flush=True)
+
+    assert combiners_count == len(combiners["result"])
+    assert combiners_count == combiners["count"]
 
     # --- Controllers --- #
 
@@ -60,19 +72,20 @@ def test_api_get_methods():
 
     models_count = client.get_models_count()
     assert models_count
-    assert models_count == len(models["result"])
-    assert models_count == models["count"]
     print("Models count: ", models_count, flush=True)
 
     models_from_trail = client.get_model_trail()
     assert models_from_trail
     assert len(models_from_trail) == models_count
-    print("Models: ", models_from_trail, flush=True)
+    print("Models (model trail): ", models_from_trail, flush=True)
 
     active_model = client.get_active_model()
     assert active_model
     print("Active model: ", active_model, flush=True)
 
+    assert models_count == len(models["result"])
+    assert models_count == models["count"]
+    
     # --- Packages --- #
 
     packages = client.get_packages()
@@ -91,6 +104,9 @@ def test_api_get_methods():
     assert checksum
     print("Checksum: ", checksum, flush=True)
 
+    assert packages_count == len(packages["result"])
+    assert packages_count == packages["count"]
+
     # --- Rounds --- #
 
     rounds = client.get_rounds()
@@ -100,6 +116,9 @@ def test_api_get_methods():
     rounds_count = client.get_rounds_count()
     assert rounds_count
     print("Rounds count: ", rounds_count, flush=True)
+
+    assert rounds_count == len(rounds["result"])
+    assert rounds_count == rounds["count"]
 
     # --- Sessions --- #
 
@@ -111,6 +130,14 @@ def test_api_get_methods():
     assert sessions_count
     print("Sessions count: ", sessions_count, flush=True)
 
+    session = client.get_session(session_id=sessions["result"][0]["session_id"])
+    assert session
+    assert session["session_id"] == sessions["result"][0]["session_id"]
+    print("Session: ", session, flush=True)
+
+    assert sessions_count == len(sessions["result"])
+    assert sessions_count == sessions["count"]
+
     # --- Statuses --- #
 
     statuses = client.get_statuses()
@@ -121,6 +148,9 @@ def test_api_get_methods():
     assert statuses_count
     print("Statuses count: ", statuses_count, flush=True)
 
+    assert statuses_count == len(statuses["result"])
+    assert statuses_count == statuses["count"]
+
     # --- Validations --- #
 
     validations = client.get_validations()
@@ -130,6 +160,9 @@ def test_api_get_methods():
     validations_count = client.get_validations_count()
     assert validations_count
     print("Validations count: ", validations_count, flush=True)
+
+    assert validations_count == len(validations["result"])
+    assert validations_count == validations["count"]
 
 
 if __name__ == '__main__':
