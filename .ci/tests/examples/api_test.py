@@ -130,7 +130,7 @@ def test_api_get_methods():
     assert sessions_count
     print("Sessions count: ", sessions_count, flush=True)
 
-    session = client.get_session(session_id=sessions["result"][0]["session_id"])
+    session = client.get_session(id=sessions["result"][0]["session_id"])
     assert session
     assert session["session_id"] == sessions["result"][0]["session_id"]
     print("Session: ", session, flush=True)
