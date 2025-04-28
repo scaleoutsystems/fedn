@@ -103,7 +103,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.metric_store.get = MagicMock(side_effect=lambda id: MetricDTO(metric_id="test") if id == "test" else None)
       
         
-        for key,entity in zip(keys, entitites):
+        for key,entity in zip(keys, entities):
             response = self.app.get(f'/api/v1/{entity}/test')
             # Assert response
             self.assertEqual(response.status_code, 200)
