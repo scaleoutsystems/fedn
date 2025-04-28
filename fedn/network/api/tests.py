@@ -296,6 +296,69 @@ class NetworkAPITests(unittest.TestCase):
         self.db.status_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
         self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
         self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+
+    def test_count_endpoints(self):
+        """ Test all count endpoints. """
+        expected_return_count = 1
+        self.db.client_store.count = MagicMock(return_value=1)
+        self.db.combiner_store.count = MagicMock(return_value=1)
+        self.db.model_store.count = MagicMock(return_value=1)
+        self.db.package_store.count = MagicMock(return_value=1)
+        self.db.round_store.count = MagicMock(return_value=1)
+        self.db.session_store.count = MagicMock(return_value=1)
+        self.db.status_store.count = MagicMock(return_value=1)
+        self.db.validation_store.count = MagicMock(return_value=1)
+        self.db.metric_store.count = MagicMock(return_value=1)
+
+        for entity in entitites:
+            print(f"Testing {entity}")
+            response = self.app.get(f'/api/v1/{entity}/count')
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+
+            count = response.json
+
+            self.assertEqual(count, expected_return_count)
+            
+        self.db.client_store.count.assert_called_with()
+        self.db.combiner_store.count.assert_called_with()
+        self.db.model_store.count.assert_called_with()
+        self.db.package_store.count.assert_called_with()
+        self.db.round_store.count.assert_called_with()
+        self.db.session_store.count.assert_called_with()
+        self.db.status_store.count.assert_called_with()
+        self.db.validation_store.count.assert_called_with()
+        self.db.metric_store.count.assert_called_with()
+        for entity in entitites:
+            print(f"Testing {entity}")
+            response = self.app.get(f'/api/v1/{entity}/count?property1=value1&property2=value2')
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+        self.db.client_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.combiner_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.model_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.package_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.round_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.session_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.status_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.validation_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.metric_store.count.assert_called_with(property1="value1", property2="value2")
+        
+        for entity in entitites:
+            print(f"Testing {entity}")
+            response = self.app.post(f'/api/v1/{entity}/count', json={"property1": "value1", "property2": "value2"})
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+
+        self.db.client_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.combiner_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.model_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.package_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.round_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.session_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.status_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.validation_store.count.assert_called_with(property1="value1", property2="value2")
+        self.db.metric_store.count.assert_called_with(property1="value1", property2="value2")
            
 
 if __name__ == '__main__':
