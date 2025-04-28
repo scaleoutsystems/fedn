@@ -105,7 +105,6 @@ class NetworkAPITests(unittest.TestCase):
       
         
         for key,entity in zip(keys, entitites):
-            print(f"Testing {entity}")
             response = self.app.get(f'/api/v1/{entity}/test')
             # Assert response
             self.assertEqual(response.status_code, 200)
@@ -208,82 +207,95 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
         self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
            
-    # def test_get_endpoints_filtered(self):
-    #     """ Test all get endpoints. """
-    #     excepted_return_count = 1
-    #     expected_return_id = "test"
-    #     self.db.client_store.list = MagicMock(return_value=[ClientDTO(client_id="test")])
-    #     self.db.client_store.count = MagicMock(return_value=1)
-    #     self.db.combiner_store.list = MagicMock(return_value=[CombinerDTO(combiner_id="test")])
-    #     self.db.combiner_store.count = MagicMock(return_value=1)
-    #     self.db.model_store.list = MagicMock(return_value=[ModelDTO(model_id="test")])
-    #     self.db.model_store.count = MagicMock(return_value=1)
-    #     self.db.package_store.list = MagicMock(return_value=[PackageDTO(package_id="test")])
-    #     self.db.package_store.count = MagicMock(return_value=1)
-    #     self.db.round_store.list = MagicMock(return_value=[RoundDTO(round_id="test")])
-    #     self.db.round_store.count = MagicMock(return_value=1)
-    #     self.db.session_store.list = MagicMock(return_value=[SessionDTO(session_id="test")])
-    #     self.db.session_store.count = MagicMock(return_value=1)
-    #     self.db.status_store.list = MagicMock(return_value=[StatusDTO(status_id="test")])
-    #     self.db.status_store.count = MagicMock(return_value=1)
-    #     self.db.validation_store.list = MagicMock(return_value=[ValidationDTO(validation_id="test")])
-    #     self.db.validation_store.count = MagicMock(return_value=1)
-    #     self.db.metric_store.list = MagicMock(return_value=[MetricDTO(metric_id="test")])
-    #     self.db.metric_store.count = MagicMock(return_value=1)
 
+    def test_list_endpoints(self):
+        """ Test all list endpoints. """
+        expected_return_count = 1
+        expected_return_id = "test"
+        self.db.client_store.list = MagicMock(return_value=[ClientDTO(client_id="test")])
+        self.db.client_store.count = MagicMock(return_value=1)
+        self.db.combiner_store.list = MagicMock(return_value=[CombinerDTO(combiner_id="test")])
+        self.db.combiner_store.count = MagicMock(return_value=1)
+        self.db.model_store.list = MagicMock(return_value=[ModelDTO(model_id="test")])
+        self.db.model_store.count = MagicMock(return_value=1)
+        self.db.package_store.list = MagicMock(return_value=[PackageDTO(package_id="test")])
+        self.db.package_store.count = MagicMock(return_value=1)
+        self.db.round_store.list = MagicMock(return_value=[RoundDTO(round_id="test")])
+        self.db.round_store.count = MagicMock(return_value=1)
+        self.db.session_store.list = MagicMock(return_value=[SessionDTO(session_id="test")])
+        self.db.session_store.count = MagicMock(return_value=1)
+        self.db.status_store.list = MagicMock(return_value=[StatusDTO(status_id="test")])
+        self.db.status_store.count = MagicMock(return_value=1)
+        self.db.validation_store.list = MagicMock(return_value=[ValidationDTO(validation_id="test")])
+        self.db.validation_store.count = MagicMock(return_value=1)
+        self.db.metric_store.list = MagicMock(return_value=[MetricDTO(metric_id="test")])
+        self.db.metric_store.count = MagicMock(return_value=1)
+        
+        for key,entity in zip(keys, entitites):
+            response = self.app.post(f'/api/v1/{entity}/list')
+            # Assert response
+            self.assertEqual(response.status_code, 200)
 
-    #     for key,entity in zip(keys, entitites):
-    #         response = self.app.get(f'/api/v1/{entity}/?property1=value1&property2=value2')
-    #         # Assert response
-    #         self.assertEqual(response.status_code, 200)
+            count = response.json['count']
 
-    #         count = response.json['count']
+            self.assertEqual(count, expected_return_count)
 
-    #         self.assertEqual(count, excepted_return_count)
+            id = response.json['result'][0][key]
 
-    #         id = response.json['result'][0][key]
+            self.assertEqual(id, expected_return_id)    
 
-    #         self.assertEqual(id, expected_return_id)
+        self.db.client_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.client_store.list.assert_called_once()
+        self.db.combiner_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.combiner_store.list.assert_called_once()
+        self.db.model_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.model_store.list.assert_called_once()
+        self.db.package_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.package_store.list.assert_called_once()
+        self.db.round_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.round_store.list.assert_called_once()
+        self.db.session_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.session_store.list.assert_called_once()
+        self.db.status_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.status_store.list.assert_called_once()
+        self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.validation_store.list.assert_called_once()
+        self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
+        self.db.metric_store.list.assert_called_once()
 
-    #     self.db.client_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
-    #     self.db.client_store.list.assert_called_once()
-    #     self.db.combiner_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.combiner_store.list.assert_called_once()
-    #     self.db.model_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.model_store.list.assert_called_once()
-    #     self.db.package_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.package_store.list.assert_called_once()
-    #     self.db.round_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.round_store.list.assert_called_once()        
-    #     self.db.session_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.session_store.list.assert_called_once()
-    #     self.db.status_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.status_store.list.assert_called_once()
-    #     self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.validation_store.list.assert_called_once()
-    #     self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
-    #     self.db.metric_store.list.assert_called_once()
-   
-    #     for entity in entitites:
-    #         headers = {
-    #             "X-Limit": 10,
-    #             "X-Skip": 10,
-    #             "X-Sort-Key": "test",
-    #             "X-Sort-Order": "asc"
-    #         }
-    #         response = self.app.get(f'/api/v1/{entity}/', headers=headers)
-    #         # Assert response
-    #         self.assertEqual(response.status_code, 200)
+        for entity in entitites:
+            headers = {
+                "X-Limit": 10,
+                "X-Skip": 10,
+                "X-Sort-Key": "test",
+                "X-Sort-Order": "asc"
+            }
+            response = self.app.post(f'/api/v1/{entity}/list', headers=headers)
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+        self.db.client_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.combiner_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.model_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.package_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.round_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.session_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.status_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.validation_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        self.db.metric_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
 
-    #     self.db.client_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.combiner_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.model_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.package_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.round_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)        
-    #     self.db.session_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.status_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.validation_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
-    #     self.db.metric_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
+        for entity in entitites:
+            response = self.app.post(f'/api/v1/{entity}/list', json={"property1": "value1", "property2": "value2"})
+            # Assert response
+            self.assertEqual(response.status_code, 200)
+        self.db.client_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.combiner_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.model_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.package_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.round_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.session_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.status_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.validation_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
+        self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING, property1="value1", property2="value2")
            
 
 if __name__ == '__main__':
