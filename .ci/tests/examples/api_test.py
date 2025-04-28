@@ -54,15 +54,15 @@ def test_api_get_methods():
 
     # --- Models --- #
 
+    models = client.get_models()
+    assert models
+    print("Models: ", models, flush=True)
 
     models_count = client.get_models_count()
     assert models_count
+    assert models_count == len(models["result"])
+    assert models_count == models["count"]
     print("Models count: ", models_count, flush=True)
-    
-    models = client.get_models()
-    assert models
-    assert len(models) == models_count
-    print("Models: ", models, flush=True)
 
     models_from_trail = client.get_model_trail()
     assert models_from_trail
