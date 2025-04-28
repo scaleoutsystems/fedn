@@ -20,7 +20,7 @@ from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder 
 
-entitites = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations', 'metrics']
+entities = ['clients', 'combiners', 'models', 'packages', 'rounds', 'sessions', 'statuses', 'validations', 'metrics']
 keys = ['client_id', 'combiner_id', 'model_id', 'package_id', 'round_id', 'session_id', 'status_id', 'validation_id', 'metric_id']
 
 class MockStore:
@@ -137,7 +137,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.metric_store.count = MagicMock(return_value=1)
 
 
-        for key,entity in zip(keys, entitites):
+        for key,entity in zip(keys, entities):
             response = self.app.get(f'/api/v1/{entity}/')
             # Assert response
             self.assertEqual(response.status_code, 200)
@@ -169,7 +169,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.metric_store.list.assert_called_once()
    
-        for entity in entitites:
+        for entity in entities:
             headers = {
                 "X-Limit": 10,
                 "X-Skip": 10,
@@ -190,7 +190,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
         self.db.metric_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
 
-        for entity in entitites:
+        for entity in entities:
 
             response = self.app.get(f'/api/v1/{entity}/?property1=value1&property2=value2')
             # Assert response
@@ -230,7 +230,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.metric_store.list = MagicMock(return_value=[MetricDTO(metric_id="test")])
         self.db.metric_store.count = MagicMock(return_value=1)
         
-        for key,entity in zip(keys, entitites):
+        for key,entity in zip(keys, entities):
             response = self.app.post(f'/api/v1/{entity}/list')
             # Assert response
             self.assertEqual(response.status_code, 200)
@@ -262,7 +262,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.metric_store.list.assert_called_with(0, 0, None, SortOrder.DESCENDING)
         self.db.metric_store.list.assert_called_once()
 
-        for entity in entitites:
+        for entity in entities:
             headers = {
                 "X-Limit": 10,
                 "X-Skip": 10,
@@ -282,7 +282,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
         self.db.metric_store.list.assert_called_with(10, 10, "test", SortOrder.ASCENDING)
 
-        for entity in entitites:
+        for entity in entities:
             response = self.app.post(f'/api/v1/{entity}/list', json={"property1": "value1", "property2": "value2"})
             # Assert response
             self.assertEqual(response.status_code, 200)
@@ -309,7 +309,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.count = MagicMock(return_value=1)
         self.db.metric_store.count = MagicMock(return_value=1)
 
-        for entity in entitites:
+        for entity in entities:
             print(f"Testing {entity}")
             response = self.app.get(f'/api/v1/{entity}/count')
             # Assert response
@@ -329,7 +329,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.count.assert_called_with()
         self.db.metric_store.count.assert_called_with()
         
-        for entity in entitites:
+        for entity in entities:
             print(f"Testing {entity}")
             response = self.app.get(f'/api/v1/{entity}/count?property1=value1&property2=value2')
             # Assert response
@@ -345,7 +345,7 @@ class NetworkAPITests(unittest.TestCase):
         self.db.validation_store.count.assert_called_with(property1="value1", property2="value2")
         self.db.metric_store.count.assert_called_with(property1="value1", property2="value2")
         
-        for entity in entitites:
+        for entity in entities:
             print(f"Testing {entity}")
             response = self.app.post(f'/api/v1/{entity}/count', json={"property1": "value1", "property2": "value2"})
             # Assert response
