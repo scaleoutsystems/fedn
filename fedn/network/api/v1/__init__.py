@@ -10,6 +10,7 @@ from fedn.network.api.v1.round_routes import bp as round_bp
 from fedn.network.api.v1.run_routes import bp as training_run_bp
 from fedn.network.api.v1.session_routes import bp as session_bp
 from fedn.network.api.v1.status_routes import bp as status_bp
+from fedn.network.api.v1.telemetry_routes import bp as telemetry_bp
 from fedn.network.api.v1.validation_routes import bp as validation_bp
 
 _routes = [
@@ -26,4 +27,5 @@ _routes = [
     analytic_bp,
     metric_bp,
     training_run_bp,
+    telemetry_bp,
 ]
