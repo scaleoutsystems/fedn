@@ -4,6 +4,7 @@ from getpass import getpass
 import click
 import requests
 
+from .login_helpers import keycloak_login
 from .main import main
 from .shared import HOME_DIR, STUDIO_DEFAULTS, get_response, set_context
 
@@ -28,15 +29,17 @@ def login_cmd(ctx, protocol: str, host: str, username: str, password: str):
 
     url = f"{protocol}://{host}/api/token/"
 
-    # Step 3: Prompt for username and password
-    if username is None:
-        username = input("Please enter your username: ")
-    if password is None:
-        password = getpass("Please enter your password: ")
+    token = keycloak_login()
 
-    # Call the authentication API
+    # Step 3: Prompt for username and password
+    # if username is None:
+    #     username = input("Please enter your username: ")
+    # if password is None:
+    #     password = getpass("Please enter your password: ")
+
+    # # Call the authentication API
     try:
-        response = requests.post(url, json={"username": username, "password": password}, headers={"Content-Type": "application/json"})
+        response = requests.post(url, headers={"Authorization": f"Bearer {token}"})
         response.raise_for_status()  # Raise an error for HTTP codes 4xx/5xx
     except requests.exceptions.RequestException as e:
         click.secho("Error connecting to the platform. Please try again.", fg="red")

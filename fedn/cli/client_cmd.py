@@ -4,13 +4,18 @@ import os
 import uuid
 
 import click
+import requests
 import yaml
 
 from fedn.cli.main import main
-from fedn.cli.shared import CONTROLLER_DEFAULTS, STUDIO_DEFAULTS, apply_config, get_context, get_response, print_response
+from fedn.cli.shared import (CONTROLLER_DEFAULTS, STUDIO_DEFAULTS,
+                             apply_config, get_context, get_response,
+                             print_response)
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.network.clients.client_v2 import Client as ClientV2
 from fedn.network.clients.client_v2 import ClientOptions
+
+from .login_helpers import keycloak_login
 
 home_dir = os.path.expanduser("~")
 
@@ -255,6 +260,21 @@ def client_start_v2_cmd(
         config["token"] = token
         if config["token"]:
             click.echo(f"Input param token: {token} overrides value from file")
+    else:
+        # Ask user to login
+        auth_token = keycloak_login()
+
+        # Exchange auth token for a client token
+        token_url = f"https://api.studio.scaleoutplatform.com/api/v1/client-token"
+        print(token_url)
+        headers = {
+            "X-Project-Slug": "precreated-vov",
+            "Authorization": f"Bearer {auth_token}"
+        }
+        response = requests.get(token_url, headers=headers)
+        resp_json = response.json()
+        config['token'] = resp_json['access']
+        print(response.text)
 
     if name and name != "":
         config["name"] = name
