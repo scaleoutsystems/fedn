@@ -7,7 +7,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import TypedDict
+from typing import Dict, TypedDict
 
 from google.protobuf.json_format import MessageToDict
 
@@ -106,6 +106,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         #     fedn.Queue.TASK_QUEUE: queue.Queue
         # Obs that fedn.Queue.TASK_QUEUE is just str(1)
         self.clients = {}
+        self.task_tracker = {}
 
         # Validate combiner name
         match = re.search(VALID_NAME_REGEX, config["name"])
