@@ -1,4 +1,5 @@
 import os
+import time
 
 import click
 import requests
@@ -91,11 +92,13 @@ def create_project(
         # Call the authentication API
         try:
             response = requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repository}, headers=headers)
-            response_project = response.json().get("project")
-            pretty_print_projects(response_project, no_header)
+            response_message = response.json().get("message")
+            if response.status_code == 201:
+                click.secho(f"Project with name '{name}' created.", fg="green")
+            elif response.status_code == 400:
+                click.secho(f"Unexpected error: {response_message}", fg="red")
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
-        click.secho("Project successfully created.", fg="green")
 
 
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
