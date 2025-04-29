@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # We start N_CLIENTS independent client threads
     threads = []
     for i in range(settings["N_CLIENTS"]):
-        time.sleep(0.01)
+        time.sleep(0.1)
         t = threading.Thread(
             target=run_client,
             args=(

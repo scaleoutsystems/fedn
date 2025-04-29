@@ -10,18 +10,18 @@ LOCAL_CONFIG = {
 }
 
 REMOTE_CONFIG = {
-    "DISCOVER_HOST": "100.84.229.36",
-    "DISCOVER_PORT": 8092,
+    "DISCOVER_HOST": "api.studio.scaleoutplatform.com/asyncclitest-zmh-fedn-reducer",
+    "DISCOVER_PORT": None,
     "IS_LOCAL": False,
-    "SECURE": False,
-    "VERIFY": False,
-    "CLIENT_TOKEN": None,
-    "ADMIN_TOKEN": None,
+    "SECURE": True,
+    "VERIFY": True,
+    "CLIENT_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4MDkyODgyLCJpYXQiOjE3NDU1MDA4ODIsImp0aSI6IjUxZGUxNzhiN2Y4OTQ3ZWJiYjNkNTg0ODYyNzBmYTFmIiwidXNlcl9pZCI6NTgsImNyZWF0b3IiOiJzaWd2YXJkQHNjYWxlb3V0c3lzdGVtcy5jb20iLCJyb2xlIjoiY2xpZW50IiwicHJvamVjdF9zbHVnIjoiYXN5bmNjbGl0ZXN0LXptaCJ9.lhnb-7n80fqsprKuF5M4qOdVAlJlsaXEgXG_yAY0n10",
+    "ADMIN_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzQ4MDkyODY3LCJpYXQiOjE3NDU1MDA4NjcsImp0aSI6ImU4NDFjMjVlZDM2NTRlNDc4NmIxN2E5Yjg0MzU0NjM5IiwidXNlcl9pZCI6NTgsImNyZWF0b3IiOiJzaWd2YXJkQHNjYWxlb3V0c3lzdGVtcy5jb20iLCJyb2xlIjoiYWRtaW4iLCJwcm9qZWN0X3NsdWciOiJhc3luY2NsaXRlc3Qtem1oIn0.xa9r413N_FyGxo7kvG_8iGlSf1z-LnJucoF41aRXris",
 }
 
 # Common settings that don't change between environments
 COMMON_SETTINGS = {
-    "N_CLIENTS": 1,
+    "N_CLIENTS": 200,
     "N_EPOCHS": 10,
     "N_ROUNDS": 100,
     "N_SESSIONS": 6,

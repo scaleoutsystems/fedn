@@ -251,7 +251,7 @@ class FednClient:
             logger.error(f"Could not initialize GRPC connection: {e}")
             return False
 
-    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
+    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 20.0) -> None: # Updated update frequency to 20 seconds
         """Send heartbeats to the server."""
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
