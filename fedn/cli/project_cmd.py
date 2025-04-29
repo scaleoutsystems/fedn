@@ -1,4 +1,5 @@
 import os
+import time
 
 import click
 import requests
@@ -92,6 +93,8 @@ def create_project(
         try:
             response = requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repository}, headers=headers)
             response_project = response.json().get("project")
+            while response_project is None:
+                time.sleep(1)
             pretty_print_projects(response_project, no_header)
         except requests.exceptions.RequestException as e:
             click.secho(str(e), fg="red")
