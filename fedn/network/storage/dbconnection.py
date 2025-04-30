@@ -13,6 +13,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
+from fedn.common.log_config import logger
 from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
 from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
@@ -50,14 +51,20 @@ class DatabaseConnection:
     telemetry_store: TelemetryStore
     training_run_store: RunStore
 
-    def __init__(self, statestore_config, network_id):
+    def __init__(self, statestore_config, network_id, connect: bool = True):
         self.type: str = None
         self.mdb: Database = None
         self.Session: sessionmaker = None
         self.type = statestore_config["type"]
+        self.statestore_config = statestore_config
+        self.network_id = network_id
+        if connect:
+            self.initialize_connection()
 
+    def initialize_connection(self):
         if self.type == "MongoDB":
-            mdb: Database = self._setup_mongo(statestore_config, network_id)
+            logger.info("Connecting to MongoDB")
+            mdb: Database = self._setup_mongo(self.statestore_config, self.network_id)
 
             client_store = MongoDBClientStore(mdb, "network.clients")
             validation_store = MongoDBValidationStore(mdb, "control.validations")
@@ -77,7 +84,8 @@ class DatabaseConnection:
             self.mdb = mdb
 
         elif self.type in ["SQLite", "PostgreSQL"]:
-            Session = self._setup_sql(statestore_config)  # noqa: N806
+            logger.info("Connecting to SQL database")
+            Session = self._setup_sql(self.statestore_config)  # noqa: N806
 
             client_store = SQLClientStore(Session)
             validation_store = SQLValidationStore(Session)

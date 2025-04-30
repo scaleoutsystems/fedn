@@ -2,7 +2,7 @@ network_id: fedn-network
 controller:
   host: api-server
   port: 8092
-  debug: True
+  debug: False
 
 statestore:
   # Available DB types are MongoDB, PostgreSQL, SQLite
