@@ -27,14 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install .
-
-    - name: Start mongo and minio
-      run: |
-        docker compose up -d mongo minio
-      
-    - name: Start FEDn controller
-      run: |
-        fedn controller start &
+        
     - name: Run tests
       run: |
         python3 -m unittest fedn.network.api.tests

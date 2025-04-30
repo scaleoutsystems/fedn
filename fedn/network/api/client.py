@@ -292,14 +292,15 @@ class APIClient:
         """
         if not id:
             model = self.get_active_model()
-            if "id" in model:
-                id = model["id"]
+            if "model_id" in model:
+                id = model["model_id"]
             else:
                 return model
 
         _headers = self.headers.copy()
 
         _count: int = n_max if n_max else self.get_models_count()
+
         _headers["X-Limit"] = str(_count)
         _headers["X-Reverse"] = "true" if reverse else "false"
 
@@ -640,11 +641,11 @@ class APIClient:
         :rtype: dict
         """
         if model_id is None:
-            headers = self.headers.copy()
-            headers["X-Limit"] = "1"
-            headers["X-Sort-Key"] = "committed_at"
-            headers["X-Sort-Order"] = "desc"
-            response = requests.get(self._get_url_api_v1("models"), verify=self.verify, headers=headers)
+            _headers = self.headers.copy()
+            _headers["X-Limit"] = "1"
+            _headers["X-Sort-Key"] = "committed_at"
+            _headers["X-Sort-Order"] = "desc"
+            response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
             if response.status_code == 200:
                 json = response.json()
                 if "result" in json and len(json["result"]) > 0:
@@ -652,7 +653,7 @@ class APIClient:
                 else:
                     return {"message": "No models found in the repository"}
             else:
-                return response.json()
+                return {"message": "No models found in the repository"}
 
         if helper is None:
             response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)

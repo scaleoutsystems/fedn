@@ -26,6 +26,7 @@ from fedn.network.storage.statestore.stores.run_store import MongoDBRunStore, Ru
 from fedn.network.storage.statestore.stores.session_store import MongoDBSessionStore, SessionStore, SQLSessionStore
 from fedn.network.storage.statestore.stores.sql.shared import MyAbstractBase
 from fedn.network.storage.statestore.stores.status_store import MongoDBStatusStore, SQLStatusStore, StatusStore
+from fedn.network.storage.statestore.stores.telemetry_store import MongoDBTelemetryStore, SQLTelemetryStore, TelemetryStore
 from fedn.network.storage.statestore.stores.validation_store import MongoDBValidationStore, SQLValidationStore, ValidationStore
 
 
@@ -46,6 +47,7 @@ class DatabaseConnection:
     analytic_store: AnalyticStore
     metric_store: MetricStore
     attribute_store: AttributeStore
+    telemetry_store: TelemetryStore
     training_run_store: RunStore
 
     def __init__(self, statestore_config, network_id):
@@ -69,7 +71,9 @@ class DatabaseConnection:
             analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
             attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
+            telemetry_store = MongoDBTelemetryStore(mdb, "control.telemetry")
             training_run_store = MongoDBRunStore(mdb, "control.training_runs")
+
             self.mdb = mdb
 
         elif self.type in ["SQLite", "PostgreSQL"]:
@@ -87,6 +91,7 @@ class DatabaseConnection:
             analytic_store = None
             metric_store = SQLMetricStore(Session)
             attribute_store = SQLAttributeStore(Session)
+            telemetry_store = SQLTelemetryStore(Session)
             training_run_store = SQLRunStore(Session)
             self.Session = Session
 
@@ -105,6 +110,7 @@ class DatabaseConnection:
         self.session_store: SessionStore = session_store
         self.metric_store: SQLMetricStore = metric_store
         self.attribute_store: AttributeStore = attribute_store
+        self.telemetry_store: TelemetryStore = telemetry_store
         self.training_run_store: RunStore = training_run_store
 
     def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:

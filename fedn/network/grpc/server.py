@@ -26,11 +26,13 @@ class Server:
         set_log_stream(config.get("logfile", None))
 
         # Keepalive settings: these detect if the client is alive
-        KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-        # wait 20 seconds for keepalive ping ack before considering connection dead
-        KEEPALIVE_TIMEOUT_MS = 20 * 1000
+        KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 second
+        # wait 30 seconds for keepalive ping ack before considering connection dead
+        KEEPALIVE_TIMEOUT_MS = 30 * 1000
         # max idle time before server terminates the connection (5 minutes)
         MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000
+
+        MAX_PING_STRIKES = 2
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
@@ -39,6 +41,8 @@ class Server:
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
                 ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
                 ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
+                ("grpc.http2.max_pings_without_data", 0),  # Allow unlimited PINGs without data
+                ("grpc.http2.max_ping_strikes", MAX_PING_STRIKES),
             ],
         )
         self.certificate = None
