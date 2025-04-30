@@ -92,7 +92,7 @@ class NetworkAPITests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_single_endpoints(self):
-        """ Test get signle endpoints. """
+        """ Test get single endpoints. """
         expected_return_id = "test"
         self.db.client_store.get = MagicMock(side_effect=lambda id: ClientDTO(client_id="test") if id == "test" else None)
         self.db.combiner_store.get = MagicMock(side_effect=lambda id: CombinerDTO(combiner_id="test") if id == "test" else None)
