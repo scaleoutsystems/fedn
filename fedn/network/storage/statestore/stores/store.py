@@ -316,7 +316,7 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
             if key == self.primary_key:
                 key = "id"
             elif value == "null":
-                stmt = stmt.where(getattr(self.SQLModel, key) is None)
+                stmt = stmt.where(getattr(self.SQLModel, key).is_(None))
                 continue
             elif key.endswith("__gt"):
                 key = key[:-3]
