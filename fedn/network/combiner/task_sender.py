@@ -21,7 +21,7 @@ class CombinersideTaskRequest:
         self.response = None
 
 
-class ClassTracker:
+class TaskSender:
     def __init__(self, combiner):
         self.combiner = combiner
         self.task_tracker = {}
@@ -62,3 +62,5 @@ class ClassTracker:
             if task.status not in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.INTERUPTED):
                 if task_id not in reported_task_ids:
                     new_tasks.append(task)
+
+        return new_tasks
