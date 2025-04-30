@@ -48,7 +48,7 @@ class DatabaseConnection:
     metric_store: MetricStore
     attribute_store: AttributeStore
     telemetry_store: TelemetryStore
-    training_run_store: RunStore
+    run_store: RunStore
 
     def __init__(self, statestore_config, network_id):
         self.type: str = None
@@ -72,7 +72,7 @@ class DatabaseConnection:
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
             attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
             telemetry_store = MongoDBTelemetryStore(mdb, "control.telemetry")
-            training_run_store = MongoDBRunStore(mdb, "control.training_runs")
+            run_store = MongoDBRunStore(mdb, "control.training_runs")
 
             self.mdb = mdb
 
@@ -92,7 +92,7 @@ class DatabaseConnection:
             metric_store = SQLMetricStore(Session)
             attribute_store = SQLAttributeStore(Session)
             telemetry_store = SQLTelemetryStore(Session)
-            training_run_store = SQLRunStore(Session)
+            run_store = SQLRunStore(Session)
             self.Session = Session
 
         else:
@@ -111,7 +111,7 @@ class DatabaseConnection:
         self.metric_store: SQLMetricStore = metric_store
         self.attribute_store: AttributeStore = attribute_store
         self.telemetry_store: TelemetryStore = telemetry_store
-        self.training_run_store: RunStore = training_run_store
+        self.run_store: RunStore = run_store
 
     def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
