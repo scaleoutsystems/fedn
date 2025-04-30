@@ -86,13 +86,14 @@ class TestFednStudio:
     @pytest.mark.order(4)
     def test_rounds_completion(self, fedn_client, fedn_env):
         start_time = time.time()
+        session_number = int(fedn_env["SESSION_NUMBER"])
         while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
             rounds_obj = fedn_client.get_rounds()
-            if rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"]:
+            if rounds_obj["count"] == session_number * fedn_env["FEDN_NR_ROUNDS"]:
                 break
             time.sleep(5)
         else:
-            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+            raise TimeoutError(f"Expected {session_number * fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
 
         rounds_result = rounds_obj["result"]
         for round in rounds_result:
@@ -105,13 +106,14 @@ class TestFednStudio:
     @pytest.mark.order(5)
     def test_validations(self, fedn_client, fedn_env):
         start_time = time.time()
+        session_number = int(fedn_env["SESSION_NUMBER"])
         while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
             validation_obj = fedn_client.get_validations()
-            if validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
+            if validation_obj["count"] == session_number * fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
                 break
             time.sleep(5)
         else:
-            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+            raise TimeoutError(f"Expected {session_number * fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
 
         # We could assert or test model convergence here
 
