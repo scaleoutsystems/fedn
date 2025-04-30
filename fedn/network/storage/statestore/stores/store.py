@@ -311,38 +311,54 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return True
 
-    def _build_sql_filters(self, stmt, **kwargs) -> None:
+    def _build_filters(self, **kwargs):
+        filters = []
+
+        operator_map = {
+            "__gt": lambda col, val: col > val,
+            "__lt": lambda col, val: col < val,
+            "__gte": lambda col, val: col >= val,
+            "__lte": lambda col, val: col <= val,
+            "__ne": lambda col, val: col != val,
+            "__eq": lambda col, val: col == val,
+        }
+
+        def parse_value(value):
+            if isinstance(value, str) and value.lower() == "null":
+                return None
+            try:
+                return int(value)
+            except ValueError:
+                pass
+            try:
+                return float(value)
+            except ValueError:
+                pass
+            return value
+
         for key, value in kwargs.items():
-            if key == self.primary_key:
-                key = "id"
-            elif value == "null":
-                stmt = stmt.where(getattr(self.SQLModel, key).is_(None))
-                continue
-            elif key.endswith("__gt"):
-                key = key[:-3]
-                stmt = stmt.where(getattr(self.SQLModel, key) > value)
-                continue
-            elif key.endswith("__lt"):
-                key = key[:-3]
-                stmt = stmt.where(getattr(self.SQLModel, key) < value)
-                continue
-            elif key.endswith("__gte"):
-                key = key[:-5]
-                stmt = stmt.where(getattr(self.SQLModel, key) >= value)
-                continue
-            elif key.endswith("__lte"):
-                key = key[:-5]
-                stmt = stmt.where(getattr(self.SQLModel, key) <= value)
-                continue
-            elif key.endswith("__ne"):
-                key = key[:-3]
-                stmt = stmt.where(getattr(self.SQLModel, key) != value)
-                continue
-            elif key.endswith("__eq"):
-                key = key[:-3]
-                stmt = stmt.where(getattr(self.SQLModel, key) == value)
-                continue
-            stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            value = parse_value(value)
+
+            for suffix, op_fn in operator_map.items():
+                if key.endswith(suffix):
+                    base_key = key[: -len(suffix)]
+                    if not hasattr(self.SQLModel, base_key):
+                        continue
+                    col = getattr(self.SQLModel, base_key)
+                    filters.append(op_fn(col, value))
+                    break
+            else:
+                if key == self.primary_key:
+                    key = "id"
+                elif not hasattr(self.SQLModel, key):
+                    continue
+                col = getattr(self.SQLModel, key)
+                if value is None:
+                    filters.append(col.is_(None))
+                else:
+                    filters.append(col == value)
+
+        return filters
 
     def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         with self.Session() as session:
@@ -351,7 +367,8 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
                 sort_key = "id"
 
             if kwargs:
-                self._build_sql_filters(stmt, **kwargs)
+                filters = self._build_filters(**kwargs)
+                stmt = stmt.where(*filters)
 
             _sort_order = sort_order or SortOrder.DESCENDING
             if _sort_order not in (SortOrder.DESCENDING, SortOrder.ASCENDING):
@@ -382,8 +399,8 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
             stmt = select(func.count()).select_from(self.SQLModel)
 
             if kwargs:
-                self._build_sql_filters(stmt, **kwargs)
-
+                filters = self._build_filters(**kwargs)
+                stmt = stmt.where(*filters)
             return session.scalar(stmt)
 
     @abstractmethod
