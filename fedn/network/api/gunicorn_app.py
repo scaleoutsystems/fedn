@@ -1,4 +1,6 @@
 from gunicorn.app.base import BaseApplication
+
+
 class GunicornApp(BaseApplication):
     def __init__(self, app, options=None):
         self.options = options or {}
@@ -14,10 +16,11 @@ class GunicornApp(BaseApplication):
     def load(self):
         return self.application
 
-def run_gunicorn(app, host,port,workers=4):
+def run_gunicorn(app, host, port, workers=4):
     bind_address = f"{host}:{port}"
     options = {
         "bind": bind_address,  # Specify the bind address and port here
         "workers": workers,
+        "preload_app": True
     }
     GunicornApp(app, options).run()
