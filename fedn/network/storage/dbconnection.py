@@ -13,7 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
-from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
 from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
@@ -44,7 +43,6 @@ class DatabaseConnection:
     package_store: PackageStore
     model_store: ModelStore
     session_store: SessionStore
-    analytic_store: AnalyticStore
     metric_store: MetricStore
     attribute_store: AttributeStore
     telemetry_store: TelemetryStore
@@ -68,7 +66,6 @@ class DatabaseConnection:
             package_store = MongoDBPackageStore(mdb, "control.packages")
             model_store = MongoDBModelStore(mdb, "control.model")
             session_store = MongoDBSessionStore(mdb, "control.sessions")
-            analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
             attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
             telemetry_store = MongoDBTelemetryStore(mdb, "control.telemetry")
@@ -88,7 +85,6 @@ class DatabaseConnection:
             package_store = SQLPackageStore(Session)
             model_store = SQLModelStore(Session)
             session_store = SQLSessionStore(Session)
-            analytic_store = None
             metric_store = SQLMetricStore(Session)
             attribute_store = SQLAttributeStore(Session)
             telemetry_store = SQLTelemetryStore(Session)
@@ -98,7 +94,6 @@ class DatabaseConnection:
         else:
             raise ValueError("Unknown statestore type")
 
-        self.analytic_store: AnalyticStore = analytic_store
         self.client_store: ClientStore = client_store
         self.validation_store: ValidationStore = validation_store
         self.combiner_store: CombinerStore = combiner_store

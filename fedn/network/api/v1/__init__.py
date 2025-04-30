@@ -1,4 +1,3 @@
-from fedn.network.api.v1.analytic_routes import bp as analytic_bp
 from fedn.network.api.v1.client_routes import bp as client_bp
 from fedn.network.api.v1.combiner_routes import bp as combiner_bp
 from fedn.network.api.v1.helper_routes import bp as helper_bp
@@ -24,7 +23,6 @@ _routes = [
     validation_bp,
     prediction_bp,
     helper_bp,
-    analytic_bp,
     metric_bp,
     run_bp,
     telemetry_bp,
