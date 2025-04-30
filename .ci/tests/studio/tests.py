@@ -29,7 +29,8 @@ def fedn_env():
         "FEDN_NR_EXPECTED_AGG": int(os.environ.get("FEDN_NR_EXPECTED_AGG", 2)), # Number of expected aggregated models per combiner
         "FEDN_SESSION_TIMEOUT": int(os.environ.get("FEDN_SESSION_TIMEOUT", 300)), # Session timeout in seconds, all rounds must be finished within this time
         "FEDN_SESSION_NAME": os.environ.get("FEDN_SESSION_NAME", "test"),
-        "FEDN_SERVER_FUNCTIONS": os.environ.get("FEDN_SERVER_FUNCTIONS", 0)
+        "FEDN_SERVER_FUNCTIONS": os.environ.get("FEDN_SERVER_FUNCTIONS", 0),
+        "SESSION_NUMBER": os.environ.get("SESSION_NUMBER", 1)
     }
 
 @pytest.mark.order(1)
@@ -63,7 +64,8 @@ class TestFednStudio:
     @pytest.mark.order(3)
     def test_session_completion(self, fedn_client, fedn_env):
         session_obj = fedn_client.get_sessions()
-        assert session_obj["count"] == 1, f"Expected 1 session, got {session_obj['count']}"
+        session_number = int(fedn_env["SESSION_NUMBER"])
+        assert session_obj["count"] == session_number, f"Expected {session_number} session/s, got {session_obj['count']}"
         session_result = session_obj["result"][0]
 
         start_time = time.time()

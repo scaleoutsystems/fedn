@@ -49,4 +49,5 @@ pytest .ci/tests/studio/tests.py -x
 sleep 5
 # run with server functions
 export FEDN_SERVER_FUNCTIONS="1"
+export SESSION_NUMBER="2"
 pytest .ci/tests/studio/tests.py -x
