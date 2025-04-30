@@ -32,7 +32,7 @@ else
 fi
 
 # add server functions to python path to import server functions code
-export PYTHONPATH="$PYTHONPATH:$../server-functions"
+export PYTHONPATH="$PYTHONPATH:../server-functions"
 
 >&2 echo "Wait for reducer to start"
 python ../../.ci/tests/examples/wait_for.py reducer
