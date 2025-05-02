@@ -58,10 +58,16 @@ class DatabaseConnection:
         self.type = statestore_config["type"]
         self.statestore_config = statestore_config
         self.network_id = network_id
+        self._initialized = False
         if connect:
             self.initialize_connection()
 
     def initialize_connection(self):
+        if self._initialized:
+            logger.warning("DatabaseConnection is already initialized.")
+            return
+        self._initialized = True
+
         if self.type == "MongoDB":
             logger.info("Connecting to MongoDB")
             mdb: Database = self._setup_mongo(self.statestore_config, self.network_id)
