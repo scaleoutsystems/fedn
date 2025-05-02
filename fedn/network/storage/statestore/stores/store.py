@@ -167,6 +167,55 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         result = self.database[self.collection].delete_one({self.primary_key: id})
         return result.deleted_count == 1
 
+    def _parse_mongo_filters(self, query_args):
+        """Convert URL query parameters into PyMongo filter dict."""
+        mongo_filter = {}
+        operator_map = {
+            "gt": "$gt",
+            "lt": "$lt",
+            "gte": "$gte",
+            "lte": "$lte",
+            "ne": "$ne",
+            "eq": "$eq",  # fallback
+        }
+
+        for param, raw_value in query_args.items():
+            # Handle __ syntax (e.g. field__gte)
+            if "__" in param:
+                field, op = param.split("__", 1)
+                mongo_op = operator_map.get(op)
+                if not mongo_op:
+                    continue  # Unknown operator, skip
+
+                # Handle 'null' and convert types
+                value = self._parse_value(raw_value)
+                mongo_filter.setdefault(field, {})[mongo_op] = value
+
+            else:
+                # Equality check (or null)
+                value = self._parse_value(raw_value)
+                mongo_filter[param] = value
+
+        return mongo_filter
+
+    def _parse_value(self, value):
+        """Helper to parse values to appropriate types."""
+        if value.lower() == "null":
+            return None
+        # Try to convert to number
+        try:
+            if "." in value:
+                return float(value)
+            return int(value)
+        except ValueError:
+            pass
+        # Try to convert to datetime
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            pass
+        return value  # default to string
+
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         _sort_order = sort_order or SortOrder.DESCENDING
         if _sort_order == SortOrder.DESCENDING:
@@ -176,6 +225,8 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         else:
             raise ValueError(f"Invalid sort order: {_sort_order}")
 
+        kwargs = self._parse_mongo_filters(kwargs)
+
         if sort_key and sort_key != "committed_at":
             cursor = self.database[self.collection].find(kwargs).sort({sort_key: _sort_order, "committed_at": _sort_order}).skip(skip or 0).limit(limit or 0)
         else:
@@ -184,6 +235,7 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         return [self._dto_from_document(document) for document in cursor]
 
     def count(self, **kwargs) -> int:
+        kwargs = self._parse_mongo_filters(kwargs)
         return self.database[self.collection].count_documents(kwargs)
 
     @abstractmethod
@@ -259,16 +311,64 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
 
             return True
 
+    def _build_filters(self, **kwargs):
+        filters = []
+
+        operator_map = {
+            "__gt": lambda col, val: col > val,
+            "__lt": lambda col, val: col < val,
+            "__gte": lambda col, val: col >= val,
+            "__lte": lambda col, val: col <= val,
+            "__ne": lambda col, val: col != val,
+            "__eq": lambda col, val: col == val,
+        }
+
+        def parse_value(value):
+            if isinstance(value, str) and value.lower() == "null":
+                return None
+            try:
+                return int(value)
+            except ValueError:
+                pass
+            try:
+                return float(value)
+            except ValueError:
+                pass
+            return value
+
+        for key, value in kwargs.items():
+            value = parse_value(value)
+
+            for suffix, op_fn in operator_map.items():
+                if key.endswith(suffix):
+                    base_key = key[: -len(suffix)]
+                    if not hasattr(self.SQLModel, base_key):
+                        continue
+                    col = getattr(self.SQLModel, base_key)
+                    filters.append(op_fn(col, value))
+                    break
+            else:
+                if key == self.primary_key:
+                    key = "id"
+                elif not hasattr(self.SQLModel, key):
+                    continue
+                col = getattr(self.SQLModel, key)
+                if value is None:
+                    filters.append(col.is_(None))
+                else:
+                    filters.append(col == value)
+
+        return filters
+
     def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[DTO]:
         with self.Session() as session:
             stmt = select(self.SQLModel)
             if sort_key == self.primary_key:
                 sort_key = "id"
 
-            for key, value in kwargs.items():
-                if key == self.primary_key:
-                    key = "id"
-                stmt = stmt.where(getattr(self.SQLModel, key) == value)
+            if kwargs:
+                filters = self._build_filters(**kwargs)
+                stmt = stmt.where(*filters)
 
             _sort_order = sort_order or SortOrder.DESCENDING
             if _sort_order not in (SortOrder.DESCENDING, SortOrder.ASCENDING):
@@ -298,9 +398,9 @@ class SQLStore(Store[DTO], Generic[DTO, MODEL]):
         with self.Session() as session:
             stmt = select(func.count()).select_from(self.SQLModel)
 
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(self.SQLModel, key) == value)
-
+            if kwargs:
+                filters = self._build_filters(**kwargs)
+                stmt = stmt.where(*filters)
             return session.scalar(stmt)
 
     @abstractmethod

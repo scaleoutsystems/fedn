@@ -21,7 +21,6 @@ from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto import ClientDTO
-from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
@@ -676,20 +675,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client = heartbeat.sender
         self.__join_client(client)
         self.clients[client.client_id]["last_seen"] = datetime.now()
-
-        if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
-            analytic = AnalyticDTO().patch_with(
-                {
-                    "sender_id": client.client_id,
-                    "sender_role": "client",
-                    "cpu_utilisation": heartbeat.cpu_utilisation,
-                    "memory_utilisation": heartbeat.memory_utilisation,
-                }
-            )
-            try:
-                self.db.analytic_store.add(analytic)
-            except Exception as e:
-                logger.error(f"GRPC: SendHeartbeat error: {e}")
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name

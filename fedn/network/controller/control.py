@@ -197,7 +197,7 @@ class Control(ControlBase):
         training_run_obj.round_timeout = session_config.round_timeout
         training_run_obj.rounds = rounds
 
-        training_run_obj = self.db.training_run_store.add(training_run_obj)
+        training_run_obj = self.db.run_store.add(training_run_obj)
 
         count_models_of_session = 0
 
@@ -216,7 +216,7 @@ class Control(ControlBase):
                     logger.info("Session terminated.")
                     training_run_obj.completed_at = datetime.datetime.now()
                     training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
-                    self.db.training_run_store.update(training_run_obj)
+                    self.db.run_store.update(training_run_obj)
                     break
                 _, round_data = self.round(
                     session_config=session_config,
@@ -235,7 +235,7 @@ class Control(ControlBase):
             self.set_session_status(session_id, "Finished")
             training_run_obj.completed_at = datetime.datetime.now()
             training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
-            self.db.training_run_store.update(training_run_obj)
+            self.db.run_store.update(training_run_obj)
             logger.info("Session finished.")
         self._state = ReducerState.idle
 

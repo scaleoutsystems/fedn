@@ -13,7 +13,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
-from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
 from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
@@ -44,11 +43,10 @@ class DatabaseConnection:
     package_store: PackageStore
     model_store: ModelStore
     session_store: SessionStore
-    analytic_store: AnalyticStore
     metric_store: MetricStore
     attribute_store: AttributeStore
     telemetry_store: TelemetryStore
-    training_run_store: RunStore
+    run_store: RunStore
 
     def __init__(self, statestore_config, network_id):
         self.type: str = None
@@ -68,11 +66,10 @@ class DatabaseConnection:
             package_store = MongoDBPackageStore(mdb, "control.packages")
             model_store = MongoDBModelStore(mdb, "control.model")
             session_store = MongoDBSessionStore(mdb, "control.sessions")
-            analytic_store = MongoDBAnalyticStore(mdb, "control.analytics")
             metric_store = MongoDBMetricStore(mdb, "control.metrics")
             attribute_store = MongoDBAttributeStore(mdb, "control.attributes")
             telemetry_store = MongoDBTelemetryStore(mdb, "control.telemetry")
-            training_run_store = MongoDBRunStore(mdb, "control.training_runs")
+            run_store = MongoDBRunStore(mdb, "control.training_runs")
 
             self.mdb = mdb
 
@@ -88,17 +85,15 @@ class DatabaseConnection:
             package_store = SQLPackageStore(Session)
             model_store = SQLModelStore(Session)
             session_store = SQLSessionStore(Session)
-            analytic_store = None
             metric_store = SQLMetricStore(Session)
             attribute_store = SQLAttributeStore(Session)
             telemetry_store = SQLTelemetryStore(Session)
-            training_run_store = SQLRunStore(Session)
+            run_store = SQLRunStore(Session)
             self.Session = Session
 
         else:
             raise ValueError("Unknown statestore type")
 
-        self.analytic_store: AnalyticStore = analytic_store
         self.client_store: ClientStore = client_store
         self.validation_store: ValidationStore = validation_store
         self.combiner_store: CombinerStore = combiner_store
@@ -111,7 +106,7 @@ class DatabaseConnection:
         self.metric_store: SQLMetricStore = metric_store
         self.attribute_store: AttributeStore = attribute_store
         self.telemetry_store: TelemetryStore = telemetry_store
-        self.training_run_store: RunStore = training_run_store
+        self.run_store: RunStore = run_store
 
     def _setup_mongo(self, statestore_config: dict, network_id: str) -> Database:
         mc = pymongo.MongoClient(**statestore_config["mongo_config"])
