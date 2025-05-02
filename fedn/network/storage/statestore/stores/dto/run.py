@@ -7,7 +7,7 @@ from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, Pr
 class RunDTO(BaseDTO):
     """Training run data transfer object."""
 
-    training_run_id: Optional[str] = PrimaryID(None)
+    run_id: Optional[str] = PrimaryID(None)
     session_id: str = Field(None)
     model_id: str = Field(None)
     completed_at_model_id: Optional[str] = Field(None)  # active model id when training run was completed

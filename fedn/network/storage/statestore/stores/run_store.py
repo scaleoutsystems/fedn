@@ -13,7 +13,7 @@ class RunStore(Store[RunDTO]):
 
 class MongoDBRunStore(RunStore, MongoDBStore[RunDTO]):
     def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection, "training_run_id")
+        super().__init__(database, collection, "run_id")
 
     def _document_from_dto(self, item: RunDTO) -> Dict:
         item_dict = item.to_db(exclude_unset=False)
@@ -29,16 +29,16 @@ class MongoDBRunStore(RunStore, MongoDBStore[RunDTO]):
 
 class SQLRunStore(RunStore, SQLStore[RunDTO, RunModel]):
     def __init__(self, session):
-        super().__init__(session, RunModel, "training_run_id")
+        super().__init__(session, RunModel, "run_id")
 
     def _update_orm_model_from_dto(self, entity: RunModel, item: RunDTO):
         item_dict = item.to_db(exclude_unset=False)
-        item_dict["id"] = item_dict.pop("training_run_id", None)
+        item_dict["id"] = item_dict.pop("run_id", None)
         for key, value in item_dict.items():
             setattr(entity, key, value)
         return entity
 
     def _dto_from_orm_model(self, item: RunModel) -> RunDTO:
         orm_dict = from_orm_model(item, RunModel)
-        orm_dict["training_run_id"] = orm_dict.pop("id")
+        orm_dict["run_id"] = orm_dict.pop("id")
         return RunDTO().populate_with(orm_dict)
