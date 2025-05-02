@@ -14,7 +14,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session as SessionClass
 
 from fedn.common.log_config import logger
-from fedn.network.storage.statestore.stores.analytic_store import AnalyticStore, MongoDBAnalyticStore
 from fedn.network.storage.statestore.stores.attribute_store import AttributeStore, MongoDBAttributeStore, SQLAttributeStore
 from fedn.network.storage.statestore.stores.client_store import ClientStore, MongoDBClientStore, SQLClientStore
 from fedn.network.storage.statestore.stores.combiner_store import CombinerStore, MongoDBCombinerStore, SQLCombinerStore
