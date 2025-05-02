@@ -1,6 +1,5 @@
 """DTOs for the StateStore."""
 
-from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.client import ClientDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
@@ -23,7 +22,6 @@ __all__ = [
     "PredictionDTO",
     "NodeDTO",
     "MetricDTO",
-    "AnalyticDTO",
     "RoundDTO",
     "StatusDTO",
     "ValidationDTO",
