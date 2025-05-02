@@ -492,7 +492,7 @@ def start_server_api():
     statestore_config = get_statestore_config()
 
     # TODO: Initialize database with config instead of reading it under the hood
-    db = DatabaseConnection(statestore_config, network_id, connect=True)
+    db = DatabaseConnection(statestore_config, network_id, connect=False)
     repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
     Control.create_instance(network_id, repository, db)
 
