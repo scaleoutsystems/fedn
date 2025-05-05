@@ -723,7 +723,7 @@ class APIClient:
         if rounds is None or rounds <= 0:
             return {"message": "Invalid number of rounds provided. Must be greater than 0."}
         if round_timeout is None or round_timeout <= 0:
-            return {"message": "No round timeout provided."}
+            return {"message": "Invalid round timeout provided. Must be greater than 0."}
         # Check if session exists
         session = self.get_session(session_id)
         if not session or "session_id" not in session:
