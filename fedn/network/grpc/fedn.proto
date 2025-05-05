@@ -4,6 +4,7 @@ package fedn;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
 
 message Response {
     Client sender = 1;
@@ -45,6 +46,14 @@ message Status {
 enum Queue {
   DEFAULT = 0;
   TASK_QUEUE = 1;
+}
+
+enum TaskStatus {
+    TASK_PENDING = 0;
+    TASK_RUNNING = 1;
+    TASK_COMPLETED = 2;
+    TASK_FAILED = 3;
+    TASK_INTERUPTED = 4;
 }
 
 message TaskRequest {
@@ -128,6 +137,27 @@ message TelemetryMessage {
 message TelemetryElem {
   string key = 1;
   float value = 2;
+}
+
+message Activity {
+  string task_id = 1;
+  TaskStatus status = 2;
+  google.protobuf.Struct task_response = 3;
+}
+
+message ActivityReport {
+    Client sender = 1;
+    repeated Activity activities = 2;
+}
+
+message Task {
+  string task_id = 1;
+  string task_type = 2;
+  google.protobuf.Struct task_parameters = 3;
+}
+
+message TaskList{
+  repeated Task tasks = 1;
 }
 
 enum ModelStatus {
@@ -298,6 +328,8 @@ service Combiner {
     rpc SendModelMetric(ModelMetric) returns (Response);
     rpc SendAttributeMessage(AttributeMessage) returns (Response);
     rpc SendTelemetryMessage(TelemetryMessage) returns (Response);
+
+    rpc PollAndReport(ActivityReport) returns (TaskList);
 }
 
 message ProvidedFunctionsRequest {

@@ -7,7 +7,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, TypedDict
+from typing import TypedDict
 
 from google.protobuf.json_format import MessageToDict
 
@@ -17,6 +17,7 @@ from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
+from fedn.network.combiner.task_sender import TaskSender
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -106,7 +107,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         #     fedn.Queue.TASK_QUEUE: queue.Queue
         # Obs that fedn.Queue.TASK_QUEUE is just str(1)
         self.clients = {}
-        self.task_tracker = {}
 
         # Validate combiner name
         match = re.search(VALID_NAME_REGEX, config["name"])
@@ -169,6 +169,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
+
+        self.task_seender = TaskSender(self)
 
         # Start the gRPC server
         self.server.start()
@@ -762,6 +764,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.timestamp.GetCurrentTime()
         self.__whoami(status.sender, self)
         self._send_status(status)
+
+    def PollAndReport(self, report: fedn.ActivityReport):
+        return self.task_seender.PollAndReport(report)
 
     def SendModelUpdate(self, request, context):
         """Send a model update response.

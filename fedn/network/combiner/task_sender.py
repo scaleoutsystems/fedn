@@ -1,37 +1,42 @@
 import queue
 from datetime import datetime
-from enum import Enum
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
 
-import fedn
+from google.protobuf.json_format import MessageToDict
 
+import fedn.network.grpc.fedn_pb2 as fedn_proto
 
-class TaskStatus(Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    INTERUPTED = "interrupted"
+# This if is needed to avoid circular imports but is crucial for type hints.
+if TYPE_CHECKING:
+    from fedn.network.combiner.combiner import Combiner  # not-floating-import
 
 
-class CombinersideTaskRequest:
-    def __init__(self, task):
+class OutstandingTask:
+    def __init__(self, request: fedn_proto.TaskRequest):
+        task = fedn_proto.Task()
+        task.task_id = request.correlation_id
+        task.task_type = request.type
+        task.task_parameters = MessageToDict(request, preserving_proto_field_name=True)
         self.task = task
-        self.status = TaskStatus.PENDING
+        self.status = fedn_proto.TaskStatus.TASK_PENDING
         self.response = None
 
 
-class TaskSender:
-    def __init__(self, combiner):
-        self.combiner = combiner
-        self.task_tracker = {}
+def task_finished(task: OutstandingTask) -> bool:
+    return task.status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERUPTED)
 
-    def PollAndReport(self, report):
+
+class TaskSender:
+    def __init__(self, combiner: "Combiner"):
+        self.combiner = combiner
+        self.task_tracker: Dict[str, Dict[str, OutstandingTask]] = {}
+
+    def PollAndReport(self, report: fedn_proto.ActivityReport) -> fedn_proto.TaskList:
         client = report.sender
         activites = report.activities
         # Subscribe client, this also adds the client to self.clients
-        self.combiner._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
-        q = self.combiner.__get_queue(client, fedn.Queue.TASK_QUEUE)
+        self.combiner._subscribe_client_to_queue(client, fedn_proto.Queue.TASK_QUEUE)
+        q = self.combiner.__get_queue(client, fedn_proto.Queue.TASK_QUEUE)
 
         # Set client status to online
         self.combiner.clients[client.client_id]["status"] = "online"
@@ -39,12 +44,12 @@ class TaskSender:
 
         if client.client_id not in self.task_tracker:
             self.task_tracker[client.client_id] = {}
-        task_tracker: Dict = self.task_tracker[client.client_id]
+        task_tracker = self.task_tracker[client.client_id]
 
         try:
             while True:
-                request = q.get(timeout=1.0)
-                task_tracker[request.task_id] = CombinersideTaskRequest(request)
+                request: fedn_proto.TaskRequest = q.get(timeout=1.0)
+                task_tracker[request.correlation_id] = OutstandingTask(request)
         except queue.Empty:
             pass
 
@@ -58,9 +63,11 @@ class TaskSender:
 
         reported_task_ids = [a.task_id for a in activites]
         new_tasks = []
-        for task_id, task in task_tracker.items():
-            if task.status not in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.INTERUPTED):
+        for task_id, outstanding_task in task_tracker.items():
+            if not task_finished(outstanding_task):
                 if task_id not in reported_task_ids:
-                    new_tasks.append(task)
+                    new_tasks.append(outstanding_task.task)
 
-        return new_tasks
+        task_list = fedn_proto.TaskList()
+        task_list.tasks.extend(new_tasks)
+        return task_list

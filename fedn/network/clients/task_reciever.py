@@ -1,40 +1,26 @@
 import threading
 import time
-from enum import Enum
 from queue import Queue
 from typing import Dict, List
 
+import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.network.clients.grpc_handler import GrpcHandler
 
 
-class TaskStatus(Enum):
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    INTERUPTED = "interrupted"
+class IncommingTask:
+    def __init__(self, task: fedn_proto.Task):
+        self.task_id = task.task_id
+        self.status = fedn_proto.TaskStatus.TASK_PENDING
+        self.response = None
+
+        self.reported = threading.Event()
+        self.lock = threading.Lock()
+
+        self.task = task
 
 
-class Activity:
-    task_id: str
-    status: TaskStatus
-    task_response: str
-
-
-class TaskRequest:
-    task_id: str
-    task_type: str
-    task_details: dict
-
-
-class ClientsideTask:
-    status: TaskStatus
-    task_response: str
-
-    reported: bool
-    lock: threading.Lock
-
-    request: TaskRequest
+def task_finished(task: IncommingTask) -> bool:
+    return task.status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERUPTED)
 
 
 class StoppedException(Exception):
@@ -46,7 +32,7 @@ class TaskReciever:
         self.grpc_handler = grpc_handler
         self.task_callback = task_callback
 
-        self._tasks: Dict[str, ClientsideTask] = {}
+        self._tasks: Dict[str, IncommingTask] = {}
         self._syncronous_tasks = Queue()
 
         self.polling_interval = polling_interval
@@ -69,41 +55,38 @@ class TaskReciever:
         while True:
             tic = time.time()
             activities = []
-            for task_id, task in self._tasks.items():
-                with task.lock:
-                    if not task.reported:
-                        activity = Activity(
+            for task_id, current_task in self._tasks.items():
+                with current_task.lock:
+                    if not current_task.reported:
+                        activity = fedn_proto.Activity(
                             task_id=task_id,
-                            status=task.status,
-                            task_response=task.task_response,
+                            status=current_task.status,
+                            task_response=current_task.task_response,
                         )
                         activities.append(activity)
 
-            requests = self.grpc_handler.PollAndReport(activities)
+            task_list = self.grpc_handler.PollAndReport(activities)
 
             # Update tasks that are completed, failed or interrupted that the are now reported
-            for task in activities:
-                with task.lock:
-                    if task.status in (TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.INTERUPTED) and not task.reported:
-                        task.reported = True
+            for current_task in self._tasks.values():
+                with current_task.lock:
+                    if task_finished(current_task) and not current_task.reported:
+                        current_task.reported = True
 
-            requests: List[TaskRequest] = []
-
-            for request in requests:
+            for request in task_list.tasks:
                 if request.task_id in self._tasks:
                     # Task already exists which only should happen if the task the client failed to report Final status
                     # Reset the task to not reported so it can be reported again in the next polling
-                    task = self._tasks[request.task_id]
-                    with task.lock:
-                        task.reported = False
+                    current_task = self._tasks[request.task_id]
+                    with current_task.lock:
+                        current_task.reported = False
                         continue
 
                 # This thread loses "ownership in a concurrency aspect" of the request once the task is started
                 # Hence, the request may not be modified after this point
                 # Access to the task metadata is protected by a lock
-                task: ClientsideTask = ClientsideTask(request)
-                task.status = TaskStatus.PENDING
-                self._syncronous_tasks.put(task)
+                new_task: IncommingTask = IncommingTask(request)
+                self._syncronous_tasks.put(new_task)
 
             # Wait for next polling interval
             toc = time.time()
