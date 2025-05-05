@@ -279,3 +279,161 @@ def list_predictions():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/count", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_predictions_count():
+    """Get the count of predictions
+    ---
+    tags:
+        - Predictions
+    parameters:
+      - name: prediction_id
+        in: path
+        required: true
+        type: string
+        description: The id of the prediction to retrieve
+    responses:
+      200:
+        description: The count of predictions with the specified id.
+        schema:
+            type: object
+            properties:
+                count:
+                    type: integer
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
+    try:
+        db = Control.instance().db
+        kwargs = request.args.to_dict()
+        count = db.prediction_store.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/count", methods=["POST"])
+@jwt_auth_required(role="admin")
+def predictions_count():
+    """Prediction count
+    Retrieves the count of predictions based on the provided parameters.
+    Much like the GET /predictions/count endpoint, but allows for more complex queries.
+    By specifying a parameter in the body, you can filter the predictions based on that parameter,
+    and the response will contain only the count of predictions that match the filter. If the parameter value contains a comma,
+    the filter will be an "in" query, meaning that the predictions will be returned if the specified field contains any of the values in the parameter.
+    ---
+    tags:
+      - Predictions
+    parameters:
+      - name: prediction
+      in: body
+      required: false
+      type: object
+      description: Object containing the prediction filter
+      schema:
+        type: object
+        properties:
+        sender.name:
+          type: string
+          description: Name of the sender
+        sender.role:
+          type: string
+          description: Role of the sender
+        receiver.name:
+          type: string
+          description: Name of the receiver
+        receiver.role:
+          type: string
+          description: Role of the receiver
+        prediction_id:
+          type: string
+          description: The id of the prediction
+        model_id:
+          type: string
+          description: The id of the model
+        correlation_id:
+          type: string
+          description: Correlation id of the prediction
+    responses:
+      200:
+      description: The count of predictions matching the filter.
+      schema:
+        type: object
+        properties:
+          count:
+            type: integer
+      500:
+      description: An error occurred
+      schema:
+        type: object
+        properties:
+          error:
+            type: string
+    """
+    try:
+        db = Control.instance().db
+        kwargs = get_post_data_to_kwargs(request)
+        count = db.prediction_store.count(**kwargs)
+        response = count
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_prediction(id: str):
+    """Get a prediction by id
+    ---
+    tags:
+        - Predictions
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the prediction to retrieve
+    responses:
+      200:
+        description: The prediction with the specified id.
+        schema:
+            type: object
+            properties:
+                prediction:
+                    $ref: '#/definitions/Prediction'
+      404:
+        description: The prediction with the specified id was not found.
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+      500:
+        description: An error occurred
+        schema:
+            type: object
+            properties:
+                message:
+                    type: string
+    """
+    try:
+        db = Control.instance().db
+
+        prediction = db.prediction_store.get(id)
+        if prediction is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
+        return jsonify(prediction.to_dict()), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
