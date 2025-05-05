@@ -718,8 +718,8 @@ class APIClient:
         """
         if not session_id:
             return {"message": "No session id provided."}
-        if not rounds:
-            return {"message": "No rounds provided."}
+        if rounds is None or rounds <= 0:
+            return {"message": "Invalid number of rounds provided. Must be greater than 0."}
         if not round_timeout:
             return {"message": "No round timeout provided."}
         # Check if session exists
