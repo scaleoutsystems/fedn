@@ -68,11 +68,13 @@ class TestPackageStore:
         del read_package1_dict["package_id"]
         del read_package1_dict["committed_at"]
         del read_package1_dict["storage_file_name"]
+        del read_package1_dict["updated_at"]
 
         test_package_dict = test_package.to_dict()
         del test_package_dict["package_id"]
         del test_package_dict["committed_at"]
         del test_package_dict["storage_file_name"]
+        del test_package_dict["updated_at"]
 
         assert read_package1_dict == test_package_dict
 
