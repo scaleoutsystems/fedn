@@ -706,6 +706,45 @@ class APIClient:
         _json = response.json()
         return _json
 
+    def continue_session(self, session_id: str, rounds: int = 5, round_timeout: int = 180):
+        """Continue a session.
+
+        :param session_id: The id of the session to continue.
+        :type session_id: str
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :return: A dict with success or failure message and session config.
+        :rtype: dict
+        """
+        if not session_id:
+            return {"message": "No session id provided."}
+        if not rounds:
+            return {"message": "No rounds provided."}
+        if not round_timeout:
+            return {"message": "No round timeout provided."}
+        # Check if session exists
+        session = self.get_session(session_id)
+        if not session or "session_id" not in session:
+            return {"message": "Session not found."}
+        # Check if session is finished
+        if not self.session_is_finished(session_id):
+            return {"message": "Session is already running."}
+
+        response = requests.post(
+            self._get_url_api_v1("sessions/start"),
+            json={
+                "session_id": session_id,
+                "rounds": rounds,
+                "round_timeout": round_timeout,
+            },
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
+        return _json
+
     # --- Statuses --- #
 
     def get_status(self, id: str):
