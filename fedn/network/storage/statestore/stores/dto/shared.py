@@ -350,6 +350,7 @@ class BaseDTO(DictDTO):
     """BaseDTO for Data Transfer Objects."""
 
     committed_at: datetime = Field(None)
+    updated_at: datetime = Field(None)
 
     @property
     def primary_id(self) -> str:
@@ -371,7 +372,7 @@ class BaseDTO(DictDTO):
         raise AttributeError(f"{self.__class__.__name__} has no field of type PrimaryID")
 
     def _is_field_optional(self, key):
-        return super()._is_field_optional(key) or key == "committed_at"
+        return super()._is_field_optional(key) or key in ["committed_at", "updated_at"]
 
 
 class NodeDTO(DictDTO):

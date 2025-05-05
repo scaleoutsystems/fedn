@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from datetime import datetime
 from typing import Dict, List
 
 from pymongo.database import Database
@@ -59,6 +60,7 @@ class MongoDBModelStore(ModelStore, MongoDBStore[ModelDTO]):
         item.check_validity()
         item_dict = self._document_from_dto(item)
         id = item_dict[self.primary_key]
+        item_dict["updated_at"] = datetime.now()
         result = self.database[self.collection].update_one({self.primary_key: id, "key": "models"}, {"$set": item_dict})
         if result.matched_count == 1:
             document = self.database[self.collection].find_one({self.primary_key: id, "key": "models"})
