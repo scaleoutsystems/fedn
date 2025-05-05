@@ -7,7 +7,7 @@ import yaml
 
 from fedn.cli.main import main
 from fedn.cli.shared import apply_config
-from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import FEDN_OBJECT_STORAGE_TYPE, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.common.log_config import logger
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -225,8 +225,8 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
     statestore_config = get_statestore_config()
     network_id = get_network_config()
 
-    # TODO: set storage_type ?
-    repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"], init_buckets=False)
+    storage_type = modelstorage_config.get("storage_type", FEDN_OBJECT_STORAGE_TYPE)
+    repository = Repository(modelstorage_config["storage_config"], storage_type=storage_type, init_buckets=False)
 
     db = DatabaseConnection(statestore_config, network_id)
 

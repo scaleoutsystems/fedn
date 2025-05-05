@@ -19,8 +19,7 @@ class Repository:
         :type config: dict
         :param init_buckets: Whether to initialize buckets, defaults to True
         :type init_buckets: bool, optional
-        :param storage_type: Type of storage to use, defaults to "MINIO"
-        :type storage_type: str, optional
+        :param storage_type: Type of storage to use, defaults to an empty string which falls back to FEDN_OBJECT_STORAGE_TYPE
         """
         try:
             self.model_bucket = config.get("storage_bucket", FEDN_OBJECT_STORAGE_BUCKETS["model"])
