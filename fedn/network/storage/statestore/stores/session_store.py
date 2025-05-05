@@ -61,6 +61,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
 
         session_config_dict.pop("id")
         session_config_dict.pop("committed_at")
+        session_config_dict.pop("updated_at")
         session_dict.pop("session_config_id")
 
         return SessionDTO().populate_with(session_dict)

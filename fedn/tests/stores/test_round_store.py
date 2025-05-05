@@ -88,10 +88,12 @@ class TestRoundStore:
         round_id = read_round1_dict["round_id"]
         del read_round1_dict["round_id"]
         del read_round1_dict["committed_at"]
+        del read_round1_dict["updated_at"]
 
         test_round_dict = test_round.to_dict()
         del test_round_dict["round_id"]
         del test_round_dict["committed_at"]
+        del test_round_dict["updated_at"]
 
         assert read_round1_dict == test_round_dict
 
