@@ -143,8 +143,8 @@ class Client:
         """Handle the validation callback."""
         return self._process_validation_request(in_model)
 
-    def on_forward(self, client_id, is_validate):
-        out_embeddings, meta = self._process_forward_request(client_id, is_validate)
+    def on_forward(self, client_id, is_sl_inference):
+        out_embeddings, meta = self._process_forward_request(client_id, is_sl_inference)
         return out_embeddings, meta
 
     def on_backward(self, in_gradients, client_id):
@@ -233,13 +233,13 @@ class Client:
 
         return metrics
 
-    def _process_forward_request(self, client_id, is_validate) -> Tuple[BytesIO, dict]:
-        """Process a forward request. is_validate determines whether the forward pass is used for gradient calculation or validation.
+    def _process_forward_request(self, client_id, is_sl_inference) -> Tuple[BytesIO, dict]:
+        """Process a forward request. Param is_sl_inference determines whether the forward pass is used for gradient calculation or validation.
 
         :param client_id: The client ID.
         :type client_id: str
-        :param is_validate: Whether the request is for validation.
-        :type is_validate: str
+        :param is_sl_inference: Whether the request is for splitlearning inference or not.
+        :type is_sl_inference: str
         :return: The embeddings, or None if forward failed.
         :rtype: tuple
         """
@@ -247,8 +247,7 @@ class Client:
             out_embedding_path = get_tmp_path()
 
             tic = time.time()
-
-            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_validate}")
+            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_sl_inference}")
 
             meta = {}
             embeddings = None

@@ -516,7 +516,7 @@ class Control(ControlBase):
 
         # 1) FORWARD PASS - specified through "task": "forward"
         forward_config = session_config.to_dict()
-        forward_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": False, "session_id": session_id})
+        forward_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_sl_inference": False, "session_id": session_id})
 
         self.set_round_config(round_id, forward_config)
 
@@ -620,9 +620,8 @@ class Control(ControlBase):
         validate = session_config.validate
         if validate:
             logger.info("CONTROLLER: Starting Split Learning Validation round")
-            # validate_config = copy.deepcopy(session_config)
             validate_config = session_config.to_dict()
-            validate_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_validate": True, "session_id": session_id})
+            validate_config.update({"rounds": 1, "round_id": round_id, "task": "forward", "is_sl_inference": True, "session_id": session_id})
             validating_combiners = [(combiner, validate_config) for combiner, _ in participating_combiners]
 
             # Submit validation requests

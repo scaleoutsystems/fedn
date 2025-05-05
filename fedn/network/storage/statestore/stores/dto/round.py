@@ -12,7 +12,7 @@ class RoundConfigDTO(SessionConfigDTO):
     rounds: int = Field(None)
     round_id: str = Field(None)
     client_settings: Optional[dict] = Field({})
-    is_validate: Optional[bool] = Field(False)
+    is_sl_inference: Optional[bool] = Field(False)
 
 
 class RoundReduceDTO(DictDTO):

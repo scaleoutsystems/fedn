@@ -468,9 +468,9 @@ class FednClient:
         return self.grpc_handler.send_model_metric(message)
 
     def forward_embeddings(self, request):
-        """Forward pass for split learning gradient calculation or validation."""
+        """Forward pass for split learning gradient calculation or inference."""
         model_id = request.model_id
-        is_validate = json.loads(request.data).get("is_validate", False)
+        is_sl_inference = json.loads(request.data).get("is_sl_inference", False)
 
         embedding_update_id = str(uuid.uuid4())
 
@@ -482,7 +482,7 @@ class FednClient:
 
         logger.info(f"Running forward callback with model ID: {model_id}")
         tic = time.time()
-        out_embeddings, meta = self.forward_callback(self.client_id, is_validate)
+        out_embeddings, meta = self.forward_callback(self.client_id, is_sl_inference)
         meta["processing_time"] = time.time() - tic
 
         tic = time.time()

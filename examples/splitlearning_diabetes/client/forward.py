@@ -2,9 +2,9 @@ import os
 import sys
 
 import torch
-from data import load_data
 from model import compile_model, load_client_model, save_client_model
 
+from data import load_data
 from fedn.common.log_config import logger
 from fedn.utils.helpers.helpers import get_helper, save_metadata
 
@@ -18,7 +18,7 @@ seed = 42
 torch.manual_seed(seed)
 
 
-def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
+def forward_pass(client_id, out_embedding_path, is_sl_inference, data_path=None):
     """Complete a forward pass on the client side (client model) based on the local client model to produce embeddings that are sent to the combiner.
 
     If the forward pass is used for validation, the test dataset is loaded.
@@ -27,13 +27,13 @@ def forward_pass(client_id, out_embedding_path, is_validate, data_path=None):
     :type client_id: str
     param out_embedding_path: Path to the output embedding file.
     :type out_embedding_path: str
-    param is_validate: Whether to perform a validation forward pass.
-    :type is_validate: bool
+    param is_sl_inference: Whether to perform a forward pass with inference (used for validation) or not.
+    :type is_sl_inference: str
     param data_path: Path to the data file.
     :type data_path: str
     """
-    if is_validate == "True":
-        logger.info(f"Client-side validation forward pass for client {client_id}")
+    if is_sl_inference == "True":
+        logger.info(f"Client-side inference forward pass for client {client_id}")
         X = load_data(data_path, is_train=False)
     else:
         logger.info(f"Client-side training forward pass for client {client_id}")

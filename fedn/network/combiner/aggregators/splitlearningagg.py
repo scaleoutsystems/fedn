@@ -53,7 +53,7 @@ class Aggregator(AggregatorBase):
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def combine_models(self, helper=None, delete_models=True, is_validate=False):
+    def combine_models(self, helper=None, delete_models=True, is_sl_inference=False):
         """Concatenates client embeddings in the queue by aggregating them.
 
         After all embeddings are received, the embeddings need to be sorted
@@ -63,6 +63,8 @@ class Aggregator(AggregatorBase):
         :type helper: class: `fedn.utils.helpers.helpers.HelperBase`, optional
         :param delete_models: Delete models from storage after aggregation, defaults to True
         :type delete_models: bool, optional
+        :param is_sl_inference: Whether it is a splitlearning inference session (no gradient calculation) or not
+        :type is_sl_inference: bool
         :return: The gradients and metadata
         :rtype: tuple
         """
@@ -127,7 +129,7 @@ class Aggregator(AggregatorBase):
             )
             raise ValueError
 
-        if is_validate == "False":
+        if is_sl_inference == "False":
             # split learning forward pass with gradient calculation
             logger.info("Split Learning Aggregator: Executing forward training pass")
 
@@ -140,8 +142,8 @@ class Aggregator(AggregatorBase):
 
             return result
         else:
-            # split learning validation pass, no gradient calculation.
-            logger.info("Split Learning Aggregator: Executing forward validation pass")
+            # split learning forward pass for inference, no gradient calculation (used for validation)
+            logger.info("Split Learning Aggregator: Executing forward inference pass")
 
             validation_data = self.calculate_validation_metrics(concatenated_embeddings)
 

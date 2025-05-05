@@ -233,8 +233,9 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
-        is_validate = config["is_validate"]  # determines whether it's a forward pass that calculates gradients ("training"), or just used for validation
-
+        is_sl_inference = config[
+            "is_sl_inference"
+        ]  # determines whether forward pass calculates gradients ("training"), or is used for inference (e.g., for validation)
         # Request forward pass from all active clients.
         self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
@@ -254,7 +255,7 @@ class RoundHandler:
             else:
                 delete_models = False
 
-            output = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_validate=is_validate)
+            output = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_sl_inference=is_sl_inference)
 
         except Exception as e:
             logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
