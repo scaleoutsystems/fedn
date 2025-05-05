@@ -143,8 +143,9 @@ class MongoDBStore(Store[DTO], Generic[DTO]):
         elif self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]}):
             raise Exception(f"Entity with id {item_dict[self.primary_key]} already exists")
 
-        item_dict["committed_at"] = datetime.now()
-        item_dict["updated_at"] = datetime.now()
+        current_time = datetime.now()
+        item_dict["committed_at"] = current_time
+        item_dict["updated_at"] = current_time
 
         self.database[self.collection].insert_one(item_dict)
         document = self.database[self.collection].find_one({self.primary_key: item_dict[self.primary_key]})
