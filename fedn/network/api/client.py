@@ -972,6 +972,6 @@ class APIClient:
         if len(client_list) == 0:
             raise ValueError("client_list must not be empty")
         json = {"client_ids": client_list}
-        response = requests.post(self._get_url_api_v1("clients/current_attributes"), json=json, verify=self.verify, headers=self.headers)
+        response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
         _json = response.json()
         return _json

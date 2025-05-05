@@ -7,7 +7,7 @@ from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
-bp = Blueprint("attribute", __name__, url_prefix=f"/api/{api_version}/attribute")
+bp = Blueprint("attribute", __name__, url_prefix=f"/api/{api_version}/attributes")
 
 
 @bp.route("/", methods=["GET"])
@@ -112,6 +112,71 @@ def add_attributes():
     except ValueError as e:
         logger.error(f"ValueError occured: {e}")
         return jsonify({"message": "Invalid object"}), 400
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/current", methods=["POST"])
+@jwt_auth_required(role="admin")
+def get_client_current_attributes():
+    """Get current attributes for clients
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client_ids
+        in: body
+        required: true
+        type: array
+        items:
+          type: string
+        description: List of client IDs to retrieve attributes for
+    responses:
+        200:
+            description: A dict of clients and their attributes
+            schema:
+                type: object
+                properties:
+                    client_id:
+                        type: object
+                        additionalProperties:
+                            type: string
+        400:
+            description: Missing required field
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        db = Control.instance().db
+        json_data = request.get_json()
+        client_ids = json_data.get("client_ids")
+        if not client_ids:
+            return jsonify({"message": "Missing required field: client_ids"}), 400
+
+        response = {}
+        for client_id in client_ids:
+            client = db.client_store.get(client_id)
+            if client is None:
+                response[client_id] = f"Entity with client_id: {client_id} not found"
+                continue
+            attributes = db.attribute_store.get_current_attributes_for_client(client.client_id)
+            response[client.client_id] = {}
+            for attribute in attributes:
+                response[client.client_id][attribute.key] = attribute.value
+
+        return jsonify(response), 200
+
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
