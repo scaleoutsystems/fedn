@@ -1,19 +1,19 @@
 """Interface for storing model objects and compute packages in S3 compatible storage."""
 
 import datetime
+import importlib
 import os
 import uuid
 from typing import Union
 
+from fedn.common.config import FEDN_OBJECT_STORAGE_BUCKETS, FEDN_OBJECT_STORAGE_TYPE
 from fedn.common.log_config import logger
-from fedn.network.storage.s3.miniorepository import MINIORepository
-from fedn.network.storage.s3.saasrepository import SAASRepository
 
 
 class Repository:
     """Interface for storing model objects and compute packages in S3 compatible storage."""
 
-    def __init__(self, config: dict, init_buckets: bool = True, storage_type: str = "MINIO") -> None:
+    def __init__(self, config: dict, init_buckets: bool = True, storage_type: str = "") -> None:
         """Initialize the repository.
 
         :param config: Configuration dictionary for credentials and bucket names.
@@ -23,27 +23,54 @@ class Repository:
         :param storage_type: Type of storage to use, defaults to "MINIO"
         :type storage_type: str, optional
         """
-        self.model_bucket = os.environ.get("FEDN_MODEL_BUCKET", config["storage_bucket"])
-        self.context_bucket = os.environ.get("FEDN_CONTEXT_BUCKET", config["context_bucket"])
         try:
-            self.prediction_bucket = os.environ.get("FEDN_PREDICTION_BUCKET", config["prediction_bucket"])
+            self.model_bucket = config.get("storage_bucket", FEDN_OBJECT_STORAGE_BUCKETS["model"])
+            self.context_bucket = config.get("context_bucket", FEDN_OBJECT_STORAGE_BUCKETS["context"])
+            self.prediction_bucket = config.get("prediction_bucket", FEDN_OBJECT_STORAGE_BUCKETS["prediction"])
         except KeyError:
-            self.prediction_bucket = "fedn-prediction"
+            logger.error("Missing required bucket names in configuration.")
+            raise ValueError("Missing required bucket names in configuration.")
 
-        # TODO: Make a plug-in solution
-        storage_type = os.environ.get("FEDN_STORAGE_TYPE", storage_type)
-        if storage_type == "SAAS":
-            self.client = SAASRepository(config)
-        elif storage_type == "MINIO":
-            self.client = MINIORepository(config)
-        else:
-            # Default to MinIO.
-            self.client = MINIORepository(config)
+        # Dynamically import the repository class based on storage_type
+        storage_type = storage_type or FEDN_OBJECT_STORAGE_TYPE
+        self.client = self._load_repository(storage_type, config)
 
         if init_buckets:
             self.client.create_bucket(self.context_bucket)
             self.client.create_bucket(self.model_bucket)
             self.client.create_bucket(self.prediction_bucket)
+
+    def _load_repository(self, storage_type: str, config: dict):
+        """Dynamically load the repository class based on the storage type.
+
+        :param storage_type: The type of storage (e.g., "MINIO", "BOTO3", "SAAS").
+        :type storage_type: str
+        :param config: Configuration dictionary for the repository.
+        :type config: dict
+        :return: An instance of the repository class.
+        :rtype: object
+        """
+        repository_mapping = {
+            "MINIO": "fedn.network.storage.s3.miniorepository.MINIORepository",
+            "BOTO3": "fedn.network.storage.s3.boto3repository.Boto3Repository",
+            "SAAS": "fedn.network.storage.s3.saasrepository.SAASRepository",
+        }
+
+        if storage_type not in repository_mapping:
+            raise ValueError(f"Unsupported storage type: {storage_type}")
+
+        module_path, class_name = repository_mapping[storage_type].rsplit(".", 1)
+
+        try:
+            module = importlib.import_module(module_path)
+            repository_class = getattr(module, class_name)
+            return repository_class(config)
+        except ImportError as e:
+            logger.error(f"Failed to import module for storage type {storage_type}. Error: {e}")
+            raise ImportError(f"Could not import repository for storage type {storage_type}.") from e
+        except AttributeError as e:
+            logger.error(f"Failed to load class {class_name} from module {module_path}. Error: {e}")
+            raise AttributeError(f"Could not load repository class {class_name}.") from e
 
     def get_model(self, model_id: str) -> bytes:
         """Retrieve a model with id model_id.

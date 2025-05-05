@@ -17,8 +17,23 @@ FEDN_CUSTOM_URL_PREFIX = os.environ.get("FEDN_CUSTOM_URL_PREFIX", "")
 FEDN_CONNECT_API_SECURE = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lower() == "true"
 
 FEDN_PACKAGE_EXTRACT_DIR = os.environ.get("FEDN_PACKAGE_EXTRACT_DIR", "package")
-
 FEDN_COMPUTE_PACKAGE_DIR = os.environ.get("FEDN_COMPUTE_PACKAGE_DIR", "/app/client/package/")
+
+FEDN_OBJECT_STORAGE_TYPE = os.environ.get("FEDN_OBJECT_STORAGE_TYPE", "BOTO3").upper()
+FEDN_OBJECT_MODEL_BUCKET = os.environ.get("FEDN_OBJECT_MODEL_BUCKET", "fedn-model")
+FEDN_OBJECT_CONTEXT_BUCKET = os.environ.get("FEDN_OBJECT_CONTEXT_BUCKET", "fedn-context")
+FEDN_OBJECT_PREDICTION_BUCKET = os.environ.get("FEDN_OBJECT_PREDICTION_BUCKET", "fedn-prediction")
+FEDN_OBJECT_STORAGE_REGION = os.environ.get("FEDN_OBJECT_STORAGE_REGION", "eu-west-1")
+FEDN_OBJECT_STORAGE_ENDPOINT = os.environ.get("FEDN_OBJECT_STORAGE_ENDPOINT", "http://minio:9000")
+FEDN_OBJECT_STORAGE_ACCESS_KEY = os.environ.get("FEDN_OBJECT_STORAGE_ACCESS_KEY", "")
+FEDN_OBJECT_STORAGE_SECRET_KEY = os.environ.get("FEDN_OBJECT_STORAGE_SECRET_KEY", "")
+FEDN_OBJECT_STORAGE_SECURE_MODE = os.environ.get("FEDN_OBJECT_STORAGE_SECURE_MODE", "true").lower() == "true"
+FEDN_OBJECT_STORAGE_VERIFY_SSL = os.environ.get("FEDN_OBJECT_STORAGE_VERIFY_SSL", "true").lower() == "true"
+FEDN_OBJECT_STORAGE_BUCKETS = {
+    "model": os.environ.get("FEDN_OBJECT_MODEL_BUCKET", "fedn-model"),
+    "context": os.environ.get("FEDN_OBJECT_CONTEXT_BUCKET", "fedn-context"),
+    "prediction": os.environ.get("FEDN_OBJECT_PREDICTION_BUCKET", "fedn-prediction"),
+}
 
 
 def get_environment_config():
