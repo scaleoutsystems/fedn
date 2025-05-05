@@ -713,6 +713,8 @@ class APIClient:
         :type session_id: str
         :param rounds: The number of rounds to perform.
         :type rounds: int
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
@@ -720,7 +722,7 @@ class APIClient:
             return {"message": "No session id provided."}
         if rounds is None or rounds <= 0:
             return {"message": "Invalid number of rounds provided. Must be greater than 0."}
-        if not round_timeout:
+        if round_timeout is None or round_timeout <= 0:
             return {"message": "No round timeout provided."}
         # Check if session exists
         session = self.get_session(session_id)
