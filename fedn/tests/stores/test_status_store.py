@@ -71,10 +71,12 @@ class TestStatusStore:
         status_id = read_status1_dict["status_id"]
         del read_status1_dict["status_id"]
         del read_status1_dict["committed_at"]
+        del read_status1_dict["updated_at"]
 
         test_status_dict = test_status.to_dict()
         del test_status_dict["status_id"]
         del test_status_dict["committed_at"]
+        del test_status_dict["updated_at"]
 
         assert read_status1_dict == test_status_dict
 

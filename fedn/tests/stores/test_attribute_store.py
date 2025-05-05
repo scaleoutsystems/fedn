@@ -86,10 +86,12 @@ class TestAttributeStore:
         attribute_id = read_attribute1_dict["attribute_id"]
         del read_attribute1_dict["attribute_id"]
         del read_attribute1_dict["committed_at"]
+        del read_attribute1_dict["updated_at"]
 
         test_attribute_dict = test_attribute.to_dict()
         del test_attribute_dict["attribute_id"]
         del test_attribute_dict["committed_at"]
+        del test_attribute_dict["updated_at"]
 
         assert read_attribute1_dict == test_attribute_dict
 

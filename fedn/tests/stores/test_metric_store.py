@@ -95,10 +95,12 @@ class TestMetricStore:
         metric_id = read_metric1_dict["metric_id"]
         del read_metric1_dict["metric_id"]
         del read_metric1_dict["committed_at"]
+        del read_metric1_dict["updated_at"]
 
         test_metric_dict = test_metric.to_dict()
         del test_metric_dict["metric_id"]
         del test_metric_dict["committed_at"]
+        del test_metric_dict["updated_at"]
 
         assert read_metric1_dict == test_metric_dict
 
