@@ -8,12 +8,8 @@ from fedn.common.log_config import logger
 
 @pytest.fixture(scope="module")
 def fedn_client():
-    tkn = os.environ.get("FEDN_AUTH_TOKEN", None)
-    logger.info(f"token: {tkn}")
     token = get_token(token=None, usr_token=False)
-    logger.info(f"token: {token}")
     host = get_project_url("", "", None, False)
-    logger.info(f"Connecting to {host}")
     client = APIClient(host=host, token=token, secure=True, verify=True)
     return client
 
