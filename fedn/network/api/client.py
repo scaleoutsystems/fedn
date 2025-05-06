@@ -22,7 +22,9 @@ class APIClient:
     :type verify: bool
     """
 
-    def __init__(self, host, port=None, secure=False, verify=False, token=None, auth_scheme=None):
+    def __init__(self, host: str, port: int = None, secure: bool = False, verify: bool = False, token: str = None, auth_scheme: str = None):
+        if "://" in host:
+            host = host.split("://")[1]
         self.host = host
         self.port = port
         self.secure = secure
@@ -37,6 +39,9 @@ class APIClient:
             token = os.environ.get("FEDN_AUTH_TOKEN", False)
 
         if token:
+            # Split the token if it contains a space (scheme + token).
+            if " " in token:
+                token = token.split()[1]
             self.headers = {"Authorization": f"{auth_scheme} {token}"}
 
     def _get_url(self, endpoint):
@@ -264,6 +269,8 @@ class APIClient:
         """
         _headers = self.headers.copy()
         _headers["X-Limit"] = "1"
+        _headers["X-Sort-Key"] = "committed_at"
+        _headers["X-Sort-Order"] = "desc"
 
         response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
         _json = response.json()
@@ -285,14 +292,15 @@ class APIClient:
         """
         if not id:
             model = self.get_active_model()
-            if "id" in model:
-                id = model["id"]
+            if "model_id" in model:
+                id = model["model_id"]
             else:
                 return model
 
         _headers = self.headers.copy()
 
         _count: int = n_max if n_max else self.get_models_count()
+
         _headers["X-Limit"] = str(_count)
         _headers["X-Reverse"] = "true" if reverse else "false"
 
@@ -501,25 +509,38 @@ class APIClient:
 
     # --- Sessions --- #
 
-    def get_session(self, id: str):
+    def get_session(self, id: str = None, name: str = None):
         """Get a session from the statestore.
 
         :param id: The session id to get.
         :type id: str
+        :param name: The session name to get.
+        :type name: str
         :return: Session.
         :rtype: dict
         """
-        response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
-
-        _json = response.json()
+        if name:
+            response = requests.get(self._get_url_api_v1(f"sessions?name={name}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+            if "result" in _json and len(_json["result"]) > 0:
+                _json = _json["result"][0]
+            else:
+                _json = {"message": "Session not found."}
+        elif id:
+            response = requests.get(self._get_url_api_v1(f"sessions/{id}"), verify=self.verify, headers=self.headers)
+            _json = response.json()
+        else:
+            _json = {"message": "No id or name provided."}
 
         return _json
 
-    def get_sessions(self, n_max: int = None):
+    def get_sessions(self, n_max: int = None, name: str = None):
         """Get sessions from the statestore.
 
         :param n_max: The maximum number of sessions to get (If none all will be fetched).
         :type n_max: int
+        :param name: The session name to get.
+        :type name: str
         :return: Sessions.
         :rtype: dict
         """
@@ -528,7 +549,11 @@ class APIClient:
         if n_max:
             _headers["X-Limit"] = str(n_max)
 
-        response = requests.get(self._get_url_api_v1("sessions/"), verify=self.verify, headers=_headers)
+        url = self._get_url_api_v1("sessions/")
+        if name:
+            url += f"?name={name}"
+
+        response = requests.get(url, verify=self.verify, headers=_headers)
 
         _json = response.json()
 
@@ -616,11 +641,19 @@ class APIClient:
         :rtype: dict
         """
         if model_id is None:
-            response = requests.get(self._get_url_api_v1("models/active"), verify=self.verify, headers=self.headers)
+            _headers = self.headers.copy()
+            _headers["X-Limit"] = "1"
+            _headers["X-Sort-Key"] = "committed_at"
+            _headers["X-Sort-Order"] = "desc"
+            response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
             if response.status_code == 200:
-                model_id = response.json()
+                json = response.json()
+                if "result" in json and len(json["result"]) > 0:
+                    model_id = json["result"][0]["model_id"]
+                else:
+                    return {"message": "No models found in the repository"}
             else:
-                return response.json()
+                return {"message": "No models found in the repository"}
 
         if helper is None:
             response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
@@ -635,6 +668,7 @@ class APIClient:
             self._get_url_api_v1("sessions/"),
             json={
                 "name": name,
+                "seed_model_id": model_id,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
@@ -922,4 +956,27 @@ class APIClient:
 
         _json = response.json()
 
+        return _json
+
+    # --- Client --- #
+
+    def get_current_attributes(self, client_list):
+        """Get the current attributes of the client.
+
+        :param client_list: The list of clients to get the attributes for or a single client_id
+        :type client_list: list|str
+        :raises ValueError: If client_list is not a list or empty.
+        :return: The current attributes of the client.
+        :rtype: dict
+        """
+        if not isinstance(client_list, list):
+            if isinstance(client_list, str):
+                client_list = [client_list]
+            else:
+                raise ValueError("client_list must be a list")
+        if len(client_list) == 0:
+            raise ValueError("client_list must not be empty")
+        json = {"client_ids": client_list}
+        response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
+        _json = response.json()
         return _json

@@ -50,14 +50,14 @@ def client_cmd(ctx):
 @client_cmd.command("get-config")
 @click.pass_context
 def create_client(ctx, path: str, protocol: str, host: str, token: str = None, name: str = None, group: int = None):
-    r"""Return: \n
-    ------ \n
-    client config file(s) with following content: \n
-    client_id: uuid \n
-    discover_host: controller, get from context file \n
-    name: client name (set prefix with options) \n
-    refresh_token: unique refresh token for client \n
-    token: unique access token for client  \n
+    """Generate client config file(s).
+    ------
+    client config file(s) with following content:
+    client_id: uuid
+    discover_host: controller, get from context file
+    name: client name (set prefix with options)
+    refresh_token: unique refresh token for client
+    token: unique access token for client
 
     """
     context_path = os.path.join(home_dir, ".fedn")
@@ -118,10 +118,10 @@ def create_client(ctx, path: str, protocol: str, host: str, token: str = None, n
 @client_cmd.command("list")
 @click.pass_context
 def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_max: int = None):
-    r"""Return: \n
-    ------ \n
-    - count: number of clients \n
-    - result: list of clients \n
+    """List clients.
+    ------
+    - count: number of clients
+    - result: list of clients
     """
     headers = {}
 
@@ -140,9 +140,9 @@ def list_clients(ctx, protocol: str, host: str, port: str, token: str = None, n_
 @client_cmd.command("get")
 @click.pass_context
 def get_client(ctx, protocol: str, host: str, port: str, token: str = None, id: str = None):
-    r"""Return: \n
-    ------ \n
-    - result: client with given id \n
+    """Get client.
+    ------
+    - result: client with given id
     """
     response = get_response(protocol=protocol, host=host, port=port, endpoint=f"clients/{id}", token=token, headers={}, usr_api=False, usr_token=False)
     print_response(response, "client", id)
@@ -209,7 +209,7 @@ def client_start_v2_cmd(
     helper_type: str,
     init: str,
 ):
-    """Start a client."""
+    """Start client."""
     package = "local" if local_package else "remote"
 
     config = {
@@ -232,7 +232,7 @@ def client_start_v2_cmd(
 
     if init:
         apply_config(init, config)
-        click.echo(f"\nClient configuration loaded from file: {init}")
+        click.echo(f"Client configuration loaded from file: {init}")
 
         # to cater for old inputs
         if config["discover_host"] is not None:

@@ -1,432 +1,196 @@
 import uuid
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List
 
-import pymongo
-from bson import ObjectId
 from pymongo.database import Database
-from sqlalchemy import String, func, select
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import select
 from werkzeug.utils import secure_filename
 
-from fedn.network.storage.statestore.stores.store import MongoDBStore, MyAbstractBase, SQLStore, Store
+from fedn.network.storage.statestore.stores.dto import PackageDTO
+from fedn.network.storage.statestore.stores.dto.package import validate_helper
+from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.network.storage.statestore.stores.sql.shared import PackageModel, from_orm_model
+from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore, Store, from_document
 
 
-def from_document(data: dict, active_package: dict):
-    active = False
-    if active_package:
-        if "id" in active_package and "id" in data:
-            active = active_package["id"] == data["id"]
-
-    return {
-        "id": data["id"] if "id" in data else None,
-        "key": data["key"] if "key" in data else None,
-        "committed_at": data["committed_at"] if "committed_at" in data else None,
-        "description": data["description"] if "description" in data else None,
-        "file_name": data["file_name"] if "file_name" in data else None,
-        "helper": data["helper"] if "helper" in data else None,
-        "name": data["name"] if "name" in data else None,
-        "storage_file_name": data["storage_file_name"] if "storage_file_name" in data else None,
-        "active": active,
-    }
-
-
-class Package:
-    def __init__(
-        self,
-        id: str,
-        key: str,
-        committed_at: datetime,
-        description: str,
-        file_name: str,
-        helper: str,
-        name: str,
-        storage_file_name: str,
-        active: bool = False,
-    ):
-        self.key = key
-        self.committed_at = committed_at
-        self.description = description
-        self.file_name = file_name
-        self.helper = helper
-        self.id = id
-        self.name = name
-        self.storage_file_name = storage_file_name
-        self.active = active
-
-
-class PackageStore(Store[Package]):
-    @abstractmethod
-    def set_active(self, id: str) -> bool:
-        pass
-
-    @abstractmethod
-    def get_active(self) -> Package:
-        pass
-
-    @abstractmethod
-    def set_active_helper(self, helper: str) -> bool:
-        pass
-
-    @abstractmethod
-    def delete_active(self):
-        pass
-
-
-def allowed_file_extension(filename: str, ALLOWED_EXTENSIONS={"gz", "bz2", "tar", "zip", "tgz"}) -> bool:
-    """Check if file extension is allowed.
-
-    :param filename: The filename to check.
-    :type filename: str
-    :return: True and extension str if file extension is allowed, else False and None.
-    :rtype: Tuple (bool, str)
-    """
-    if "." in filename:
-        extension = filename.rsplit(".", 1)[1].lower()
-        if extension in ALLOWED_EXTENSIONS:
-            return True
-
+def is_active_package(package_id, active_package: dict) -> bool:
+    if active_package and "package_id" in active_package and package_id:
+        return active_package["package_id"] == package_id
     return False
 
 
-def validate(item: Package) -> Tuple[bool, str]:
-    if "file_name" not in item or not item["file_name"]:
-        return False, "File name is required"
+def _complement_with_storage_filename(item: Dict):
+    extension = item["file_name"].rsplit(".", 1)[1].lower()
 
-    if not allowed_file_extension(item["file_name"]):
-        return False, "File extension not allowed"
-
-    if "helper" not in item or not item["helper"]:
-        return False, "Helper is required"
-
-    return True, ""
+    if "storage_file_name" not in item or item["storage_file_name"] is None:
+        storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
+        item["storage_file_name"] = storage_file_name
 
 
-class MongoDBPackageStore(PackageStore, MongoDBStore[Package]):
-    def __init__(self, database: Database, collection: str):
-        super().__init__(database, collection)
-        self.database[self.collection].create_index([("id", pymongo.DESCENDING)])
-
-    def get(self, id: str) -> Package:
-        """Get an entity by id
-        param id: The id of the entity
-            type: str
-            description: The id of the entity, can be either the id or the docuemnt _id
-        return: The entity
-        """
-        document = self.database[self.collection].find_one({"id": id})
-
-        if document is None:
-            return None
-
-        response_active = self.database[self.collection].find_one({"key": "active"})
-
-        return from_document(document, response_active)
-
-    def _complement(self, item: Package):
-        if "id" not in item or item["id"] is None:
-            item["id"] = str(uuid.uuid4())
-
-        if "key" not in item or item["key"] is None:
-            item["key"] = "package_trail"
-
-        if "committed_at" not in item or item["committed_at"] is None:
-            item["committed_at"] = datetime.now()
-
-        extension = item["file_name"].rsplit(".", 1)[1].lower()
-
-        if "storage_file_name" not in item or item["storage_file_name"] is None:
-            storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
-            item["storage_file_name"] = storage_file_name
-
+class PackageStore(Store[PackageDTO]):
+    @abstractmethod
     def set_active(self, id: str) -> bool:
         """Set the active entity
         param id: The id of the entity
             type: str
         return: Whether the operation was successful
         """
-        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
-        kwargs["key"] = "package_trail"
+        pass
 
-        document = self.database[self.collection].find_one(kwargs)
-
-        if document is None:
-            return False
-
-        committed_at = datetime.now()
-        obj_to_insert = {
-            "key": "active",
-            "id": document["id"] if "id" in document else "",
-            "committed_at": committed_at,
-            "description": document["description"] if "description" in document else "",
-            "file_name": document["file_name"] if "file_name" in document else "",
-            "helper": document["helper"] if "helper" in document else "",
-            "name": document["name"] if "name" in document else "",
-            "storage_file_name": document["storage_file_name"],
-        }
-
-        self.database[self.collection].update_one({"key": "active"}, {"$set": obj_to_insert}, upsert=True)
-
-        return True
-
-    def get_active(self) -> Package:
+    @abstractmethod
+    def get_active(self) -> PackageDTO:
         """Get the active entity
         return: The entity
         """
-        kwargs = {"key": "active"}
-        response = self.database[self.collection].find_one(kwargs)
-        if response is None:
-            return None
+        pass
 
-        active_package = {"id": response["id"]} if "id" in response else {}
-
-        return from_document(response, active_package=active_package)
-
+    @abstractmethod
     def set_active_helper(self, helper: str) -> bool:
         """Set the active helper
         param helper: The helper to set as active
             type: str
         return: Whether the operation was successful
         """
-        if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
-            raise ValueError()
+        pass
 
-        try:
-            self.database[self.collection].update_one({"key": "active"}, {"$set": {"helper": helper}}, upsert=True)
-        except Exception:
-            return False
+    @abstractmethod
+    def delete_active(self) -> bool:
+        """Delete the active entity
+        return: Whether the operation was successful
+        """
+        pass
 
-    def update(self, id: str, item: Package) -> bool:
-        raise NotImplementedError("Update not implemented for PackageStore")
 
-    def add(self, item: Package) -> Tuple[bool, Any]:
-        valid, message = validate(item)
-        if not valid:
-            return False, message
+class MongoDBPackageStore(PackageStore, MongoDBStore[PackageDTO]):
+    def __init__(self, database: Database, collection: str):
+        super().__init__(database, collection, "package_id")
 
-        self._complement(item)
+    def get(self, id: str) -> PackageDTO:
+        package = super().get(id)
+        if package is None:
+            return None
 
-        return super().add(item)
+        response_active = self.database[self.collection].find_one({"key": "active"})
+        active = is_active_package(package.package_id, response_active)
+        package.active = active
+
+        return package
 
     def delete(self, id: str) -> bool:
-        kwargs = {"_id": ObjectId(id)} if ObjectId.is_valid(id) else {"id": id}
-        kwargs["key"] = "package_trail"
-        document = self.database[self.collection].find_one(kwargs)
-
-        if document is None:
-            return False
-
-        result = super().delete(document["_id"])
-
+        kwargs = {self.primary_key: id, "key": "package_trail"}
+        result = self.database[self.collection].delete_one(kwargs).deleted_count == 1
         if not result:
             return False
 
+        # Remove Active Package if it is the one being deleted
         kwargs["key"] = "active"
-
         document_active = self.database[self.collection].find_one(kwargs)
-
         if document_active is not None:
-            return super().delete(document_active["_id"])
-
+            return self.database[self.collection].delete_one(kwargs).deleted_count == 1
         return True
 
     def delete_active(self) -> bool:
         kwargs = {"key": "active"}
+        return self.database[self.collection].delete_one(kwargs).deleted_count == 1
 
-        document_active = self.database[self.collection].find_one(kwargs)
-
-        if document_active is None:
-            return False
-
-        return super().delete(document_active["_id"])
-
-    def list(
-        self,
-        limit: int,
-        skip: int,
-        sort_key: str,
-        sort_order=pymongo.DESCENDING,
-        **kwargs,
-    ) -> Dict[int, List[Package]]:
-        """List entities
-        param limit: The maximum number of entities to return
-            type: int
-        param skip: The number of entities to skip
-            type: int
-        param sort_key: The key to sort by
-            type: str
-        param sort_order: The order to sort by
-            type: pymongo.DESCENDING | pymongo.ASCENDING
-        param kwargs: Additional query parameters
-            type: dict
-            example: {"key": "models"}
-        return: A dictionary with the count and the result
-        """
+    def list(self, limit=0, skip=0, sort_key=None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[PackageDTO]:
         kwargs["key"] = "package_trail"
+        packages = super().list(limit, skip, sort_key, sort_order, **kwargs)
 
-        response = self.database[self.collection].find(kwargs).sort(sort_key or "committed_at", sort_order).skip(skip or 0).limit(limit or 0)
+        if packages is None or len(packages) == 0:
+            return []
 
-        count = self.database[self.collection].count_documents(kwargs)
+        active_package = self.get_active()
 
-        response_active = self.database[self.collection].find_one({"key": "active"})
+        if active_package:
+            for package in packages:
+                package.active = is_active_package(package.package_id, active_package.to_dict())
 
-        result = [from_document(item, response_active) for item in response]
-
-        return {"count": count, "result": result}
+        return packages
 
     def count(self, **kwargs) -> int:
         kwargs["key"] = "package_trail"
         return super().count(**kwargs)
 
+    def set_active(self, id: str) -> bool:
+        kwargs = {self.primary_key: id}
+        kwargs["key"] = "package_trail"
 
-class PackageModel(MyAbstractBase):
-    __tablename__ = "packages"
+        document = self.database[self.collection].find_one(kwargs)
 
-    active: Mapped[bool] = mapped_column(default=False)
-    description: Mapped[Optional[str]] = mapped_column(String(255))
-    file_name: Mapped[str] = mapped_column(String(255))
-    helper: Mapped[str] = mapped_column(String(255))
-    name: Mapped[str] = mapped_column(String(255))
-    storage_file_name: Mapped[str] = mapped_column(String(255))
+        if document is None:
+            return False
+
+        # TODO: Use seperate table to store active package
+        activePackage = PackageDTO()
+        activePackage.patch_with(document, throw_on_extra_keys=False)
+        activePackage.active = True
+        activePackage.committed_at = datetime.now()
+        obj_to_insert = {"key": "active", **activePackage.to_db()}
+
+        self.database[self.collection].update_one({"key": "active"}, {"$set": obj_to_insert}, upsert=True)
+
+        return True
+
+    def get_active(self) -> PackageDTO:
+        kwargs = {"key": "active"}
+        document = self.database[self.collection].find_one(kwargs)
+        if document is None:
+            return None
+        document["active"] = True
+        return self._dto_from_document(document)
+
+    def set_active_helper(self, helper: str) -> bool:
+        if not validate_helper(helper):
+            raise ValueError
+        try:
+            self.database[self.collection].update_one({"key": "active"}, {"$set": {"helper": helper}}, upsert=True)
+        except Exception:
+            return False
+
+    def _document_from_dto(self, item: PackageDTO) -> Dict:
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["key"] = "package_trail"
+        _complement_with_storage_filename(item_dict)
+        return item_dict
+
+    def _dto_from_document(self, document: Dict) -> PackageDTO:
+        item_dict = from_document(document)
+        del item_dict["key"]
+        return PackageDTO().patch_with(item_dict, throw_on_extra_keys=False)
 
 
-def from_row(row: PackageModel) -> Package:
-    return {
-        "id": row.id,
-        "committed_at": row.committed_at,
-        "description": row.description,
-        "file_name": row.file_name,
-        "helper": row.helper,
-        "name": row.name,
-        "storage_file_name": row.storage_file_name,
-        "active": row.active,
-    }
-
-
-class SQLPackageStore(PackageStore, SQLStore[Package]):
+class SQLPackageStore(PackageStore, SQLStore[PackageDTO, PackageModel]):
     def __init__(self, Session):
-        super().__init__(Session)
-
-    def _complement(self, item: Package):
-        # TODO: Not complemented the same way as in MongoDBStore
-        if "committed_at" not in item or item["committed_at"] is None:
-            item["committed_at"] = datetime.now()
-
-        extension = item["file_name"].rsplit(".", 1)[1].lower()
-
-        if "storage_file_name" not in item or item["storage_file_name"] is None:
-            storage_file_name = secure_filename(f"{str(uuid.uuid4())}.{extension}")
-            item["storage_file_name"] = storage_file_name
-
-    def add(self, item: Package) -> Tuple[bool, Any]:
-        valid, message = validate(item)
-        if not valid:
-            return False, message
-
-        self._complement(item)
-        with self.Session() as session:
-            item = PackageModel(
-                committed_at=item["committed_at"],
-                description=item["description"] if "description" in item else "",
-                file_name=item["file_name"],
-                helper=item["helper"],
-                name=item["name"] if "name" in item else "",
-                storage_file_name=item["storage_file_name"],
-            )
-            session.add(item)
-            session.commit()
-            return True, from_row(item)
-
-    def get(self, id: str) -> Package:
-        with self.Session() as session:
-            stmt = select(PackageModel).where(PackageModel.id == id)
-            item = session.scalars(stmt).first()
-            if item is None:
-                return None
-            return from_row(item)
-
-    def update(self, id: str, item: Package) -> bool:
-        raise NotImplementedError
-
-    def delete(self, id: str) -> bool:
-        with self.Session() as session:
-            stmt = select(PackageModel).where(PackageModel.id == id)
-            item = session.scalars(stmt).first()
-            if item is None:
-                return False
-            session.delete(item)
-            session.commit()
-            return True
-
-    def list(self, limit: int, skip: int, sort_key: str, sort_order=pymongo.DESCENDING, **kwargs):
-        with self.Session() as session:
-            stmt = select(PackageModel)
-
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(PackageModel, key) == value)
-
-            _sort_order: str = "DESC" if sort_order == pymongo.DESCENDING else "ASC"
-            _sort_key: str = sort_key or "committed_at"
-
-            if _sort_key in PackageModel.__table__.columns:
-                sort_obj = PackageModel.__table__.columns.get(_sort_key) if _sort_order == "ASC" else PackageModel.__table__.columns.get(_sort_key).desc()
-
-                stmt = stmt.order_by(sort_obj)
-
-            if limit:
-                stmt = stmt.offset(skip or 0).limit(limit)
-            elif skip:
-                stmt = stmt.offset(skip)
-
-            items = session.scalars(stmt).all()
-
-            result = []
-            for i in items:
-                result.append(from_row(i))
-
-            count = session.scalar(select(func.count()).select_from(PackageModel))
-
-            return {"count": count, "result": result}
-
-    def count(self, **kwargs):
-        with self.Session() as session:
-            stmt = select(func.count()).select_from(PackageModel)
-
-            for key, value in kwargs.items():
-                stmt = stmt.where(getattr(PackageModel, key) == value)
-
-            count = session.scalar(stmt)
-
-            return count
+        super().__init__(Session, PackageModel, "package_id")
 
     def set_active(self, id: str):
         with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
-            if active_item:
-                active_item.active = False
 
             stmt = select(PackageModel).where(PackageModel.id == id)
-            item = session.scalars(stmt).first()
+            new_active_item = session.scalars(stmt).first()
+            if new_active_item is None:
+                return False
 
-            if item is None:
-                return None
-
-            item.active = True
+            new_active_item.active = True
+            if active_item:
+                active_item.active = False
             session.commit()
         return True
 
-    def get_active(self) -> Package:
+    def get_active(self) -> PackageDTO:
         with self.Session() as session:
             active_stmt = select(PackageModel).where(PackageModel.active)
             active_item = session.scalars(active_stmt).first()
             if active_item:
-                return from_row(active_item)
+                return self._dto_from_orm_model(active_item)
             return None
 
     def set_active_helper(self, helper: str) -> bool:
-        if not helper or helper == "" or helper not in ["numpyhelper", "binaryhelper", "androidhelper"]:
+        if not validate_helper(helper):
             raise ValueError()
 
         with self.Session() as session:
@@ -458,3 +222,16 @@ class SQLPackageStore(PackageStore, SQLStore[Package]):
                 session.commit()
                 return True
             return False
+
+    def _update_orm_model_from_dto(self, entity: PackageModel, item: PackageDTO):
+        item_dict = item.to_db(exclude_unset=False)
+        item_dict["id"] = item_dict.pop("package_id", None)
+        _complement_with_storage_filename(item_dict)
+        for key, value in item_dict.items():
+            setattr(entity, key, value)
+        return entity
+
+    def _dto_from_orm_model(self, item: PackageModel) -> PackageDTO:
+        orm_dict = from_orm_model(item, PackageModel)
+        orm_dict["package_id"] = orm_dict.pop("id")
+        return PackageDTO().populate_with(orm_dict)

@@ -9,7 +9,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
 from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 
-CHUNK_SIZE = 1024 * 1024
+CHUNK_SIZE = 1 * 1024 * 1024
 
 
 def upload_request_generator(mdl, id):
@@ -150,6 +150,7 @@ class ModelService(rpc.ModelServiceServicer):
     """Service for handling download and upload of models to the server."""
 
     def __init__(self):
+        """Initialize the temporary model storage."""
         self.temp_model_storage = TempModelStorage()
 
     def exist(self, model_id):

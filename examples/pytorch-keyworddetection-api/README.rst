@@ -30,8 +30,14 @@ Or if you rather use pip to install the packages:
 
    pip install -r requirements.txt
 
-Note that you in the case of installing with pip need to install either sox (macos or linux) or soundfile (windows) depending on your platform as this is a requirement for the torchaudio package.
+.. note::
 
+   In the case of installing with pip need to install either sox (macos or linux) or soundfile (windows) depending on your platform as this is a requirement for the torchaudio package.
+
+   For MacOS, you can install sox with the following command:
+   .. code-block::
+      brew install sox
+   
 
 Clone this repository, then locate into this directory:
 
@@ -46,7 +52,7 @@ Next, generate the seed model:
 
 .. code-block::
 
-   python fedn_api.py --init-seed
+   python fedn_api.py --upload-seed
 
 This will create a model file 'seed.npz' in the root of the project and upload it to the server.
 
@@ -56,7 +62,7 @@ Now we need to start the clients, download at set of client configutations follo
 Start the clients with the following command:
 .. code-block::
 
-   python client_sc.py --dataset-split-idx 0 --client-yaml client0.yaml
+   python main.py --dataset-split-idx 0 --client-yaml client0.yaml
 
 where each client is started with a different dataset split index and client yaml file.
 

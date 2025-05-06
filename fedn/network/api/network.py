@@ -1,10 +1,10 @@
 import os
+from typing import List
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerInterface
 from fedn.network.loadbalancer.leastpacked import LeastPacked
-from fedn.network.storage.statestore.stores.client_store import ClientStore
-from fedn.network.storage.statestore.stores.combiner_store import CombinerStore
+from fedn.network.storage.dbconnection import DatabaseConnection
 
 __all__ = ("Network",)
 
@@ -15,12 +15,11 @@ class Network:
     Some methods has been moved to :class:`fedn.network.api.interface.API`.
     """
 
-    def __init__(self, control, network_id: str, combiner_store: CombinerStore, client_store: ClientStore, load_balancer=None):
+    def __init__(self, control, network_id: str, dbconn: DatabaseConnection, load_balancer=None):
         """ """
-        self.combiner_store = combiner_store
-        self.client_store = client_store
         self.control = control
         self.id = network_id
+        self.db = dbconn
 
         if not load_balancer:
             self.load_balancer = LeastPacked(self)
@@ -41,16 +40,16 @@ class Network:
                 return combiner
         return None
 
-    def get_combiners(self):
+    def get_combiners(self) -> List[CombinerInterface]:
         """Get all combiners in the network.
 
         :return: list of combiners objects
         :rtype: list(:class:`fedn.network.combiner.interfaces.CombinerInterface`)
         """
-        data = self.combiner_store.list(limit=0, skip=0, sort_key=None)
+        result = self.db.combiner_store.list(limit=0, skip=0, sort_key=None)
         combiners = []
-        for c in data["result"]:
-            name = c["name"].upper()
+        for combiner in result:
+            name = combiner.name.upper()
             # General certificate handling, same for all combiners.
             if os.environ.get("FEDN_GRPC_CERT_PATH"):
                 with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
@@ -62,7 +61,9 @@ class Network:
                     cert = f.read()
             else:
                 cert = None
-            combiners.append(CombinerInterface(c["parent"], c["name"], c["address"], c["fqdn"], c["port"], certificate=cert, ip=c["ip"]))
+            combiners.append(
+                CombinerInterface(combiner.parent, combiner.name, combiner.address, combiner.fqdn, combiner.port, certificate=cert, ip=combiner.ip)
+            )
 
         return combiners
 
@@ -84,38 +85,3 @@ class Network:
         """
         # TODO: Implement strategy to handle an unavailable combiner.
         logger.warning("REDUCER CONTROL: Combiner {} unavailable.".format(combiner.name))
-
-    def add_client(self, client):
-        """Add a new client to the network.
-
-        :param client: The client instance object
-        :type client: dict
-        :return: None
-        """
-        if self.get_client(client["client_id"]):
-            return
-
-        logger.info("adding client {}".format(client["client_id"]))
-        self.client_store.upsert(client)
-
-    def get_client(self, client_id: str):
-        """Get client by client_id.
-
-        :param client_id: client_id of client
-        :type client_id: str
-        :return: The client instance object
-        :rtype: ObjectId
-        """
-        try:
-            client = self.client_store.get(client_id)
-            return client
-        except Exception:
-            return None
-
-    def get_client_info(self):
-        """List available client in statestore.
-
-        :return: list of client objects
-        :rtype: list(ObjectId)
-        """
-        return self.client_store.list(limit=0, skip=0, sort_key=None)

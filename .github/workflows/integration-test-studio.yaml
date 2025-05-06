@@ -1,0 +1,106 @@
+name: Integration Test Studio
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # This cron expression runs the workflow every day at midnight UTC
+  workflow_dispatch:  # Allows manual triggering of the workflow
+    inputs:
+      FEDN_EXAMPLE:
+        description: 'FEDN Example'
+        required: false
+        default: 'mnist-pytorch'
+      FEDN_NR_CLIENTS:
+        description: 'Number of Clients'
+        required: false
+        default: '2'
+      FEDN_NR_ROUNDS:
+        description: 'Number of Rounds'
+        required: false
+        default: '5'
+      FEDN_ROUND_TIMEOUT:
+        description: 'Round Timeout'
+        required: false
+        default: '180'
+      FEDN_RUNNER:
+        description: 'Runner'
+        required: false
+        default: 'north'
+      FEDN_FL_ALG:
+        description: 'FL Algorithm'
+        required: false
+        default: 'fedavg'
+      FEDN_NR_EXPECTED_AGG:
+        description: 'Number of Expected Aggregations Per Round'
+        required: false
+        default: '2'
+      FEDN_SESSION_TIMEOUT:
+        description: 'Session Timeout'
+        required: false
+        default: '420'
+      FEDN_ARRAY_SIZE_FACTOR:
+        description: 'Array Size Factor, used in load-test, 1 = 144MB'
+        required: false
+        default: '1'
+      FEDN_CLIENT_TIMEOUT:
+        description: 'Client Connection Timeout (OBS - not related to round timeout)'
+        required: false
+        default: '420'
+
+jobs:
+  integration-test:
+    runs-on: [self-hosted, north]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Create and activate virtual environment
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+
+    - name: Install dependencies
+      run: |
+        source venv/bin/activate
+        python -m pip install --upgrade pip
+        pip install .
+        pip install -r .ci/tests/studio/requirements.txt
+
+    - name: Generate .env file
+      run: |
+        echo "STUDIO_HOST=api.studio.scaleoutplatform.com" > .ci/tests/studio/.env
+        echo "STUDIO_USER=github@scaleoutsystems.com" >> .ci/tests/studio/.env
+        echo "FEDN_EXAMPLE=${{ github.event.inputs.FEDN_EXAMPLE || 'mnist-pytorch' }}" >> .ci/tests/studio/.env
+        echo "FEDN_NR_CLIENTS=${{ github.event.inputs.FEDN_NR_CLIENTS || '2' }}" >> .ci/tests/studio/.env
+        echo "FEDN_NR_ROUNDS=${{ github.event.inputs.FEDN_NR_ROUNDS || '5' }}" >> .ci/tests/studio/.env
+        echo "FEDN_ROUND_TIMEOUT=${{ github.event.inputs.FEDN_ROUND_TIMEOUT || '180' }}" >> .ci/tests/studio/.env
+        echo "FEDN_BUFFER_SIZE=${{ github.event.inputs.FEDN_BUFFER_SIZE || '-1' }}" >> .ci/tests/studio/.env
+        echo "FEDN_FL_ALG=${{ github.event.inputs.FEDN_FL_ALG || 'fedavg' }}" >> .ci/tests/studio/.env
+        echo "FEDN_NR_EXPECTED_AGG=${{ github.event.inputs.FEDN_NR_EXPECTED_AGG || '2' }}" >> .ci/tests/studio/.env
+        echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
+        echo "FEDN_ARRAY_SIZE_FACTOR=${{ github.event.inputs.FEDN_ARRAY_SIZE_FACTOR || '1' }}" >> .ci/tests/studio/.env
+        echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
+        echo "FEDN_PACKAGE_EXTRACT_DIR=client" >> .ci/tests/studio/.env
+        
+    - name: Run integration tests
+      env:
+        STUDIO_PASSWORD: ${{ secrets.STUDIO_GITHUB_PASSWORD }}
+      run: |
+        source venv/bin/activate
+        chmod +x .ci/tests/studio/studio.sh
+        .ci/tests/studio/studio.sh
+
+    - name: Print test logs
+      if: failure()
+      env:
+        FEDN_EXAMPLE: ${{ github.event.inputs.FEDN_EXAMPLE || 'mnist-pytorch' }}
+      run: |
+        for log in examples/$FEDN_EXAMPLE/test_*.log; do
+              echo "Printing $log"
+              cat $log
+            done

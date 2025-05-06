@@ -47,7 +47,7 @@ python ../../.ci/tests/examples/wait_for.py clients
 python ../../.ci/tests/examples/api_test.py set_seed --path seed.npz
 
 >&2 echo "Start session"
-python ../../.ci/tests/examples/api_test.py start_session --rounds 3 --helper "$helper"
+python ../../.ci/tests/examples/api_test.py start_session --name "session" --rounds 3 --helper "$helper"
 
 >&2 echo "Checking rounds success"
 python ../../.ci/tests/examples/wait_for.py rounds

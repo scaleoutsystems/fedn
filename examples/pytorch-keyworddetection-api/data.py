@@ -82,6 +82,8 @@ class FedSCDataset(Dataset):
 
         self._dataset_split_idx = dataset_split_idx
         self._dataset_total_splits = dataset_total_splits
+
+        Path(path).mkdir(parents=True, exist_ok=True)
         self._dataset = torchaudio.datasets.SPEECHCOMMANDS(path, subset=subset, download=True)
         self._start_idx = int(dataset_split_idx * len(self._dataset) / self._dataset_total_splits)
         self._end_idx = int((dataset_split_idx + 1) * len(self._dataset) / self._dataset_total_splits)

@@ -17,21 +17,17 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
-KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-KEEPALIVE_TIMEOUT_MS = 30 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-KEEPALIVE_PERMIT_WITHOUT_CALLS = True  # allow keepalive pings even when there are no RPCs
-MAX_CONNECTION_IDLE_MS = 30000
-MAX_CONNECTION_AGE_GRACE_MS = "INT_MAX"  # keep connection open indefinitely
-CLIENT_IDLE_TIMEOUT_MS = 30000
+
+KEEPALIVE_TIME_MS = 5 * 1000  # send keepalive ping every 5 second
+# wait 30 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIMEOUT_MS = 30 * 1000
+# allow keepalive pings even when there are no RPCs
+KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
     ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-    ("grpc.http2.max_pings_without_data", 0),  # unlimited pings without data
-    ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
-    ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
-    ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
 ]
 
 GRPC_SECURE_PORT = 443
@@ -87,7 +83,11 @@ class GrpcHandler:
             logger.info("Using root certificate from environment variable for GRPC channel.")
             with open(os.environ["FEDN_GRPC_ROOT_CERT_PATH"], "rb") as f:
                 credentials = grpc.ssl_channel_credentials(f.read())
-            self.channel = grpc.secure_channel(f"{host}:{port}", credentials)
+            self.channel = grpc.secure_channel(
+                f"{host}:{port}",
+                credentials,
+                options=GRPC_OPTIONS,
+            )
             return
 
         credentials = grpc.ssl_channel_credentials()
@@ -107,7 +107,7 @@ class GrpcHandler:
             options=GRPC_OPTIONS,
         )
 
-    def heartbeat(self, client_name: str, client_id: str) -> fedn.Response:
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
@@ -116,7 +116,6 @@ class GrpcHandler:
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
         try:
-            logger.info("Sending heartbeat to combiner")
             response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
         except grpc.RpcError as e:
             logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
@@ -139,11 +138,10 @@ class GrpcHandler:
                 self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
             if isinstance(response, fedn.Response):
-                logger.info("Heartbeat successful.")
+                pass
             else:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
-            time.sleep(update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
         """Subscribe to the model update request stream."""
@@ -218,6 +216,48 @@ class GrpcHandler:
         except Exception as e:
             logger.error(f"GRPC (SendStatus): An error occurred: {e}")
             self._handle_unknown_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
+
+    def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
+        """Send a model metric to the combiner."""
+        try:
+            logger.info("Sending model metric to combiner.")
+            _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendModelMetric): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
+            return False
+        return True
+
+    def send_attributes(self, attribute: fedn.AttributeMessage) -> bool:
+        """Send a attribute message to the combiner."""
+        try:
+            logger.info("Sending attributes to combiner.")
+            _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendAttributeMessage): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
+            return False
+        return True
+
+    def send_telemetry(self, telemetry: fedn.TelemetryMessage) -> bool:
+        """Send a telemetry message to the combiner."""
+        try:
+            logger.info("Sending telemetry to combiner.")
+            _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
+        except grpc.RpcError as e:
+            self._handle_grpc_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
+            return False
+        except Exception as e:
+            logger.error(f"GRPC (SendTelemetry): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
+            return False
+        return True
 
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
@@ -320,6 +360,7 @@ class GrpcHandler:
     def create_validation_message(
         self,
         sender_name: str,
+        sender_client_id: str,
         receiver_name: str,
         receiver_role: fedn.Role,
         model_id: str,
@@ -330,6 +371,7 @@ class GrpcHandler:
         """Create a validation message."""
         validation = fedn.ModelValidation()
         validation.sender.name = sender_name
+        validation.sender.client_id = sender_client_id
         validation.sender.role = fedn.CLIENT
         validation.receiver.name = receiver_name
         validation.receiver.role = receiver_role
@@ -364,6 +406,24 @@ class GrpcHandler:
         prediction.prediction_id = session_id
 
         return prediction
+
+    def create_metric_message(
+        self, sender_name: str, sender_client_id: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str
+    ) -> fedn.ModelMetric:
+        """Create a metric message."""
+        metric = fedn.ModelMetric()
+        metric.sender.name = sender_name
+        metric.sender.client_id = sender_client_id
+        metric.sender.role = fedn.CLIENT
+        metric.model_id = model_id
+        if step is not None:
+            metric.step.value = step
+        metric.session_id = session_id
+        metric.round_id = round_id
+        metric.timestamp.GetCurrentTime()
+        for key, value in metrics.items():
+            metric.metrics.add(key=key, value=value)
+        return metric
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         """Send a model update to the combiner."""

@@ -11,11 +11,12 @@ project = "FEDn"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.23.3"
+release = "0.27.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
     "sphinx.ext.intersphinx",
     "sphinx.ext.coverage",
@@ -109,3 +110,11 @@ epub_exclude_files = ["search.html"]
 intersphinx_mapping = {"python": ("https://docs.python.org/", None)}
 
 pygments_style = "sphinx"
+
+autodoc_default_options = {
+    "members": True,  # Include all members
+    "undoc-members": False,  # Include members without docstrings
+    "private-members": False,  # Include private members (if any)
+    "special-members": "__init__",  # Include special methods (if needed)
+    "show-inheritance": True,  # Show class inheritance
+}

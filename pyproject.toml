@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.23.3"
+version = "0.27.0"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"
@@ -32,8 +32,8 @@ dependencies = [
   "urllib3>=1.26.4",
   "gunicorn>=20.0.4",
   "minio",
-  "grpcio>=1.60,<=1.70",
-  "grpcio-tools>=1.60,<=1.70",
+  "grpcio>=1.68.1,<=1.70",
+  "grpcio-tools>=1.68.1,<=1.70",
   "numpy>=1.21.6",
   "protobuf>=5.0.0,<5.30.0",
   "pymongo",
@@ -42,7 +42,7 @@ dependencies = [
   "pyopenssl",
   "psutil",
   "click==8.1.8",
-  "grpcio-health-checking>=1.60,<=1.70",
+  "grpcio-health-checking>=1.68.1,<=1.70",
   "pyyaml",
   "plotly",
   "virtualenv",

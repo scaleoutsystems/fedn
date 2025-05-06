@@ -2,7 +2,7 @@
 import sys
 import pytest
 
-from fedn.tests.stores.helpers.database_helper import mongo_connection, sql_connection, postgres_connection
+from fedn.tests.stores.helpers.database_helper import mongo_connection, sql_connection, postgres_connection, db_connection
 
 
 # These lines ensure that pytests trigger breakpoints when assertions fail during debugging

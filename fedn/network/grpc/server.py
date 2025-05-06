@@ -6,7 +6,6 @@ from grpc_health.v1 import health, health_pb2_grpc
 
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
-from fedn.network.combiner.shared import modelservice
 from fedn.network.grpc.auth import JWTInterceptor
 
 
@@ -22,14 +21,18 @@ class ServerConfig(TypedDict):
 class Server:
     """Class for configuring and launching the gRPC server."""
 
-    def __init__(self, servicer, config: ServerConfig):
+    def __init__(self, servicer, modelservicer, config: ServerConfig):
         set_log_level_from_string(config.get("verbosity", "INFO"))
         set_log_stream(config.get("logfile", None))
 
         # Keepalive settings: these detect if the client is alive
-        KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 seconds
-        KEEPALIVE_TIMEOUT_MS = 20 * 1000  # wait 20 seconds for keepalive ping ack before considering connection dead
-        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000  # max idle time before server terminates the connection (5 minutes)
+        KEEPALIVE_TIME_MS = 60 * 1000  # send keepalive ping every 60 second
+        # wait 30 seconds for keepalive ping ack before considering connection dead
+        KEEPALIVE_TIMEOUT_MS = 30 * 1000
+        # max idle time before server terminates the connection (5 minutes)
+        MAX_CONNECTION_IDLE_MS = 5 * 60 * 1000
+
+        MAX_PING_STRIKES = 2
 
         self.server = grpc.server(
             futures.ThreadPoolExecutor(max_workers=350),
@@ -38,6 +41,8 @@ class Server:
                 ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
                 ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
                 ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
+                ("grpc.http2.max_pings_without_data", 0),  # Allow unlimited PINGs without data
+                ("grpc.http2.max_ping_strikes", MAX_PING_STRIKES),
             ],
         )
         self.certificate = None
@@ -49,8 +54,8 @@ class Server:
             rpc.add_ConnectorServicer_to_server(servicer, self.server)
         if isinstance(servicer, rpc.ReducerServicer):
             rpc.add_ReducerServicer_to_server(servicer, self.server)
-        if isinstance(modelservice, rpc.ModelServiceServicer):
-            rpc.add_ModelServiceServicer_to_server(modelservice, self.server)
+        if isinstance(modelservicer, rpc.ModelServiceServicer):
+            rpc.add_ModelServiceServicer_to_server(modelservicer, self.server)
         if isinstance(servicer, rpc.CombinerServicer):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 

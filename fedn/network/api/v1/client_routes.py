@@ -1,10 +1,15 @@
+from datetime import datetime
+
 from flask import Blueprint, jsonify, request
 
 from fedn.common.config import get_controller_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import client_store, control, get_checksum, package_store
+from fedn.network.api.shared import get_checksum
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
+from fedn.network.storage.statestore.stores.dto import ClientDTO
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("client", __name__, url_prefix=f"/api/{api_version}/clients")
 
@@ -110,10 +115,13 @@ def get_clients():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        clients = db.client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -193,9 +201,13 @@ def list_clients():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
-        response = client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+
+        clients = db.client_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.client_store.count(**kwargs)
+        response = {"count": count, "result": [client.to_dict() for client in clients]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -256,8 +268,9 @@ def get_clients_count():
                     type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = client_store.count(**kwargs)
+        count = db.client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -310,8 +323,9 @@ def clients_count():
                     type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = client_store.count(**kwargs)
+        count = db.client_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -354,10 +368,11 @@ def get_client(id: str):
                         type: string
     """
     try:
-        response = client_store.get(id)
-        if response is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
+        db = Control.instance().db
+        client = db.client_store.get(id)
+        if client is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = client.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
@@ -397,9 +412,10 @@ def delete_client(id: str):
                         type: string
     """
     try:
-        result: bool = client_store.delete(id)
+        db = Control.instance().db
+        result: bool = db.client_store.delete(id)
         if result is False:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
 
         msg = "Client deleted" if result else "Client not deleted"
 
@@ -448,6 +464,8 @@ def add_client():
                         type: string
     """
     try:
+        db = Control.instance().db
+        network = Control.instance().network
         json_data = request.get_json()
         remote_addr = request.remote_addr
 
@@ -458,7 +476,7 @@ def add_client():
         helper_type: str = ""
 
         if package == "remote":
-            package_object = package_store.get_active()
+            package_object = db.package_store.get_active()
             if package_object is None:
                 return jsonify(
                     {
@@ -467,12 +485,12 @@ def add_client():
                         "message": "No compute package found. Set package in controller.",
                     }
                 ), 203
-            helper_type = package_object["helper"]
+            helper_type = package_object.helper
         else:
             helper_type = ""
 
         if preferred_combiner:
-            combiner = control.network.get_combiner(preferred_combiner)
+            combiner = network.get_combiner(preferred_combiner)
             if combiner is None:
                 return jsonify(
                     {
@@ -482,21 +500,28 @@ def add_client():
                     400,
                 )
         else:
-            combiner = control.network.find_available_combiner()
+            combiner = network.find_available_combiner()
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
-        client_config = {
-            "client_id": client_id,
-            "name": name,
-            "combiner_preferred": preferred_combiner,
-            "combiner": combiner.name,
-            "ip": remote_addr,
-            "status": "available",
-            "package": package,
-        }
+        if db.client_store.get(client_id) is None:
+            logger.info("Adding client {}".format(client_id))
 
-        control.network.add_client(client_config)
+            last_seen = datetime.now()
+
+            new_client = ClientDTO(
+                client_id=client_id,
+                name=name,
+                combiner=combiner.name,
+                combiner_preferred=preferred_combiner,
+                ip=remote_addr,
+                status="available",
+                package=package,
+                last_seen=last_seen,
+            )
+
+            added_client = db.client_store.add(new_client)
+            client_id = added_client.client_id
 
         payload = {
             "status": "assigned",
@@ -506,8 +531,18 @@ def add_client():
             "ip": combiner.ip,
             "port": combiner.port,
             "helper_type": helper_type,
+            "client_id": client_id,
         }
         return jsonify(payload), 200
+    except ValidationError as e:
+        logger.error(f"Validation error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except MissingFieldError as e:
+        logger.error(f"Missing field error: {e}")
+        return jsonify({"message": e.user_message()}), 400
+    except ValueError as e:
+        logger.error(f"ValueError occured: {e}")
+        return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
@@ -561,6 +596,64 @@ def get_client_config():
                 payload["checksum"] = checksum_str
 
         return jsonify(payload), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>/attributes", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_client_attributes(id):
+    """Get client attributes
+    Retrieves the attributes of a client based on the provided id.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the client
+    responses:
+        200:
+            description: A list of attributes for the client
+            schema:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        key:
+                            type: string
+                        value:
+                            type: string
+        404:
+            description: The client was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        db = Control.instance().db
+
+        client = db.client_store.get(id)
+        if client is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
+        attributes = db.attribute_store.get_current_attributes_for_client(client.client_id)
+        response = {}
+        for attribute in attributes:
+            response[attribute.key] = attribute.value
+        return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
