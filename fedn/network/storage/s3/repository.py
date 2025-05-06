@@ -30,7 +30,7 @@ class Repository:
             raise ValueError("Missing required bucket names in configuration.")
 
         # Dynamically import the repository class based on storage_type
-        storage_type = storage_type or FEDN_OBJECT_STORAGE_TYPE
+        storage_type = (storage_type or FEDN_OBJECT_STORAGE_TYPE).upper()
         self.client = self._load_repository(storage_type, config)
 
         if init_buckets:
