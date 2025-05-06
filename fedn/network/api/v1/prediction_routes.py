@@ -23,7 +23,7 @@ def start_session():
         db = Control.instance().db
         control = Control.instance()
 
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
         prediction_id: str = data.get("prediction_id")
 
         if not prediction_id or prediction_id == "":
