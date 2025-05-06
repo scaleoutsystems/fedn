@@ -68,7 +68,7 @@ class TestAttributeStore:
     def test_get_attributes_for_client(self, db_connections_with_data: List[tuple[str, DatabaseConnection]]):
         for (name1, db_1) in db_connections_with_data:
             client_id = "test_sender_id"
-            attributes_distinct = db_1.attribute_store.get_attributes_for_client(client_id)
+            attributes_distinct = db_1.attribute_store.get_current_attributes_for_client(client_id)
             attributes_all = db_1.attribute_store.list(limit=0, skip=0, sort_key="committed_at", sort_order=SortOrder.ASCENDING, **{"sender.client_id": client_id})
             attributes_distinct_2 = [attributes_all[0], attributes_all[-1]]
             assert len(attributes_distinct) == len(attributes_distinct_2)
@@ -86,10 +86,12 @@ class TestAttributeStore:
         attribute_id = read_attribute1_dict["attribute_id"]
         del read_attribute1_dict["attribute_id"]
         del read_attribute1_dict["committed_at"]
+        del read_attribute1_dict["updated_at"]
 
         test_attribute_dict = test_attribute.to_dict()
         del test_attribute_dict["attribute_id"]
         del test_attribute_dict["committed_at"]
+        del test_attribute_dict["updated_at"]
 
         assert read_attribute1_dict == test_attribute_dict
 

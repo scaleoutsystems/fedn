@@ -73,10 +73,12 @@ class TestValidationStore:
         validation_id = read_validation1_dict["validation_id"]
         del read_validation1_dict["validation_id"]
         del read_validation1_dict["committed_at"]
+        del read_validation1_dict["updated_at"]
 
         test_validation_dict = test_validation.to_dict()
         del test_validation_dict["validation_id"]
         del test_validation_dict["committed_at"]
+        del test_validation_dict["updated_at"]
 
         assert read_validation1_dict == test_validation_dict
 

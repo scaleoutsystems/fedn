@@ -70,12 +70,14 @@ class TestModelStore:
         del read_model1_dict["model_id"]
         del read_model1_dict["model"]
         del read_model1_dict["committed_at"]
+        del read_model1_dict["updated_at"]
 
 
         input_dict = test_model.to_dict()
         del input_dict["model_id"]
         del input_dict["model"]
         del input_dict["committed_at"]
+        del input_dict["updated_at"]
 
         assert read_model1_dict == input_dict
 
