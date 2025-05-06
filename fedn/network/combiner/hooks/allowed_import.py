@@ -11,5 +11,3 @@ from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctionsBase 
 api_client = APIClient(host=os.getenv("REDUCER_SERVICE_HOST", "api-server"), port=int(os.getenv("REDUCER_SERVICE_PORT", 8092)))
 
 print = logger.info
-
-print(api_client.get_active_clients())

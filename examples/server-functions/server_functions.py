@@ -1,4 +1,4 @@
-from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, np, random
+from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, api_client, np, random
 
 # See allowed_imports for what packages you can use in this class.
 
@@ -15,6 +15,8 @@ class ServerFunctions(ServerFunctionsBase):
     # Called first in the beggining of a round to select clients.
     def client_selection(self, client_ids: List[str]) -> List:
         # Pick 10 random clients
+        print(f"active clients: {api_client.get_active_clients()}")
+        print(f"client ids: {client_ids}")
         client_ids = random.sample(client_ids, min(len(client_ids), 10))  # noqa: F405
         return client_ids
 

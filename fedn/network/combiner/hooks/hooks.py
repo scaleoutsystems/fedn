@@ -32,6 +32,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.server_functions_code: str = None
         self.client_updates = {}
         self.implemented_functions = {}
+        logger.info("Server Functions initialized.")
 
     def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
         """Distribute client configs to clients from user defined code.
