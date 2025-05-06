@@ -1,5 +1,6 @@
 import datetime
 import itertools
+from typing import List
 import uuid
 
 import pytest
@@ -30,7 +31,7 @@ def test_client():
     return c
 
 @pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients):
+def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_clients: List[ClientDTO]):
     for c in test_clients:
         mongo_connection.client_store.add(c)
         postgres_connection.client_store.add(c)
@@ -52,7 +53,8 @@ def options():
                     "client_id",
                     "last_seen",
                     "ip", # None unique key 
-                    "invalid_key"
+                    "invalid_key",
+                    "committed_at"
                     ) 
     limits = (None, 0, 1, 2, 99)
     skips = (None, 0, 1, 2, 99)
@@ -74,10 +76,12 @@ class TestClientStore:
         client_id = read_client1_dict["client_id"]
         del read_client1_dict["client_id"]
         del read_client1_dict["committed_at"]
+        del read_client1_dict["updated_at"]
 
         test_client_dict = test_client.to_dict()
         del test_client_dict["client_id"]
         del test_client_dict["committed_at"]
+        del test_client_dict["updated_at"]
 
         assert read_client1_dict == test_client_dict
 

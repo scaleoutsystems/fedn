@@ -86,10 +86,12 @@ class TestPredictionStore:
         prediction_id = read_prediction1_dict["prediction_id"]
         del read_prediction1_dict["prediction_id"]
         del read_prediction1_dict["committed_at"]
+        del read_prediction1_dict["updated_at"]
 
         test_prediction_dict = test_prediction.to_dict()
         del test_prediction_dict["prediction_id"]
         del test_prediction_dict["committed_at"]
+        del test_prediction_dict["updated_at"]
 
         assert read_prediction1_dict == test_prediction_dict
 

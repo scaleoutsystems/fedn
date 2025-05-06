@@ -10,14 +10,13 @@ abs_path = os.path.abspath(dir_path)
 
 def get_data(out_dir="data"):
     # Make dir if necessary
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
+    os.makedirs(out_dir, exist_ok=True)
 
     # Only download if not already downloaded
-    if not os.path.exists(f"{out_dir}/train"):
-        torchvision.datasets.MNIST(root=f"{out_dir}/train", transform=torchvision.transforms.ToTensor, train=True, download=True)
-    if not os.path.exists(f"{out_dir}/test"):
-        torchvision.datasets.MNIST(root=f"{out_dir}/test", transform=torchvision.transforms.ToTensor, train=False, download=True)
+    if not os.path.exists(f"{out_dir}/MNIST/processed/training.pt"):
+        torchvision.datasets.MNIST(root=out_dir, transform=torchvision.transforms.ToTensor(), train=True, download=True)
+    if not os.path.exists(f"{out_dir}/MNIST/processed/test.pt"):
+        torchvision.datasets.MNIST(root=out_dir, transform=torchvision.transforms.ToTensor(), train=False, download=True)
 
 
 def load_data(data_path, is_train=True):
@@ -61,12 +60,11 @@ def split(out_dir="data"):
     n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
 
     # Make dir
-    if not os.path.exists(f"{out_dir}/clients"):
-        os.mkdir(f"{out_dir}/clients")
+    os.makedirs(f"{out_dir}/clients", exist_ok=True)
 
     # Load and convert to dict
-    train_data = torchvision.datasets.MNIST(root=f"{out_dir}/train", transform=torchvision.transforms.ToTensor, train=True)
-    test_data = torchvision.datasets.MNIST(root=f"{out_dir}/test", transform=torchvision.transforms.ToTensor, train=False)
+    train_data = torchvision.datasets.MNIST(root=out_dir, transform=torchvision.transforms.ToTensor(), train=True)
+    test_data = torchvision.datasets.MNIST(root=out_dir, transform=torchvision.transforms.ToTensor(), train=False)
     data = {
         "x_train": splitset(train_data.data, n_splits),
         "y_train": splitset(train_data.targets, n_splits),
@@ -76,9 +74,8 @@ def split(out_dir="data"):
 
     # Make splits
     for i in range(n_splits):
-        subdir = f"{out_dir}/clients/{str(i+1)}"
-        if not os.path.exists(subdir):
-            os.mkdir(subdir)
+        subdir = f"{out_dir}/clients/{str(i + 1)}"
+        os.makedirs(subdir, exist_ok=True)
         torch.save(
             {
                 "x_train": data["x_train"][i],

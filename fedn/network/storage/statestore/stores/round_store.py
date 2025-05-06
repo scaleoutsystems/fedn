@@ -46,7 +46,7 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
 
 class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
     def __init__(self, Session):
-        super().__init__(Session, RoundModel)
+        super().__init__(Session, RoundModel, "round_id")
 
     def update(self, item: RoundDTO) -> RoundDTO:
         return self.sql_update(item)
@@ -119,6 +119,7 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
             orm_dict["round_config"] = from_orm_model(item.round_config, RoundConfigModel)
             del orm_dict["round_config"]["id"]
             del orm_dict["round_config"]["committed_at"]
+            del orm_dict["round_config"]["updated_at"]
 
         if item.combiners is not None:
             orm_dict["combiners"] = self._combiners_to_dict_list(item.combiners)
@@ -132,6 +133,7 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
             }
             del orm_dict["round_data"]["id"]
             del orm_dict["round_data"]["committed_at"]
+            del orm_dict["round_data"]["updated_at"]
 
         orm_dict["round_id"] = orm_dict.pop("id")
         del orm_dict["round_config_id"]
@@ -152,15 +154,18 @@ class SQLRoundStore(RoundStore, SQLStore[RoundDTO, RoundModel]):
                 }
                 del c_dict["data"]["id"]
                 del c_dict["data"]["committed_at"]
+                del c_dict["data"]["updated_at"]
 
             if c.round_config is not None:
                 c_dict["config"] = from_orm_model(c.round_config, RoundConfigModel)
                 c_dict["config"]["_job_id"] = c_dict.pop("config_job_id")
                 del c_dict["config"]["id"]
                 del c_dict["config"]["committed_at"]
+                del c_dict["config"]["updated_at"]
 
             del c_dict["id"]
             del c_dict["committed_at"]
+            del c_dict["updated_at"]
             del c_dict["round_config_id"]
             del c_dict["data_id"]
             del c_dict["parent_round_id"]

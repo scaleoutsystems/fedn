@@ -44,7 +44,7 @@ def _translate_key_sql(key: str):
 
 class SQLPredictionStore(PredictionStore, SQLStore[PredictionDTO, PredictionModel]):
     def __init__(self, Session):
-        super().__init__(Session, PredictionModel)
+        super().__init__(Session, PredictionModel, "prediction_id")
 
     def list(self, limit: int = 0, skip: int = 0, sort_key: str = None, sort_order=SortOrder.DESCENDING, **kwargs) -> List[PredictionDTO]:
         kwargs = {_translate_key_sql(k): v for k, v in kwargs.items()}

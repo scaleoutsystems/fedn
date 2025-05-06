@@ -356,7 +356,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def get_latest_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 
@@ -369,7 +369,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def set_current_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 
@@ -382,7 +382,7 @@ if custom_url_prefix:
 @jwt_auth_required(role="admin")
 def get_initial_model():
     response = {
-        "message": "This endpoint is deprecated. Use /api/v1/models/active instead.",
+        "message": "This endpoint is deprecated. Use /api/v1/models instead.",
     }
     return jsonify(response), 410
 
@@ -492,11 +492,13 @@ def start_server_api():
     statestore_config = get_statestore_config()
 
     # TODO: Initialize database with config instead of reading it under the hood
-    db = DatabaseConnection(statestore_config, network_id)
+    db = DatabaseConnection(statestore_config, network_id, connect=False)
     repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
     Control.create_instance(network_id, repository, db)
 
     if debug:
+        # Without gunicorn, we can initialize the database connection here
+        db.initialize_connection()
         app.run(debug=debug, port=port, host=host)
     else:
         workers = os.cpu_count()

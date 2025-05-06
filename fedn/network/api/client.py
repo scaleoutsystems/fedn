@@ -269,6 +269,8 @@ class APIClient:
         """
         _headers = self.headers.copy()
         _headers["X-Limit"] = "1"
+        _headers["X-Sort-Key"] = "committed_at"
+        _headers["X-Sort-Order"] = "desc"
 
         response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
         _json = response.json()
@@ -290,14 +292,15 @@ class APIClient:
         """
         if not id:
             model = self.get_active_model()
-            if "id" in model:
-                id = model["id"]
+            if "model_id" in model:
+                id = model["model_id"]
             else:
                 return model
 
         _headers = self.headers.copy()
 
         _count: int = n_max if n_max else self.get_models_count()
+
         _headers["X-Limit"] = str(_count)
         _headers["X-Reverse"] = "true" if reverse else "false"
 
@@ -638,11 +641,19 @@ class APIClient:
         :rtype: dict
         """
         if model_id is None:
-            response = requests.get(self._get_url_api_v1("models/active"), verify=self.verify, headers=self.headers)
+            _headers = self.headers.copy()
+            _headers["X-Limit"] = "1"
+            _headers["X-Sort-Key"] = "committed_at"
+            _headers["X-Sort-Order"] = "desc"
+            response = requests.get(self._get_url_api_v1("models/"), verify=self.verify, headers=_headers)
             if response.status_code == 200:
-                model_id = response.json()
+                json = response.json()
+                if "result" in json and len(json["result"]) > 0:
+                    model_id = json["result"][0]["model_id"]
+                else:
+                    return {"message": "No models found in the repository"}
             else:
-                return response.json()
+                return {"message": "No models found in the repository"}
 
         if helper is None:
             response = requests.get(self._get_url_api_v1("helpers/active"), verify=self.verify, headers=self.headers)
@@ -657,6 +668,7 @@ class APIClient:
             self._get_url_api_v1("sessions/"),
             json={
                 "name": name,
+                "seed_model_id": model_id,
                 "session_config": {
                     "aggregator": aggregator,
                     "aggregator_kwargs": aggregator_kwargs,
@@ -939,4 +951,27 @@ class APIClient:
 
         _json = response.json()
 
+        return _json
+
+    # --- Client --- #
+
+    def get_current_attributes(self, client_list):
+        """Get the current attributes of the client.
+
+        :param client_list: The list of clients to get the attributes for or a single client_id
+        :type client_list: list|str
+        :raises ValueError: If client_list is not a list or empty.
+        :return: The current attributes of the client.
+        :rtype: dict
+        """
+        if not isinstance(client_list, list):
+            if isinstance(client_list, str):
+                client_list = [client_list]
+            else:
+                raise ValueError("client_list must be a list")
+        if len(client_list) == 0:
+            raise ValueError("client_list must not be empty")
+        json = {"client_ids": client_list}
+        response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
+        _json = response.json()
         return _json

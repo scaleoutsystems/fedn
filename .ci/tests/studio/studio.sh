@@ -32,7 +32,7 @@ fi
 fedn studio login -u $STUDIO_USER -P $STUDIO_PASSWORD -H $STUDIO_HOST
 fedn project create -n citest -H $STUDIO_HOST --no-interactive
 sleep 5
-FEDN_PROJECT=$(fedn project list -H $STUDIO_HOST | awk 'NR>=1 {print $1; exit}')
+FEDN_PROJECT=$(fedn project list -H $STUDIO_HOST --no-header | awk 'NR>=1 {print $3; exit}')
 fedn project set-context -id $FEDN_PROJECT -H $STUDIO_HOST
 pushd examples/$FEDN_EXAMPLE
 fedn client get-config -n test -g $FEDN_NR_CLIENTS -H $STUDIO_HOST
@@ -43,4 +43,4 @@ for i in $(seq 0 $(($FEDN_NR_CLIENTS - 1))); do
 done
 popd
 sleep 5
-pytest .ci/tests/studio/tests.py
+pytest .ci/tests/studio/tests.py -x

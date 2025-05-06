@@ -32,7 +32,7 @@ class MongoDBSessionStore(SessionStore, MongoDBStore[SessionDTO]):
 
 class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
     def __init__(self, Session):
-        super().__init__(Session, SessionModel)
+        super().__init__(Session, SessionModel, "session_id")
 
     def update(self, item: SessionDTO) -> SessionDTO:
         return self.sql_update(item)
@@ -61,6 +61,7 @@ class SQLSessionStore(SessionStore, SQLStore[SessionDTO, SessionModel]):
 
         session_config_dict.pop("id")
         session_config_dict.pop("committed_at")
+        session_config_dict.pop("updated_at")
         session_dict.pop("session_config_id")
 
         return SessionDTO().populate_with(session_dict)

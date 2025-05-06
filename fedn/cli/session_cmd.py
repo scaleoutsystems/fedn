@@ -87,10 +87,21 @@ def start_session(
         headers = {"Authorization": _token}
 
     if model_id is None:
-        url = get_api_url(protocol, host, port, "models/active", usr_api=False)
-        response = requests.get(url, headers=headers)
+        model_query_headers = headers.copy()
+        model_query_headers["X-Limit"] = "1"
+        model_query_headers["X-Sort-Key"] = "committed_at"
+        model_query_headers["X-Sort-Order"] = "desc"
+
+        url = get_api_url(protocol, host, port, "models", usr_api=False)
+        response = requests.get(url, headers=model_query_headers)
         if response.status_code == 200:
-            model_id = response.json()
+            json = response.json()
+
+            if "result" in json and len(json["result"]) > 0:
+                model_id = json["result"][0]["model_id"]
+            else:
+                click.secho("No models found", fg="red")
+                return
         else:
             click.secho(f"Failed to get active model: {response.json()}", fg="red")
             return
@@ -132,18 +143,21 @@ def start_session(
     if response.status_code == 201:
         session_id = response.json()["session_id"]
         url = get_api_url(protocol, host, port, "sessions/start", usr_api=False)
-        response = requests.post(
-            url,
-            json={
-                "session_id": session_id,
-                "rounds": rounds,
-                "round_timeout": round_timeout,
-            },
-            headers=headers,
-            verify=False,
-        )
-        response_json = response.json()
-        response_json["session_id"] = session_id
-        click.secho(f"Session started successfully: {response_json}", fg="green")
+        try:
+            response = requests.post(
+                url,
+                json={
+                    "session_id": session_id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                headers=headers,
+                verify=False,
+            )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            click.secho(f"Session started successfully: {response_json}", fg="green")
+        except requests.exceptions.RequestException:
+            click.secho(f"Failed to start session: {response.json()}", fg="red")
     else:
         click.secho(f"Failed to start session: {response.json()}", fg="red")

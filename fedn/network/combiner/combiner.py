@@ -21,12 +21,12 @@ from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto import ClientDTO
-from fedn.network.storage.statestore.stores.dto.analytic import AnalyticDTO
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.dto.combiner import CombinerDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
@@ -675,20 +675,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__join_client(client)
         self.clients[client.client_id]["last_seen"] = datetime.now()
 
-        if heartbeat.cpu_utilisation is not None or heartbeat.memory_utilisation is not None:
-            analytic = AnalyticDTO().patch_with(
-                {
-                    "sender_id": client.client_id,
-                    "sender_role": "client",
-                    "cpu_utilisation": heartbeat.cpu_utilisation,
-                    "memory_utilisation": heartbeat.memory_utilisation,
-                }
-            )
-            try:
-                self.db.analytic_store.add(analytic)
-            except Exception as e:
-                logger.error(f"GRPC: SendHeartbeat error: {e}")
-
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
         response.sender.role = heartbeat.sender.role
@@ -871,6 +857,25 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 self.db.attribute_store.add(new_attribute)
             except Exception as e:
                 logger.error(f"Failed to register model attribute: {e}")
+
+        return fedn.Response()
+
+    def SendTelemetryMessage(self, request, context):
+        """Send a telemetry message.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.TelemetryMessage`
+        """
+        logger.info("Received Telemetry from {}".format(request.sender.name))
+        telemetry_msg = MessageToDict(request, preserving_proto_field_name=True)
+        telemetries = telemetry_msg.pop("telemetries")
+        for telemetry in telemetries:
+            telemetry = {"value": 0.0, **telemetry}
+            new_telemetry = TelemetryDTO(**telemetry, **telemetry_msg)
+            try:
+                self.db.telemetry_store.add(new_telemetry)
+            except Exception as e:
+                logger.error(f"Failed to register telemetry: {e}")
 
         return fedn.Response()
 

@@ -1,7 +1,6 @@
 import copy
 import datetime
 import time
-import uuid
 from typing import Optional
 
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
@@ -198,7 +197,7 @@ class Control(ControlBase):
         training_run_obj.round_timeout = session_config.round_timeout
         training_run_obj.rounds = rounds
 
-        training_run_obj = self.db.training_run_store.add(training_run_obj)
+        training_run_obj = self.db.run_store.add(training_run_obj)
 
         count_models_of_session = 0
 
@@ -216,8 +215,8 @@ class Control(ControlBase):
                 if self.get_session_status(session_id) == "Terminated":
                     logger.info("Session terminated.")
                     training_run_obj.completed_at = datetime.datetime.now()
-                    training_run_obj.completed_at_model_id = self.db.model_store.get_active()
-                    self.db.training_run_store.update(training_run_obj)
+                    training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
+                    self.db.run_store.update(training_run_obj)
                     break
                 _, round_data = self.round(
                     session_config=session_config,
@@ -235,8 +234,8 @@ class Control(ControlBase):
         if self.get_session_status(session_id) == "Started":
             self.set_session_status(session_id, "Finished")
             training_run_obj.completed_at = datetime.datetime.now()
-            training_run_obj.completed_at_model_id = self.db.model_store.get_active()
-            self.db.training_run_store.update(training_run_obj)
+            training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
+            self.db.run_store.update(training_run_obj)
             logger.info("Session finished.")
         self._state = ReducerState.idle
 
@@ -382,11 +381,11 @@ class Control(ControlBase):
             return None, self.db.round_store.get(round_id)
 
         # Commit the new global model to the model trail
+        model_id: Optional[str] = None
         if model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
-            model_id = str(uuid.uuid4())
-            self.commit(model_id=model_id, model=model, session_id=session_id, name=model_name)
+            model_id = self.commit(model=model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
@@ -400,7 +399,7 @@ class Control(ControlBase):
         if session_config.validate:
             combiner_config = session_config.to_dict()
             combiner_config["round_id"] = round_id
-            combiner_config["model_id"] = self.db.model_store.get_active()
+            combiner_config["model_id"] = model_id
             combiner_config["task"] = "validation"
             combiner_config["session_id"] = session_id
 
