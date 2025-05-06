@@ -9,7 +9,7 @@ from fedn.network.storage.statestore.stores.store import MongoDBStore, SQLStore,
 
 
 class AttributeStore(Store[AttributeDTO]):
-    def get_attributes_for_client(self, client_id: str) -> List[AttributeDTO]:
+    def get_current_attributes_for_client(self, client_id: str) -> List[AttributeDTO]:
         """Get all attributes for a specific client.
 
         This method returns the most recent attributes for the given client_id.

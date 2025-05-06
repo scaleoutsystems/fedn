@@ -952,3 +952,26 @@ class APIClient:
         _json = response.json()
 
         return _json
+
+    # --- Client --- #
+
+    def get_current_attributes(self, client_list):
+        """Get the current attributes of the client.
+
+        :param client_list: The list of clients to get the attributes for or a single client_id
+        :type client_list: list|str
+        :raises ValueError: If client_list is not a list or empty.
+        :return: The current attributes of the client.
+        :rtype: dict
+        """
+        if not isinstance(client_list, list):
+            if isinstance(client_list, str):
+                client_list = [client_list]
+            else:
+                raise ValueError("client_list must be a list")
+        if len(client_list) == 0:
+            raise ValueError("client_list must not be empty")
+        json = {"client_ids": client_list}
+        response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
+        _json = response.json()
+        return _json
