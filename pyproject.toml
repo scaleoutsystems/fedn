@@ -107,6 +107,7 @@ exclude = [
     ".mnist-pytorch",
     "fedn_pb2.py",
     "fedn_pb2_grpc.py",
+    "fedn_pb2.pyi",
     ".ci",
     "test*",
     "**/*.ipynb"
