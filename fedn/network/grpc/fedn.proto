@@ -53,7 +53,7 @@ enum TaskStatus {
     TASK_RUNNING = 1;
     TASK_COMPLETED = 2;
     TASK_FAILED = 3;
-    TASK_INTERUPTED = 4;
+    TASK_INTERRUPTED = 4;
 }
 
 message TaskRequest {

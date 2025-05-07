@@ -7,10 +7,10 @@ import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.common.log_config import logger
 
 if TYPE_CHECKING:
-    from fedn.network.clients.fedn_client import FednClient
+    from fedn.network.clients.fedn_client import FednClient  # not-floating-import
 
 
-class IncommingTask:
+class IncomingTask:
     def __init__(self, task: fedn_proto.Task):
         self.task_id = task.task_id
         self.status = fedn_proto.TaskStatus.TASK_PENDING
@@ -26,20 +26,20 @@ class IncommingTask:
 
 
 def task_finished(status: fedn_proto.TaskStatus) -> bool:
-    return status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERUPTED)
+    return status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERRUPTED)
 
 
 class StoppedException(Exception):
     pass
 
 
-class TaskReciever:
+class TaskReceiver:
     def __init__(self, client: "FednClient", task_callback: callable, polling_interval: int = 5):
         self.client = client
         self.task_callback = task_callback
 
-        self._tasks: Dict[str, IncommingTask] = {}
-        self._syncronous_tasks: Queue[IncommingTask] = Queue()
+        self._tasks: Dict[str, IncomingTask] = {}
+        self._synchronous_tasks: Queue[IncomingTask] = Queue()
 
         self.polling_interval = polling_interval
 
@@ -102,8 +102,8 @@ class TaskReciever:
                 # This thread loses "ownership in a concurrency aspect" of the request once the task is started
                 # Hence, the request may not be modified after this point
                 # Access to the task metadata is protected by a lock
-                new_task: IncommingTask = IncommingTask(request)
-                self._syncronous_tasks.put(new_task)
+                new_task: IncomingTask = IncomingTask(request)
+                self._synchronous_tasks.put(new_task)
                 self._tasks[request.task_id] = new_task
 
             # Wait for next polling interval
@@ -111,7 +111,7 @@ class TaskReciever:
             if toc - tic < self.polling_interval:
                 time.sleep(self.polling_interval - (toc - tic))
 
-    def _run_task(self, task: IncommingTask):
+    def _run_task(self, task: IncomingTask):
         with task.lock:
             task.status = fedn_proto.TaskStatus.TASK_RUNNING
         try:
@@ -125,7 +125,7 @@ class TaskReciever:
                 task.response = {"error": str(e)}
         except StoppedException as e:
             with task.lock:
-                task.status = fedn_proto.TaskStatus.TASK_INTERUPTED
+                task.status = fedn_proto.TaskStatus.TASK_INTERRUPTED
                 task.response = {"error": str(e)}
         finally:
             with task.lock:
@@ -133,6 +133,6 @@ class TaskReciever:
 
     def _syncronous_task_runner(self):
         while True:
-            task = self._syncronous_tasks.get()
+            task = self._synchronous_tasks.get()
             self._run_task(task)
-            self._syncronous_tasks.task_done()
+            self._synchronous_tasks.task_done()

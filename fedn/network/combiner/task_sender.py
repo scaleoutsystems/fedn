@@ -24,7 +24,7 @@ class OutstandingTask:
 
 
 def task_finished(task: OutstandingTask) -> bool:
-    return task.status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERUPTED)
+    return task.status in (fedn_proto.TaskStatus.TASK_COMPLETED, fedn_proto.TaskStatus.TASK_FAILED, fedn_proto.TaskStatus.TASK_INTERRUPTED)
 
 
 class TaskSender:

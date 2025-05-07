@@ -18,7 +18,7 @@ from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_P
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler
 from fedn.network.clients.package_runtime import PackageRuntime
-from fedn.network.clients.task_reciever import TaskReciever
+from fedn.network.clients.task_reciever import TaskReceiver
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
@@ -127,7 +127,7 @@ class FednClient:
 
         self._current_context: Optional[LoggingContext] = None
 
-        self.task_reciever = TaskReciever(self, self._run_task_callback)
+        self.task_reciever = TaskReceiver(self, self._run_task_callback)
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""

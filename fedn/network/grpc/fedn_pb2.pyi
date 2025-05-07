@@ -95,7 +95,7 @@ class _TaskStatusEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._Enu
     TASK_RUNNING: _TaskStatus.ValueType  # 1
     TASK_COMPLETED: _TaskStatus.ValueType  # 2
     TASK_FAILED: _TaskStatus.ValueType  # 3
-    TASK_INTERUPTED: _TaskStatus.ValueType  # 4
+    TASK_INTERRUPTED: _TaskStatus.ValueType  # 4
 
 class TaskStatus(_TaskStatus, metaclass=_TaskStatusEnumTypeWrapper): ...
 
@@ -103,7 +103,7 @@ TASK_PENDING: TaskStatus.ValueType  # 0
 TASK_RUNNING: TaskStatus.ValueType  # 1
 TASK_COMPLETED: TaskStatus.ValueType  # 2
 TASK_FAILED: TaskStatus.ValueType  # 3
-TASK_INTERUPTED: TaskStatus.ValueType  # 4
+TASK_INTERRUPTED: TaskStatus.ValueType  # 4
 global___TaskStatus = TaskStatus
 
 class _ModelStatus:
