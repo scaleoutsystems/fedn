@@ -18,6 +18,7 @@ from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_P
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler
 from fedn.network.clients.package_runtime import PackageRuntime
+from fedn.network.clients.task_reciever import TaskReciever
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
@@ -125,6 +126,8 @@ class FednClient:
         self.grpc_handler: Optional[GrpcHandler] = None
 
         self._current_context: Optional[LoggingContext] = None
+
+        self.task_reciever = TaskReciever(self, self._run_task_callback)
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -290,6 +293,25 @@ class FednClient:
             self.validate_global_model(request)
         elif request.type == fedn.StatusType.MODEL_PREDICTION:
             self.predict_global_model(request)
+
+    def _run_task_callback(self, task: fedn.Task) -> None:
+        if task.request:
+            if task.request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
+                self._task_stream_callback(task.request)
+                return {}
+            else:
+                logger.error(f"Unknown task type: {task.request.type}")
+                raise ValueError(f"Unknown task type: {task.request.type}")
+        else:
+            return self._run_new_task(task)
+
+    def _run_new_task(self, task: fedn.Task) -> None:
+        if task.type == "Task1":
+            logger.info("Running Task1")
+            return {"result": "Task1 completed"}
+        else:
+            logger.error(f"Unknown task type: {task.type}")
+            raise ValueError(f"Unknown task type: {task.type}")
 
     def update_local_model(self, request: fedn.TaskRequest) -> None:
         """Update the local model."""
@@ -545,14 +567,20 @@ class FednClient:
         logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
-    def run(self, with_telemetry=True, with_heartbeat=True) -> None:
+    def run(self, with_telemetry=True, with_heartbeat=False, with_polling=True) -> None:
         """Run the client."""
         if with_heartbeat:
             threading.Thread(target=self.send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
         if with_telemetry:
             threading.Thread(target=self.default_telemetry_loop, daemon=True).start()
+
         try:
-            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+            if with_polling:
+                self.task_reciever.start()
+                logger.info("Task receiver started.")
+                self.task_reciever._task_manager_thread.join()
+            else:
+                self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 

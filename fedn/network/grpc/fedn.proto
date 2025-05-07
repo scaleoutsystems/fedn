@@ -142,7 +142,7 @@ message TelemetryElem {
 message Activity {
   string task_id = 1;
   TaskStatus status = 2;
-  google.protobuf.Struct task_response = 3;
+  google.protobuf.Struct response = 3;
 }
 
 message ActivityReport {
@@ -152,8 +152,9 @@ message ActivityReport {
 
 message Task {
   string task_id = 1;
-  string task_type = 2;
+  string type = 2;
   google.protobuf.Struct task_parameters = 3;
+  TaskRequest request = 4;
 }
 
 message TaskList{

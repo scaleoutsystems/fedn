@@ -558,20 +558,20 @@ class Activity(google.protobuf.message.Message):
 
     TASK_ID_FIELD_NUMBER: builtins.int
     STATUS_FIELD_NUMBER: builtins.int
-    TASK_RESPONSE_FIELD_NUMBER: builtins.int
+    RESPONSE_FIELD_NUMBER: builtins.int
     task_id: builtins.str
     status: global___TaskStatus.ValueType
     @property
-    def task_response(self) -> google.protobuf.struct_pb2.Struct: ...
+    def response(self) -> google.protobuf.struct_pb2.Struct: ...
     def __init__(
         self,
         *,
         task_id: builtins.str = ...,
         status: global___TaskStatus.ValueType = ...,
-        task_response: google.protobuf.struct_pb2.Struct | None = ...,
+        response: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["task_response", b"task_response"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["status", b"status", "task_id", b"task_id", "task_response", b"task_response"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["response", b"response"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["response", b"response", "status", b"status", "task_id", b"task_id"]) -> None: ...
 
 global___Activity = Activity
 
@@ -601,21 +601,25 @@ class Task(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     TASK_ID_FIELD_NUMBER: builtins.int
-    TASK_TYPE_FIELD_NUMBER: builtins.int
+    TYPE_FIELD_NUMBER: builtins.int
     TASK_PARAMETERS_FIELD_NUMBER: builtins.int
+    REQUEST_FIELD_NUMBER: builtins.int
     task_id: builtins.str
-    task_type: builtins.str
+    type: builtins.str
     @property
     def task_parameters(self) -> google.protobuf.struct_pb2.Struct: ...
+    @property
+    def request(self) -> global___TaskRequest: ...
     def __init__(
         self,
         *,
         task_id: builtins.str = ...,
-        task_type: builtins.str = ...,
+        type: builtins.str = ...,
         task_parameters: google.protobuf.struct_pb2.Struct | None = ...,
+        request: global___TaskRequest | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["task_parameters", b"task_parameters"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["task_id", b"task_id", "task_parameters", b"task_parameters", "task_type", b"task_type"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["request", b"request", "task_parameters", b"task_parameters"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["request", b"request", "task_id", b"task_id", "task_parameters", b"task_parameters", "type", b"type"]) -> None: ...
 
 global___Task = Task
 

@@ -170,7 +170,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
 
-        self.task_seender = TaskSender(self)
+        self.task_sender = TaskSender(self)
 
         # Start the gRPC server
         self.server.start()
@@ -765,8 +765,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__whoami(status.sender, self)
         self._send_status(status)
 
-    def PollAndReport(self, report: fedn.ActivityReport):
-        return self.task_seender.PollAndReport(report)
+    def PollAndReport(self, report: fedn.ActivityReport, context):
+        # Subscribe client, this also adds the client to self.clients
+        client = report.sender
+        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
+        # Set client status to online
+        self.clients[client.client_id]["status"] = "online"
+        self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
+        return self.task_sender.PollAndReport(q, report)
 
     def SendModelUpdate(self, request, context):
         """Send a model update response.
