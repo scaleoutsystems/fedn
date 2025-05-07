@@ -174,6 +174,9 @@ class GrpcHandler:
             logger.error(f"GRPC (TaskStream): An error occurred: {e}")
             self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
 
+    def PollAndReport(self, report: fedn.ActivityReport) -> fedn.TaskList:
+        return self.combinerStub.PollAndReport(report, metadata=self.metadata)
+
     def send_status(
         self,
         msg: str,

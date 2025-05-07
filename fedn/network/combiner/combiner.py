@@ -17,6 +17,7 @@ from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
+from fedn.network.combiner.task_sender import TaskSender
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -167,6 +168,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
+
+        self.task_sender = TaskSender(self)
 
         # Start the gRPC server
         self.server.start()
@@ -414,11 +417,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
                 self.db.client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "offline"
                 self.db.client_store.update(client_to_update)
 
@@ -746,6 +751,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.timestamp.GetCurrentTime()
         self.__whoami(status.sender, self)
         self._send_status(status)
+
+    def PollAndReport(self, report: fedn.ActivityReport, context):
+        # Subscribe client, this also adds the client to self.clients
+        client = report.sender
+        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
+        # Update last_seen
+        self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
+        return self.task_sender.PollAndReport(q, report)
 
     def SendModelUpdate(self, request, context):
         """Send a model update response.
