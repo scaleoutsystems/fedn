@@ -51,7 +51,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info(f"Client config response: {client_settings}")
             return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
         except Exception as e:
-            logger.exception("Error handling client config request: %s", e)
+            logger.exception(f"Error handling client config request: {e}")
 
     def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
         """Handle client selection from user defined code.
@@ -70,7 +70,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info(f"Clients selected: {client_ids}")
             return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
         except Exception as e:
-            logger.exception("Error handling client selection request: %s", e)
+            logger.exception(f"Error handling client selection request: {e}")
 
     def HandleMetadata(self, request: fedn.ClientMetaRequest, context):
         """Store client metadata from a request.
@@ -91,7 +91,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.check_incremental_aggregate(client_id)
             return fedn.ClientMetaResponse(status="Metadata stored")
         except Exception as e:
-            logger.exception("Error handling store metadata request: %s", e)
+            logger.exception(f"Error handling store metadata request: {e}")
 
     def HandleStoreModel(self, request_iterator, context):
         try:
@@ -107,7 +107,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.check_incremental_aggregate(client_id)
             return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
         except Exception as e:
-            logger.exception("Error handling store model request: %s", e)
+            logger.exception(f"Error handling store model request: {e}")
 
     def check_incremental_aggregate(self, client_id):
         # incremental aggregation (memory secure)
@@ -145,7 +145,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             for response in response_generator:
                 yield response
         except Exception as e:
-            logger.exception("Error handling aggregation request: %s", e)
+            logger.exception(f"Error handling aggregation request: {e}")
 
     def HandleProvidedFunctions(self, request: fedn.ProvidedFunctionsResponse, context):
         """Handles the 'provided_functions' request. Sends back which functions are available.
@@ -180,7 +180,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info(f"Provided function: {self.implemented_functions}")
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         except Exception as e:
-            logger.exception("Error handling provided functions request: %s", e)
+            logger.exception(f"Error handling provided functions request: {e}")
 
     def _instansiate_server_functions_code(self):
         # this will create a new user defined instance of the ServerFunctions class.
@@ -190,7 +190,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             exec("server_functions = ServerFunctions()", globals(), namespace)  # noqa: S102
             self.server_functions = namespace.get("server_functions")
         except Exception as e:
-            logger.error(f"Exec failed with error: {str(e)}")
+            logger.exception(f"Exec failed with error: {str(e)}")
 
 
 def serve():
