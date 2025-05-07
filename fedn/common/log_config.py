@@ -4,9 +4,19 @@ import os
 
 import requests
 import urllib3
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import \
+    OTLPLogExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
-log_levels = {"DEBUG": logging.DEBUG, "INFO": logging.INFO, "WARNING": logging.WARNING, "ERROR": logging.ERROR, "CRITICAL": logging.CRITICAL}
-
+log_levels = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+    "CRITICAL": logging.CRITICAL,
+}
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.getLogger("urllib3").setLevel(logging.ERROR)
@@ -33,7 +43,6 @@ class StudioHTTPHandler(logging.handlers.HTTPHandler):
             "project": os.environ.get("PROJECT_ID"),
             "appinstance": os.environ.get("APP_ID"),
         }
-        # Setup headers
         headers = {
             "Content-type": "application/json",
         }
@@ -42,12 +51,9 @@ class StudioHTTPHandler(logging.handlers.HTTPHandler):
             headers["Authorization"] = f"{remote_token_protocol} {self.token}"
         if self.method.lower() == "post":
             requests.post(self.host + self.url, json=log_entry, headers=headers)
-        else:
-            # No other methods implemented.
-            return
 
 
-# Remote logging can only be configured via environment variables for now.
+# Remote logging configuration
 REMOTE_LOG_SERVER = os.environ.get("FEDN_REMOTE_LOG_SERVER", False)
 REMOTE_LOG_PATH = os.environ.get("FEDN_REMOTE_LOG_PATH", False)
 REMOTE_LOG_LEVEL = os.environ.get("FEDN_REMOTE_LOG_LEVEL", "INFO")
@@ -61,10 +67,18 @@ if REMOTE_LOG_SERVER:
     #logger.addHandler(http_handler)
 
 
+# OpenTelemetry Logging Configuration
+logger_provider = LoggerProvider()
+set_logger_provider(logger_provider)
+exporter = OTLPLogExporter()
+logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+
+otel_handler = LoggingHandler(logger_provider=logger_provider)
+logger.addHandler(otel_handler)
+
+
 def set_log_level_from_string(level_str):
-    """Set the log level based on a string input.
-    """
-    # Mapping of string representation to logging constants
+    """Set the log level based on a string input."""
     level_mapping = {
         "CRITICAL": logging.CRITICAL,
         "ERROR": logging.ERROR,
@@ -72,30 +86,23 @@ def set_log_level_from_string(level_str):
         "INFO": logging.INFO,
         "DEBUG": logging.DEBUG,
     }
-
-    # Get the logging level from the mapping
     level = level_mapping.get(level_str.upper())
-
     if not level:
         raise ValueError(f"Invalid log level: {level_str}")
-
-    # Set the log level
     logger.setLevel(level)
 
 
 def set_log_stream(log_file):
-    """Redirect the log stream to a specified file, if log_file is set.
-    """
+    """Redirect the log stream to a specified file, if log_file is set."""
     if not log_file:
         return
-
-    # Remove existing handlers
     for h in logger.handlers[:]:
         logger.removeHandler(h)
-
-    # Create a FileHandler
     file_handler = logging.FileHandler(log_file)
     file_handler.setFormatter(formatter)
-
-    # Add the file handler to the logger
     logger.addHandler(file_handler)
+
+
+def shutdown_logging():
+    """Shutdown the logger provider to ensure logs are flushed before exit."""
+    logger_provider.shutdown()
