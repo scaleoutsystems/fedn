@@ -35,7 +35,7 @@ class TaskSender:
     def PollAndReport(self, task_queue: queue.Queue, report: fedn_proto.ActivityReport) -> fedn_proto.TaskList:
         logger.info("TaskSender: PollAndReport: # active tasks %s", len(report.activities))
         client = report.sender
-        activites = report.activities
+        activities = report.activities
 
         if client.client_id not in self.task_tracker:
             self.task_tracker[client.client_id] = {}
@@ -50,7 +50,7 @@ class TaskSender:
         except queue.Empty:
             pass
 
-        for activity in activites:
+        for activity in activities:
             task_id = activity.task_id
             if task_id in task_tracker:
                 task_tracker[task_id].status = activity.status
@@ -60,7 +60,7 @@ class TaskSender:
             else:
                 raise Exception(f"Task {task_id} not found in task tracker for client {client.client_id}")
 
-        reported_task_ids = [a.task_id for a in activites]
+        reported_task_ids = [a.task_id for a in activities]
         new_tasks = []
         for task_id, outstanding_task in task_tracker.items():
             if not task_finished(outstanding_task):

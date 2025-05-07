@@ -418,11 +418,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
                 self.db.client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "offline"
                 self.db.client_store.update(client_to_update)
 
@@ -769,8 +771,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Subscribe client, this also adds the client to self.clients
         client = report.sender
         self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
-        # Set client status to online
-        self.clients[client.client_id]["status"] = "online"
+        # Update last_seen
         self.clients[client.client_id]["last_seen"] = datetime.now()
 
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
