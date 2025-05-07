@@ -14,7 +14,7 @@ FEDN_AUTH_SCHEME = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 FEDN_AUTH_REFRESH_TOKEN_URI = os.environ.get("FEDN_AUTH_REFRESH_TOKEN_URI", False)
 FEDN_AUTH_REFRESH_TOKEN = os.environ.get("FEDN_AUTH_REFRESH_TOKEN", False)
 FEDN_CUSTOM_URL_PREFIX = os.environ.get("FEDN_CUSTOM_URL_PREFIX", "")
-
+FEDN_CONNECT_API_SECURE = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lower() == "true"
 
 FEDN_PACKAGE_EXTRACT_DIR = os.environ.get("FEDN_PACKAGE_EXTRACT_DIR", "package")
 

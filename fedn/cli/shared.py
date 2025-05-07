@@ -8,9 +8,11 @@ from fedn.common.log_config import logger
 
 CONTROLLER_DEFAULTS = {"protocol": "http", "host": "localhost", "port": 8092, "debug": False}
 
-STUDIO_DEFAULTS = {"protocol": "https", "host": "fedn.scaleoutsystems.com"}
+STUDIO_DEFAULTS = {"protocol": "https", "host": "api.fedn.scaleoutsystems.com"}
 
 COMBINER_DEFAULTS = {"discover_host": "localhost", "discover_port": 8092, "host": "localhost", "port": 12080, "name": "combiner", "max_clients": 30}
+
+HOME_DIR = os.environ.get("FEDN_HOME_DIR", os.path.expanduser("~"))
 
 CLIENT_DEFAULTS = {
     "discover_host": "localhost",
@@ -18,8 +20,6 @@ CLIENT_DEFAULTS = {
 }
 
 API_VERSION = "v1"
-
-home_dir = os.path.expanduser("~")
 
 
 def apply_config(path: str, config: dict):
@@ -47,32 +47,34 @@ def get_api_url(protocol: str, host: str, port: str, endpoint: str, usr_api: boo
         _host = host or os.environ.get("FEDN_STUDIO_HOST") or STUDIO_DEFAULTS["host"]
 
         if _url is None:
-            return f"{_protocol}://{_host}/api/{API_VERSION}/{endpoint}"
-
-        return f"{_url}/api/{API_VERSION}/{endpoint}"
+            _url = f"{_protocol}://{_host}/api/{API_VERSION}/{endpoint}"
     else:
-        _url = os.environ.get("FEDN_CONTROLLER_URL")
-        _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
-        _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
-        _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
+        _url = get_project_url(protocol, host, port, endpoint)
+        _url = f"{_url}/api/{API_VERSION}/{endpoint}"
+    return _url
 
-        if _url is None:
-            context_path = os.path.join(home_dir, ".fedn")
-            try:
-                context_data = get_context(context_path)
-                _url = context_data.get("Active project url")
-            except Exception as e:
-                click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
-                _url = f"{_protocol}://{_host}:{_port}"
 
-    return f"{_url}/api/{API_VERSION}/{endpoint}"
+def get_project_url(protocol: str, host: str, port: str, endpoint: str) -> str:
+    _url = os.environ.get("FEDN_CONTROLLER_URL")
+    if _url is None:
+        context_path = os.path.join(HOME_DIR, ".fedn")
+        try:
+            context_data = get_context(context_path)
+            _url = context_data.get("Active project url")
+        except Exception as e:
+            click.echo(f"Encountered error {e}. Make sure you are logged in and have activated a project. Using controller defaults instead.", fg="red")
+            _protocol = protocol or os.environ.get("FEDN_CONTROLLER_PROTOCOL") or CONTROLLER_DEFAULTS["protocol"]
+            _host = host or os.environ.get("FEDN_CONTROLLER_HOST") or CONTROLLER_DEFAULTS["host"]
+            _port = port or os.environ.get("FEDN_CONTROLLER_PORT") or CONTROLLER_DEFAULTS["port"]
+            _url = f"{_protocol}://{_host}:{_port}"
+    return _url
 
 
 def get_token(token: str, usr_token: bool) -> str:
     _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     if _token is None:
-        context_path = os.path.join(home_dir, ".fedn")
+        context_path = os.path.join(HOME_DIR, ".fedn")
         try:
             context_data = get_context(context_path)
             if usr_token:
@@ -124,9 +126,47 @@ def print_response(response, entity_name: str, so):
                 click.echo("}")
     elif response.status_code == 500:
         json_data = response.json()
-        click.echo(f'Error: {json_data["message"]}')
+        click.echo(f"Error: {json_data['message']}")
     else:
         click.echo(f"Error: {response.status_code}")
+
+
+def pretty_print_projects(data, no_header):
+    """Prints the project information in tabular format.
+    :param data:
+        type: array
+        description: list of entities
+    return: None
+    """
+    if not isinstance(data, list):
+        data = [data]
+
+    headers = ["Name", "ID", "Owner", "Status", "Created At", "FEDn Version"]
+
+    # Prepare rows
+    rows = []
+    for i in data:
+        rows.append([i.get("name", ""), i.get("slug", ""), i.get("owner_username", ""), i.get("status", ""), i.get("created_at", ""), i.get("app_version", "")])
+
+    # Calculate column widths
+
+    col_widths = [len(h) for h in headers]
+    for row in rows:
+        for idx, value in enumerate(row):
+            col_widths[idx] = max(col_widths[idx], len(str(value)))
+
+    # Helper to format a row
+    def format_row(row):
+        return " | ".join(f"{str(val):<{col_widths[idx]}}" for idx, val in enumerate(row))
+
+    # Print header
+    if not no_header:
+        print(format_row(headers))
+        print("-+-".join("-" * w for w in col_widths))
+
+    # Print rows
+    for row in rows:
+        click.secho(format_row(row))
 
 
 def set_context(context_path, context_data):
@@ -148,7 +188,7 @@ def get_context(context_path):
     return context_data
 
 
-def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: str):
+def get_response(protocol: str, host: str, port: str, endpoint: str, token: str, headers: dict, usr_api: bool, usr_token: bool):
     """Utility function to retrieve response from get request based on provided information."""
     url = get_api_url(protocol=protocol, host=host, port=port, endpoint=endpoint, usr_api=usr_api)
 

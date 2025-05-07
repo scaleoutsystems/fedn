@@ -1,15 +1,19 @@
 FEDn Project: Server functions toy example
 -----------------------------
 
-Beta useage will be available by request from FEDn 0.20.0 and onward.
 
-See server_functions.py for details on server-functionality can be supplied.
+For details on the functionality of server-functions see either the file server_functions.py, 
+the docs https://docs.scaleoutsystems.com/en/stable/serverfunctions.html or the youtube video 
+https://www.youtube.com/watch?v=Rnfhfqy_Tts.
 
 To apply server-functionality in studio first connect to your project through the APIClient.
 
 See https://docs.scaleoutsystems.com/en/stable/apiclient.html for more information.
 
 When connected to the project API you can start sessions with your supplied server functions.
+
+To test your server functions locally you can use the function `fedn.network.combiner.hooks.serverfunctionstest.test_server_functions`, 
+see `test_locally.py` for a running example.
 
 Full commands to run through the API client:
 

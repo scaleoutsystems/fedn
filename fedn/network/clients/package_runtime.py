@@ -7,7 +7,7 @@ from typing import Optional, Tuple
 
 import requests
 
-from fedn.common.config import FEDN_AUTH_SCHEME
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE
 from fedn.common.log_config import logger
 from fedn.utils.checksum import sha
 from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
@@ -52,8 +52,11 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/download?name={name}" if name else f"{url}/api/v1/packages/download"
-
-            with requests.get(path, stream=True, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
+            with requests.get(path,
+                              stream=True,
+                              timeout=REQUEST_TIMEOUT,
+                              headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
+                              verify=FEDN_CONNECT_API_SECURE) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     params = cgi.parse_header(r.headers.get("Content-Disposition", ""))[-1]
                     try:
@@ -81,8 +84,10 @@ class PackageRuntime:
         """
         try:
             path = f"{url}/api/v1/packages/checksum?name={name}" if name else f"{url}/api/v1/packages/checksum"
-
-            with requests.get(path, timeout=REQUEST_TIMEOUT, headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"}) as r:
+            with requests.get(path,
+                              timeout=REQUEST_TIMEOUT,
+                              headers={"Authorization": f"{FEDN_AUTH_SCHEME} {token}"},
+                              verify=FEDN_CONNECT_API_SECURE) as r:
                 if HTTP_STATUS_OK <= r.status_code < HTTP_STATUS_NO_CONTENT:
                     data = r.json()
                     try:
@@ -123,19 +128,19 @@ class PackageRuntime:
                 with tarfile.open(os.path.join(self.pkg_path, self.pkg_name), "r:*") as f:
                     for member in f.getmembers():
                         f.extract(member, self.pkg_path)
-                    logger.info(f"Successfully extracted compute package content in {self.pkg_path}")
-                    logger.info("Deleting temporary package tarball file.")
-                    os.remove(os.path.join(self.pkg_path, self.pkg_name))
+                logger.info(f"Successfully extracted compute package content in {self.pkg_path}")
+                logger.info("Deleting temporary package tarball file.")
+                os.remove(os.path.join(self.pkg_path, self.pkg_name))
 
-                    for root, _, files in os.walk(self.pkg_path):
-                        if "fedn.yaml" in files:
-                            logger.info(f"Found fedn.yaml file in {root}")
-                            return True, root
+                for root, _, files in os.walk(os.path.join(self.pkg_path, "")):
+                    if "fedn.yaml" in files:
+                        logger.info(f"Found fedn.yaml file in {root}")
+                        return True, root
 
-                    logger.error("No fedn.yaml file found in extracted package!")
-                    return False, ""
-        except Exception:
-            logger.error("Error extracting files.")
+                logger.error("No fedn.yaml file found in extracted package!")
+                return False, ""
+        except Exception as e:
+            logger.error(f"Error extracting files: {e}")
             os.remove(os.path.join(self.pkg_path, self.pkg_name))
             return False, ""
 
@@ -150,5 +155,6 @@ class PackageRuntime:
         try:
             self.dispatch_config = _read_yaml_file(os.path.join(run_path, "fedn.yaml"))
             return Dispatcher(self.dispatch_config, run_path)
-        except Exception:
+        except Exception as e:
+            logger.error(f"Error getting dispatcher: {e}")
             return None

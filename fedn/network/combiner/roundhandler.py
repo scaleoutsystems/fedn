@@ -4,17 +4,21 @@ import queue
 import random
 import time
 import uuid
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
-from fedn.network.combiner.modelservice import serialize_model_to_BytesIO
-from fedn.network.combiner.shared import modelservice, repository
+from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
 from fedn.network.combiner.updatehandler import UpdateHandler
+from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
+
+# This if is needed to avoid circular imports but is crucial for type hints.
+if TYPE_CHECKING:
+    from fedn.network.combiner.combiner import Combiner  # not-floating-import
 
 
 class RoundConfig(TypedDict):
@@ -89,7 +93,7 @@ class RoundHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, server):
+    def __init__(self, server: "Combiner", repository: Repository, modelservice: ModelService):
         """Initialize the RoundHandler."""
         self.round_configs = queue.Queue()
         self.storage = repository
@@ -145,6 +149,7 @@ class RoundHandler:
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
             client_settings = self.hook_interface.client_settings(global_model_bytes)
             config["client_settings"] = client_settings
+
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
@@ -172,7 +177,7 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
-            if provided_functions.get("aggregate", False):
+            if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                 model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
@@ -374,12 +379,13 @@ class RoundHandler:
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
-                            active_round = self.server.round_store.get(round_meta["round_id"])
-                            if "combiners" not in active_round:
-                                active_round["combiners"] = []
-                            active_round["combiners"].append(round_meta)
-                            updated = self.server.round_store.update(active_round["id"], active_round)
-                            if not updated:
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])
+
+                            active_round.combiners.append(round_meta)
+                            try:
+                                self.server.db.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]

@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import round_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
@@ -88,11 +88,14 @@ def get_rounds():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
 
-        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = db.round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.round_store.count(**kwargs)
+        response = {"count": count, "result": [rounds.to_dict() for rounds in rounds]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -164,11 +167,14 @@ def list_rounds():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = get_post_data_to_kwargs(request)
 
-        response = round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        rounds = db.round_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.round_store.count(**kwargs)
+        response = {"count": count, "result": [round.to_dict() for round in rounds]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -209,8 +215,9 @@ def get_rounds_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = round_store.count(**kwargs)
+        count = db.round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -255,8 +262,9 @@ def rounds_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = round_store.count(**kwargs)
+        count = db.round_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -299,10 +307,11 @@ def get_round(id: str):
                         type: string
     """
     try:
-        round = round_store.get(id)
+        db = Control.instance().db
+        round = db.round_store.get(id)
         if round is None:
-          return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        response = round
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+        response = round.to_dict()
         return jsonify(response), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")

@@ -100,7 +100,6 @@ class Client:
             result, combiner_config = self._connect_to_api()
             if not result:
                 return
-
         if self.client_obj.package == "remote":
             result = self.fedn_client.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
             if not result:
@@ -213,7 +212,7 @@ class Client:
             self.fedn_client.dispatcher.run_cmd(f"predict {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
-                metrics = json.loads(fh.read())
+                metrics = json.load(fh)
 
             os.unlink(inpath)
             os.unlink(outpath)

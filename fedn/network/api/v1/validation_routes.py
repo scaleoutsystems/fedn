@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import validation_store
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.controller.control import Control
 
 bp = Blueprint("validation", __name__, url_prefix=f"/api/{api_version}/validations")
 
@@ -126,10 +126,13 @@ def get_validations():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
-        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = db.validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.validation_store.count(**kwargs)
+        response = {"count": count, "result": [validation.to_dict() for validation in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -221,10 +224,13 @@ def list_validations():
                     type: string
     """
     try:
+        db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
-        response = validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        result = db.validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
+        count = db.validation_store.count(**kwargs)
+        response = {"count": count, "result": [validation.to_dict() for validation in result]}
 
         return jsonify(response), 200
     except Exception as e:
@@ -290,8 +296,9 @@ def get_validations_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = request.args.to_dict()
-        count = validation_store.count(**kwargs)
+        count = db.validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -356,8 +363,9 @@ def validations_count():
                         type: string
     """
     try:
+        db = Control.instance().db
         kwargs = get_post_data_to_kwargs(request)
-        count = validation_store.count(**kwargs)
+        count = db.validation_store.count(**kwargs)
         response = count
         return jsonify(response), 200
     except Exception as e:
@@ -400,10 +408,11 @@ def get_validation(id: str):
                         type: string
     """
     try:
-        response = validation_store.get(id)
+        db = Control.instance().db
+        response = db.validation_store.get(id)
         if response is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
-        return jsonify(response), 200
+        return jsonify(response.to_dict()), 200
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
