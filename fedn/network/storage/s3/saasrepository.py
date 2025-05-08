@@ -49,8 +49,7 @@ class SAASRepository(RepositoryBase):
             "use_ssl": use_ssl,
             "verify": verify_ssl,
         }
-        logger.info(f"Connection parameters: {common_config}")
-        logger.info(f"Keys: {access_key} {secret_key}")
+        logger.debug(f"Connection parameters: {common_config}")
 
         if access_key and secret_key:
             # Use provided credentials
@@ -181,6 +180,14 @@ class SAASRepository(RepositoryBase):
         logger.info(f"Creating bucket: {bucket_name}")
 
         try:
+            # Check if the bucket already exists
+            existing_buckets = self.s3_client.list_buckets()
+            for bucket in existing_buckets.get("Buckets", []):
+                if bucket["Name"] == bucket_name:
+                    logger.info(f"Bucket {bucket_name} already exists. No action needed.")
+                    return
+
+            # Create the bucket if it does not exist
             self.s3_client.create_bucket(Bucket=bucket_name)
         except self.s3_client.exceptions.BucketAlreadyExists:
             logger.info(f"Bucket {bucket_name} already exists.")
