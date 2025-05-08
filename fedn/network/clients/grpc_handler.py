@@ -63,8 +63,6 @@ def grpc_retry(
     :type max_retries: int
     :param retry_interval: The interval between retries in seconds.
     :type retry_interval: float
-    :param exceptions: The exceptions to catch and retry on.
-    :type exceptions: tuple
     :return: The decorated function.
     :rtype: Callable
     """
