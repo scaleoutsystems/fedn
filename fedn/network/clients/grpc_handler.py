@@ -228,7 +228,7 @@ class GrpcHandler:
                     log_level=fedn.LogLevel.AUDIT,
                     type=request.type,
                     request=request,
-                    sesssion_id=request.session_id,
+                    session_id=request.session_id,
                     sender_name=client_name,
                 )
 
@@ -242,7 +242,7 @@ class GrpcHandler:
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
-        sesssion_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
         """Send status message.
@@ -262,7 +262,7 @@ class GrpcHandler:
         status.sender.role = fedn.CLIENT
         status.log_level = log_level
         status.status = str(msg)
-        status.session_id = sesssion_id
+        status.session_id = session_id
 
         if type is not None:
             status.type = type
@@ -276,7 +276,7 @@ class GrpcHandler:
     @grpc_retry(max_retries=5, retry_interval=5)
     def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
         """Send a model metric to the combiner."""
-        logger.debug("Sending model metric to combiner.")
+        logger.info("Sending model metric to combiner.")
         _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
         return True
 

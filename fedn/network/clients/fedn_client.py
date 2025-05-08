@@ -316,7 +316,7 @@ class FednClient:
 
             self.send_status(
                 f"\t Starting processing of training request for model_id {model_id}",
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_UPDATE,
@@ -345,7 +345,7 @@ class FednClient:
                 log_level=fedn.LogLevel.AUDIT,
                 type=fedn.StatusType.MODEL_UPDATE,
                 request=update,
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
             )
 
@@ -356,7 +356,7 @@ class FednClient:
 
             self.send_status(
                 f"Processing validate request for model_id {model_id}",
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_VALIDATION,
@@ -387,7 +387,7 @@ class FednClient:
                         log_level=fedn.LogLevel.AUDIT,
                         type=fedn.StatusType.MODEL_VALIDATION,
                         request=validation,
-                        sesssion_id=request.session_id,
+                        session_id=request.session_id,
                         sender_name=self.name,
                     )
                 else:
@@ -395,7 +395,7 @@ class FednClient:
                         f"Client {self.name} failed to complete model validation.",
                         log_level=fedn.LogLevel.WARNING,
                         request=request,
-                        sesssion_id=request.session_id,
+                        session_id=request.session_id,
                         sender_name=self.name,
                     )
 
@@ -573,11 +573,11 @@ class FednClient:
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
-        sesssion_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
         """Send the status."""
-        self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
+        self.grpc_handler.send_status(msg, log_level, type, request, session_id, sender_name)
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         """Send the model update."""
