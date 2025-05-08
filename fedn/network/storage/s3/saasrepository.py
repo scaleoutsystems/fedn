@@ -5,6 +5,7 @@ import os
 from typing import IO, List
 
 import boto3
+from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
 from fedn.common.config import (
@@ -48,6 +49,8 @@ class SAASRepository(RepositoryBase):
             "use_ssl": use_ssl,
             "verify": verify_ssl,
         }
+        logger.info(f"Connection parameters: {common_config}")
+        logger.info(f"Keys: {access_key} {secret_key}")
 
         if access_key and secret_key:
             # Use provided credentials
@@ -55,12 +58,13 @@ class SAASRepository(RepositoryBase):
                 "s3",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
+                config=Config(signature_version="s3v4"),
                 **common_config,
             )
             logger.info(f"Using {self.name} with provided credentials for SaaS storage.")
         else:
             # Use default credentials (e.g., IAM roles, service accounts, or environment variables)
-            self.s3_client = boto3.client("s3", **common_config)
+            self.s3_client = boto3.client("s3", config=Config(signature_version="s3v4") ** common_config)
             logger.info(f"Using {self.name} with default credentials for SaaS storage.")
 
     def set_artifact(self, instance_name: str, instance: IO, bucket: str, is_file: bool = False) -> bool:
