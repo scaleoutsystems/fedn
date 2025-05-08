@@ -93,7 +93,7 @@ def grpc_retry(
                 except grpc.RpcError as e:
                     status_code = e.code()
                     if status_code == grpc.StatusCode.UNAVAILABLE:
-                        logger.warning(f"GRPC ({func.__name__}): Server unavailible. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        logger.warning(f"GRPC ({func.__name__}): Server unavailable. Retrying in approx {retry_interval * backoff_factor} seconds.")
                         self._reconnect()
                         time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
                         continue
