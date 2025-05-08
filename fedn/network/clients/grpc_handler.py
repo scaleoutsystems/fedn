@@ -137,6 +137,7 @@ class GrpcHandler:
         while send_heartbeat:
             try:
                 response = self.heartbeat(client_name, client_id)
+                time.sleep(update_frequency)
             except grpc.RpcError as e:
                 self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
                 return
