@@ -1,6 +1,7 @@
 import argparse
 import json
 import random
+import time
 
 from fedn import APIClient
 
@@ -8,18 +9,17 @@ from fedn import APIClient
 def parse_args():
     parser = argparse.ArgumentParser(description="Send a random 'charging' attribute to the controller for a client.")
     parser.add_argument("--api-url", required=True, help="Base URL of the API server (the same api-url that is used to connect clients)")
-    parser.add_argument("--token", required=True, help="Authentication token for the API (the same token that is used to connect clients)")
+    parser.add_argument("--admin-token", required=True, help="Authentication token for the API (admin token which can be generated from the studio UI)")
     parser.add_argument("--client-id", required=True, help="client ID for the current client (the same api-url that is used to connect the client)")
     return parser.parse_args()
 
 
 def main():
     # --------- NOTE ------------
-    # run with the same args as the client is started with;
-    # fedn client start <args>
-    # python3 send_attributes <args>
+    # run this script with --token <admin token> (fetch admin token from studio)
+    # --api-url
     args = parse_args()
-    client = APIClient(host=args.api_url, token=args.token)
+    client = APIClient(host=args.api_url, token=args.admin_token, secure=True, verify=True)
     while True:
         # Prepare a random charging status
         attribute_payload = {"key": "charging", "value": random.choice([True, False]), "sender": {"name": "", "role": "", "client_id": args.client_id}}
@@ -30,6 +30,7 @@ def main():
             print(json.dumps(result, indent=2))
         except Exception as e:
             print(f"Failed to send attributes: {e}")
+        time.sleep(30)
 
 
 if __name__ == "__main__":
