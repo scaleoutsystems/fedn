@@ -5,7 +5,6 @@ import os
 from typing import IO, List
 
 import boto3
-from botocore.client import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
 from fedn.common.config import (
@@ -56,7 +55,6 @@ class SAASRepository(RepositoryBase):
                 "s3",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
-                config=Config(signature_version="s3v4"),
                 **common_config,
             )
             logger.info(f"Using {self.name} with provided credentials for SaaS storage.")
