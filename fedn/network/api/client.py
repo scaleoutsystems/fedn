@@ -977,8 +977,7 @@ class APIClient:
         return _json
 
     def add_attributes(self, attribute: dict) -> dict:
-        """
-        Add or update client attributes via the controller API.
+        """Add or update client attributes via the controller API.
 
         :param attribute: A dict matching AttributeDTO.schema, e.g.
             {
