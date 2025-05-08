@@ -181,11 +181,14 @@ class SAASRepository(RepositoryBase):
 
         try:
             # Check if the bucket already exists
-            existing_buckets = self.s3_client.list_buckets()
-            for bucket in existing_buckets.get("Buckets", []):
-                if bucket["Name"] == bucket_name:
-                    logger.info(f"Bucket {bucket_name} already exists. No action needed.")
-                    return
+            try:
+                self.s3_client.head_bucket(Bucket=bucket_name)
+                logger.info(f"Bucket {bucket_name} already exists. No action needed.")
+                return
+            except self.s3_client.exceptions.ClientError as e:
+                if e.response["Error"]["Code"] != "404":
+                    logger.error(f"Error checking bucket {bucket_name}: {e}")
+                    raise
 
             # Create the bucket if it does not exist
             self.s3_client.create_bucket(Bucket=bucket_name)
