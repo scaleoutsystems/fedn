@@ -333,7 +333,14 @@ class RoundHandler:
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
-            clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+            selected = 0
+            while not selected:
+                clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+                selected = len(clients)
+                if not selected:
+                    logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
+                    time.sleep(10)
+
         else:
             clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients, provided_functions)

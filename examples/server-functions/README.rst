@@ -3,12 +3,12 @@ FEDn Project: Server functions
 
 This example demonstrates how to use custom server functions (in ``server_functions.py``) to:
 
-- **Select specific clients** for training.
-- **Send dynamic, customizable payloads** from the server to clients.
+- **Leverage client attributes** to select specific clients for training _(beta feature; requires ``send_attributes.py``)_.
+- **Send dynamic, customizable payloads** from the server to clients via Python dictionaries.
 - **Implement custom aggregation logic**.
 
-Additionally, ``sf_incremental_aggregation.py`` shows how to perform
-**memory-safe incremental averaging** for large-scale experiments.
+Additionally, for large-scale experiments, ``sf_incremental_aggregation.py`` demonstrates
+**memory-safe incremental averaging** using server functions.
 
 For details on the functionality of server-functions see either the file server_functions.py, 
 the docs https://docs.scaleoutsystems.com/en/stable/serverfunctions.html or the youtube video 
