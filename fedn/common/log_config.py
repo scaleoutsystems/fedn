@@ -4,11 +4,16 @@ import os
 
 import requests
 import urllib3
+from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.exporter.otlp.proto.grpc._log_exporter import \
     OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import \
+    OTLPSpanExporter
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 log_levels = {
     "DEBUG": logging.DEBUG,
@@ -67,14 +72,23 @@ if REMOTE_LOG_SERVER:
     logger.addHandler(http_handler)
 
 
-# OpenTelemetry Logging Configuration
-logger_provider = LoggerProvider()
-set_logger_provider(logger_provider)
-exporter = OTLPLogExporter()
-logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+if os.environ.get("OTEL_SERVICE_NAME", None):
+    # OpenTelemetry Logging Configuration
+    logger_provider = LoggerProvider()
+    set_logger_provider(logger_provider)
+    exporter = OTLPLogExporter()
+    logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
 
-otel_handler = LoggingHandler(logger_provider=logger_provider)
-logger.addHandler(otel_handler)
+    otel_handler = LoggingHandler(logger_provider=logger_provider)
+    logger.addHandler(otel_handler)
+
+    # Set up trace provider and exporter
+    trace_provider = SDKTracerProvider()
+    trace.set_tracer_provider(trace_provider)
+
+    trace_exporter = OTLPSpanExporter()
+    trace_provider.add_span_processor(BatchSpanProcessor(trace_exporter))
+    tracer = trace.get_tracer(__name__)
 
 
 def set_log_level_from_string(level_str):
