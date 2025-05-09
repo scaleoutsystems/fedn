@@ -1,9 +1,9 @@
-import sys
 
 import numpy as np
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
+import click
 
 from fedn.utils.helpers.helpers import get_helper
 
@@ -69,4 +69,10 @@ def init_seed(out_path="seed.npz"):
 
 
 if __name__ == "__main__":
-    init_seed(sys.argv[1])
+    @click.command()
+    @click.argument("out_path", type=str, default="seed.npz")
+    def main(out_path):
+        """Initialize a seed model and save it to the specified path."""
+        init_seed(out_path)
+
+    main()

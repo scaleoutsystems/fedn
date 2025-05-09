@@ -1,3 +1,15 @@
+"""This script runs federated learning training sessions in FEDn.
+
+It initiates a configurable number of sequential training sessions, each with a specified
+number of rounds. The script connects to a FEDn network using the API client, starts each
+session with the appropriate configuration, and monitors the session until completion.
+
+This is useful for automating experiments with different federated learning configurations
+and for running multiple training sessions in sequence without manual intervention.
+The script uses settings from the config module to determine the number of sessions and
+rounds to run.
+"""
+
 import time
 import uuid
 
@@ -21,7 +33,7 @@ if __name__ == "__main__":
             "helper": "numpyhelper",
             "name": f"async-test-{s+1}-{str(uuid.uuid4())[:4]}",
             "aggregator": "fedavg",
-            "round_timeout": 20,
+            "round_timeout": 60,
             "rounds": settings["N_ROUNDS"],
             "validate": True,
             "model_id": active_model["model"],

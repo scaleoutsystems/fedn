@@ -25,7 +25,6 @@ KEEPALIVE_TIMEOUT_MS = 20 * 1000 # Updated: Match server's timeout
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 
-
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
@@ -489,4 +488,4 @@ class GrpcHandler:
         self._disconnect()
         self._init_channel(self.host, self.port, self.token)
         self._init_stubs()
-        logger.info("GRPC channel reconnected.")
+        logger.debug("GRPC channel reconnected.")
