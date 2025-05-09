@@ -14,6 +14,7 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace import NoOpTracerProvider, get_tracer
 
 log_levels = {
     "DEBUG": logging.DEBUG,
@@ -89,7 +90,9 @@ if os.environ.get("OTEL_SERVICE_NAME", None):
     trace_exporter = OTLPSpanExporter()
     trace_provider.add_span_processor(BatchSpanProcessor(trace_exporter))
     tracer = trace.get_tracer(__name__)
-
+else:
+    trace.set_tracer_provider(NoOpTracerProvider())
+    tracer = get_tracer(__name__)
 
 def set_log_level_from_string(level_str):
     """Set the log level based on a string input."""
