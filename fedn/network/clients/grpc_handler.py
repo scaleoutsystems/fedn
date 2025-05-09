@@ -19,12 +19,12 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
+
 KEEPALIVE_TIME_MS = 5 * 1000  # send keepalive ping every 5 second
 # wait 30 seconds for keepalive ping ack before considering connection dead
 KEEPALIVE_TIMEOUT_MS = 30 * 1000
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
-
 
 GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
@@ -516,4 +516,4 @@ class GrpcHandler:
         self._disconnect()
         self._init_channel(self.host, self.port, self.token)
         self._init_stubs()
-        logger.info("GRPC channel reconnected.")
+        logger.debug("GRPC channel reconnected.")
