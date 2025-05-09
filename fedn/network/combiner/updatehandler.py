@@ -23,6 +23,7 @@ class UpdateHandler:
 
     def __init__(self, modelservice: ModelService) -> None:
         self.model_updates = queue.Queue()
+        self.backward_completions = queue.Queue()
         self.modelservice = modelservice
 
         self.model_id_to_model_data = {}
@@ -108,7 +109,8 @@ class UpdateHandler:
             # Used in C++ client
             config = json.loads(model_update.config)
         training_metadata = metadata["training_metadata"]
-        training_metadata["round_id"] = config["round_id"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
@@ -134,7 +136,8 @@ class UpdateHandler:
             # Used in C++ client
             config = json.loads(model_update.config)
         training_metadata = metadata["training_metadata"]
-        training_metadata["round_id"] = config["round_id"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
@@ -178,7 +181,7 @@ class UpdateHandler:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
                     logger.warning("Model download failed. retrying")
-                    time.sleep(1)
+                    time.sleep(3) # sleep longer
                     model_str = self.modelservice.get_model(model_id)
 
         return model_str
@@ -206,3 +209,27 @@ class UpdateHandler:
 
             time.sleep(polling_interval)
             tt += polling_interval
+
+    def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
+        """Wait for backward completion messages.
+
+        :param config: The round config object
+        :param required_backward_completions: Number of required backward completions
+        """
+        time_window = float(config["round_timeout"])
+        tt = 0.0
+
+        while tt < time_window:
+            if self.backward_completions.qsize() >= required_backward_completions:
+                break
+
+            time.sleep(polling_interval)
+            tt += polling_interval
+
+    def clear_backward_completions(self):
+        """Clear the backward completions queue."""
+        while not self.backward_completions.empty():
+            try:
+                self.backward_completions.get_nowait()
+            except queue.Empty:
+                break

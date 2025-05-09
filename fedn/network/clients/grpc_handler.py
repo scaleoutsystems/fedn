@@ -439,6 +439,39 @@ class GrpcHandler:
 
         return prediction
 
+    def create_backward_completion_message(
+        self,
+        sender_name: str,
+        receiver_name: str,
+        receiver_role: fedn.Role,
+        gradient_id: str,
+        session_id: str,
+        meta: dict,
+    ):
+        completion = fedn.BackwardCompletion()
+        completion.sender.name = sender_name
+        completion.sender.role = fedn.CLIENT
+        completion.sender.client_id = self.metadata[0][1]
+        completion.receiver.name = receiver_name
+        completion.receiver.role = receiver_role
+        completion.gradient_id = gradient_id
+        completion.timestamp.GetCurrentTime()
+        completion.meta = json.dumps(meta)
+        completion.session_id = session_id
+        return completion
+
+    def send_backward_completion(self, update: fedn.BackwardCompletion):
+        """Send a backward completion message to the combiner."""
+        try:
+            logger.info("Sending backward completion to combiner.")
+            _ = self.combinerStub.SendBackwardCompletion(update, metadata=self.metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(e, "SendBackwardCompletion", lambda: self.send_backward_completion(update))
+        except Exception as e:
+            logger.error(f"GRPC (SendBackwardCompletion): An error occurred: {e}")
+            self._handle_unknown_error(e, "SendBackwardCompletion", lambda: self.send_backward_completion(update))
+        return True
+
     def create_metric_message(
         self, sender_name: str, sender_client_id: str, metrics: dict, step: int, model_id: str, session_id: str, round_id: str
     ) -> fedn.ModelMetric:

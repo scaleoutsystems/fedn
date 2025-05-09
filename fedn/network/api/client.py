@@ -640,6 +640,12 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        is_splitlearning = aggregator == "splitlearningagg"
+        if is_splitlearning:
+            return self.start_splitlearning_session(
+                name, model_id, round_timeout, rounds, round_buffer_size, delete_models, validate, min_clients, requested_clients
+            )
+
         if model_id is None:
             _headers = self.headers.copy()
             _headers["X-Limit"] = "1"
@@ -707,6 +713,80 @@ class APIClient:
             except requests.exceptions.JSONDecodeError:
                 # Handle invalid JSON response
                 return {"success": response.status_code < 400, "session_id": session_id, "message": f"Session started with status code {response.status_code}"}
+
+        _json = response.json()
+        return _json
+
+    def start_splitlearning_session(
+        self,
+        name: str = None,
+        model_id: str = None,
+        round_timeout: int = 180,
+        rounds: int = 5,
+        round_buffer_size: int = -1,
+        delete_models: bool = True,
+        validate: bool = False,
+        min_clients: int = 1,
+        requested_clients: int = 8,
+    ):
+        """Start a new splitlearning session.
+
+        :param name: The name of the session
+        :type name: str
+        :param model_id: The id of the initial model.
+        :type model_id: str
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_buffer_size: The round buffer size to use.
+        :type round_buffer_size: int
+        :param delete_models: Whether to delete models after each round at combiner (save storage).
+        :type delete_models: bool
+        :param validate: Whether to validate the model after each round.
+        :type validate: bool
+        :param min_clients: The minimum number of clients required.
+        :type min_clients: int
+        :param requested_clients: The requested number of clients.
+        :type requested_clients: int
+        :return: A dict with success or failure message and session config.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("sessions/"),
+            json={
+                "name": name,
+                "session_config": {
+                    "aggregator": "splitlearningagg",
+                    "model_id": model_id,
+                    "round_timeout": round_timeout,
+                    "buffer_size": round_buffer_size,
+                    "delete_models_storage": delete_models,
+                    "clients_required": min_clients,
+                    "requested_clients": requested_clients,
+                    "validate": validate,
+                    "helper_type": "splitlearninghelper",
+                },
+            },
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        if response.status_code == 201:
+            session_id = response.json()["session_id"]
+            response = requests.post(
+                self._get_url_api_v1("sessions/start_splitlearning_session"),
+                json={
+                    "session_id": session_id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                verify=self.verify,
+                headers=self.headers,
+            )
+            response_json = response.json()
+            response_json["session_id"] = session_id
+            return response_json
 
         _json = response.json()
         return _json
