@@ -92,11 +92,13 @@ def grpc_retry(
                     status_code = e.code()
                     if status_code == grpc.StatusCode.UNAVAILABLE:
                         logger.warning(f"GRPC ({func.__name__}): Server unavailable. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        logger.debug(f"GRPC ({func.__name__}): Error details: {e.details()}")
                         self._reconnect()
                         time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
                         continue
                     if status_code == grpc.StatusCode.CANCELLED:
                         logger.warning(f"GRPC ({func.__name__}): Connection cancelled. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        logger.debug(f"GRPC ({func.__name__}): Error details: {e.details()}")
                         time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
                         continue
                     if status_code == grpc.StatusCode.UNKNOWN:
