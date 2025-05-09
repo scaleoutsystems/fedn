@@ -975,3 +975,20 @@ class APIClient:
         response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
         _json = response.json()
         return _json
+
+    def add_attributes(self, attribute: dict) -> dict:
+        """Add or update client attributes via the controller API.
+
+        :param attribute: A dict matching AttributeDTO.schema, e.g.
+            {
+                "key": "charging",
+                "value": "true",
+                "sender": {"name": "", "role": "", "client_id": "abc123"}
+            }
+        :return: Parsed JSON response from the server.
+        :rtype: dict
+        """
+        url = self._get_url_api_v1("attributes/")
+        response = requests.post(url, json=attribute, headers=self.headers, verify=self.verify)
+        response.raise_for_status()
+        return response.json()
