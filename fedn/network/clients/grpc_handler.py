@@ -2,8 +2,10 @@
 
 import json
 import os
+import random
 import time
 from datetime import datetime, timezone
+from functools import wraps
 from io import BytesIO
 from typing import Any, Callable, Optional, Union
 
@@ -43,6 +45,86 @@ class GrpcAuth(grpc.AuthMetadataPlugin):
     def __call__(self, context: grpc.AuthMetadataContext, callback: grpc.AuthMetadataPluginCallback) -> None:
         """Add authorization metadata to the GRPC call."""
         callback((("authorization", f"{FEDN_AUTH_SCHEME} {self._key}"),), None)
+
+
+class RetryException(Exception):
+    pass
+
+
+def grpc_retry(
+    max_retries: int = 3,
+    retry_interval: float = 5,
+    backoff: float = 2,
+) -> Callable:
+    """GRPC retry decorator.
+
+
+    :param max_retries: The maximum number of retries. -1 means infinite retries.
+    :type max_retries: int
+    :param retry_interval: The interval between retries in seconds.
+    :type retry_interval: float
+    :return: The decorated function.
+    :rtype: Callable
+    """
+
+    def decorator(func: Callable) -> Callable:
+        @wraps(func)
+        def wrapper(self: "GrpcHandler", *args, **kwargs):
+            """Wrapper function for retrying GRPC calls."""
+            retries = 0
+            last_try = time.time()
+            backoff_factor = 1.0
+            while max_retries > retries or max_retries == -1:
+                retries += 1
+                backoff_factor *= backoff
+
+                # Reset backoff factor if the last try was more than 16 times the retry interval ago
+                # This is to prevent the backoff factor from growing too large
+                # if the server is down for a long time and then comes back up
+                this_try = time.time()
+                if this_try - last_try > 16 * retry_interval:
+                    backoff_factor = 1.0
+                last_try = this_try
+
+                try:
+                    return func(self, *args, **kwargs)
+                except grpc.RpcError as e:
+                    status_code = e.code()
+                    if status_code == grpc.StatusCode.UNAVAILABLE:
+                        logger.warning(f"GRPC ({func.__name__}): Server unavailable. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        logger.debug(f"GRPC ({func.__name__}): Error details: {e.details()}")
+                        self._reconnect()
+                        time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
+                        continue
+                    if status_code == grpc.StatusCode.CANCELLED:
+                        logger.warning(f"GRPC ({func.__name__}): Connection cancelled. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        logger.debug(f"GRPC ({func.__name__}): Error details: {e.details()}")
+                        time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
+                        continue
+                    if status_code == grpc.StatusCode.UNKNOWN:
+                        details = e.details()
+                        if details == "Stream removed":
+                            logger.warning(f"GRPC ({func.__name__}): Stream removed. Retrying in approx {retry_interval * backoff_factor} seconds.")
+                            self._reconnect()
+                            time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
+                            continue
+                        raise e
+                    raise e
+                except Exception as e:
+                    logger.warning(f"GRPC ({func.__name__}): An unknown error occurred: {e}.")
+                    if isinstance(e, ValueError):
+                        logger.warning(f"GRPC ({func.__name__}): Retrying in approx {retry_interval * backoff_factor} seconds.")
+                        self._reconnect()
+                        time.sleep(retry_interval * backoff_factor + random.uniform(-0.5, 0.5))
+                        continue
+                    raise e
+
+            logger.error(f"GRPC ({func.__name__}): Max retries exceeded.")
+            raise RetryException("Max retries exceeded")
+
+        return wrapper
+
+    return decorator
 
 
 class GrpcHandler:
@@ -115,34 +197,24 @@ class GrpcHandler:
         """
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
-        try:
-            response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
-        except grpc.RpcError as e:
-            logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
-            raise e
-        except Exception as e:
-            logger.error(f"GRPC (SendHeartbeat): An error occurred: {e}")
-            raise e
+        response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
+
         return response
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
         """Send heartbeats to the combiner at regular intervals."""
         send_heartbeat = True
         while send_heartbeat:
-            try:
-                response = self.heartbeat(client_name, client_id)
-            except grpc.RpcError as e:
-                self._handle_grpc_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
-                return
-            except Exception as e:
-                self._handle_unknown_error(e, "SendHeartbeat", lambda: self.send_heartbeats(client_name, client_id, update_frequency))
-                return
+            response = self.heartbeat(client_name, client_id)
+            time.sleep(update_frequency)
             if isinstance(response, fedn.Response):
                 pass
             else:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
         """Subscribe to the model update request stream."""
         r = fedn.ClientAvailableMessage()
@@ -150,37 +222,29 @@ class GrpcHandler:
         r.sender.role = fedn.CLIENT
         r.sender.client_id = client_id
 
-        try:
-            logger.info("Listening to task stream.")
-            for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
-                if request.sender.role == fedn.COMBINER:
-                    self.send_status(
-                        "Received request from combiner.",
-                        log_level=fedn.LogLevel.AUDIT,
-                        type=request.type,
-                        request=request,
-                        sesssion_id=request.session_id,
-                        sender_name=client_name,
-                    )
+        logger.info("Listening to task stream.")
+        for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
+            if request.sender.role == fedn.COMBINER:
+                self.send_status(
+                    "Received request from combiner.",
+                    log_level=fedn.LogLevel.AUDIT,
+                    type=request.type,
+                    request=request,
+                    session_id=request.session_id,
+                    sender_name=client_name,
+                )
 
-                    logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
+                logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
+                callback(request)
 
-                    callback(request)
-
-        except grpc.RpcError as e:
-            logger.error(f"GRPC (TaskStream): An error occurred: {e}")
-            self._handle_grpc_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
-        except Exception as e:
-            logger.error(f"GRPC (TaskStream): An error occurred: {e}")
-            self._handle_unknown_error(e, "TaskStream", lambda: self.listen_to_task_stream(client_name, client_id, callback))
-
+    @grpc_retry(max_retries=5, retry_interval=5)
     def send_status(
         self,
         msg: str,
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
-        sesssion_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
         """Send status message.
@@ -200,7 +264,7 @@ class GrpcHandler:
         status.sender.role = fedn.CLIENT
         status.log_level = log_level
         status.status = str(msg)
-        status.session_id = sesssion_id
+        status.session_id = session_id
 
         if type is not None:
             status.type = type
@@ -208,57 +272,31 @@ class GrpcHandler:
         if request is not None:
             status.data = MessageToJson(request)
 
-        try:
-            logger.info("Sending status message to combiner.")
-            _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
-        except grpc.RpcError as e:
-            self._handle_grpc_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
-        except Exception as e:
-            logger.error(f"GRPC (SendStatus): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendStatus", lambda: self.send_status(msg, log_level, type, request, sesssion_id, sender_name))
+        logger.info("Sending status message to combiner.")
+        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
+    @grpc_retry(max_retries=5, retry_interval=5)
     def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
         """Send a model metric to the combiner."""
-        try:
-            logger.info("Sending model metric to combiner.")
-            _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
-        except grpc.RpcError as e:
-            self._handle_grpc_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
-            return False
-        except Exception as e:
-            logger.error(f"GRPC (SendModelMetric): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendModelMetric", lambda: self.send_model_metric(metric))
-            return False
+        logger.info("Sending model metric to combiner.")
+        _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
         return True
 
+    @grpc_retry(max_retries=5, retry_interval=5)
     def send_attributes(self, attribute: fedn.AttributeMessage) -> bool:
         """Send a attribute message to the combiner."""
-        try:
-            logger.info("Sending attributes to combiner.")
-            _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
-        except grpc.RpcError as e:
-            self._handle_grpc_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
-            return False
-        except Exception as e:
-            logger.error(f"GRPC (SendAttributeMessage): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendAttributeMessage", lambda: self.send_attributes(attribute))
-            return False
+        logger.debug("Sending attributes to combiner.")
+        _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
         return True
 
+    @grpc_retry(max_retries=5, retry_interval=5)
     def send_telemetry(self, telemetry: fedn.TelemetryMessage) -> bool:
         """Send a telemetry message to the combiner."""
-        try:
-            logger.info("Sending telemetry to combiner.")
-            _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
-        except grpc.RpcError as e:
-            self._handle_grpc_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
-            return False
-        except Exception as e:
-            logger.error(f"GRPC (SendTelemetry): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendTelemetry", lambda: self.send_telemetry(telemetry))
-            return False
+        logger.debug("Sending telemetry to combiner.")
+        _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
         return True
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
@@ -279,29 +317,24 @@ class GrpcHandler:
         request.sender.client_id = client_id
         request.sender.role = fedn.CLIENT
 
-        try:
-            logger.info("Downloading model from combiner.")
-            for part in self.modelStub.Download(request, metadata=self.metadata):
-                if part.status == fedn.ModelStatus.IN_PROGRESS:
-                    data.write(part.data)
+        logger.info("Downloading model from combiner.")
+        for part in self.modelStub.Download(request, metadata=self.metadata):
+            if part.status == fedn.ModelStatus.IN_PROGRESS:
+                data.write(part.data)
 
-                if part.status == fedn.ModelStatus.OK:
-                    return data
+            if part.status == fedn.ModelStatus.OK:
+                return data
 
-                if part.status == fedn.ModelStatus.FAILED:
+            if part.status == fedn.ModelStatus.FAILED:
+                return None
+
+            if part.status == fedn.ModelStatus.UNKNOWN:
+                if time.time() - time_start >= timeout:
                     return None
-
-                if part.status == fedn.ModelStatus.UNKNOWN:
-                    if time.time() - time_start >= timeout:
-                        return None
-                    continue
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
-        except Exception as e:
-            logger.error(f"GRPC (Download): An error occurred: {e}")
-            self._handle_unknown_error(e, "Download", lambda: self.get_model_from_combiner(id, client_id, timeout))
+                continue
         return data
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_model_to_combiner(self, model: BytesIO, id: str) -> Optional[BytesIO]:
         """Send a model update to the assigned combiner.
 
@@ -324,14 +357,8 @@ class GrpcHandler:
 
         bt.seek(0, 0)
 
-        try:
-            logger.info("Uploading model to combiner.")
-            result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Upload", lambda: self.send_model_to_combiner(model, id))
-        except Exception as e:
-            logger.error(f"GRPC (Upload): An error occurred: {e}")
-            self._handle_unknown_error(e, "Upload", lambda: self.send_model_to_combiner(model, id))
+        logger.info("Uploading model to combiner.")
+        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
         return result
 
     def create_update_message(
@@ -425,92 +452,26 @@ class GrpcHandler:
             metric.metrics.add(key=key, value=value)
         return metric
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         """Send a model update to the combiner."""
-        try:
-            logger.info("Sending model update to combiner.")
-            _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "SendModelUpdate", lambda: self.send_model_update(update))
-        except Exception as e:
-            logger.error(f"GRPC (SendModelUpdate): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendModelUpdate", lambda: self.send_model_update(update))
+        logger.info("Sending model update to combiner.")
+        _ = self.combinerStub.SendModelUpdate(update, metadata=self.metadata)
         return True
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
         """Send a model validation to the combiner."""
-        try:
-            logger.info("Sending model validation to combiner.")
-            _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(
-                e,
-                "SendModelValidation",
-                lambda: self.send_model_validation(validation),
-            )
-        except Exception as e:
-            logger.error(f"GRPC (SendModelValidation): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendModelValidation", lambda: self.send_model_validation(validation))
+        logger.info("Sending model validation to combiner.")
+        _ = self.combinerStub.SendModelValidation(validation, metadata=self.metadata)
         return True
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
         """Send a model prediction to the combiner."""
-        try:
-            logger.info("Sending model prediction to combiner.")
-            _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(
-                e,
-                "SendModelPrediction",
-                lambda: self.send_model_prediction(prediction),
-            )
-        except Exception as e:
-            logger.error(f"GRPC (SendModelPrediction): An error occurred: {e}")
-            self._handle_unknown_error(e, "SendModelPrediction", lambda: self.send_model_prediction(prediction))
+        logger.info("Sending model prediction to combiner.")
+        _ = self.combinerStub.SendModelPrediction(prediction, metadata=self.metadata)
         return True
-
-    def _handle_grpc_error(self, e: grpc.RpcError, method_name: str, sender_function: Callable) -> Optional[Callable]:
-        """Handle GRPC errors."""
-        status_code = e.code()
-        if status_code == grpc.StatusCode.UNAVAILABLE:
-            logger.warning(f"GRPC ({method_name}): server unavailable. Retrying in 5 seconds.")
-            time.sleep(5)
-            return sender_function()
-        if status_code == grpc.StatusCode.CANCELLED:
-            logger.warning(f"GRPC ({method_name}): connection cancelled. Retrying in 5 seconds.")
-            time.sleep(5)
-            return sender_function()
-        if status_code == grpc.StatusCode.UNAUTHENTICATED:
-            details = e.details()
-            if details == "Token expired":
-                logger.warning(f"GRPC ({method_name}): Token expired.")
-                raise e
-        if status_code == grpc.StatusCode.UNKNOWN:
-            logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
-            details = e.details()
-            if details == "Stream removed":
-                logger.warning(f"GRPC ({method_name}): Stream removed. Reconnecting")
-                self._disconnect()
-                self._init_channel(self.host, self.port, self.token)
-                self._init_stubs()
-                return sender_function()
-            raise e
-        self._disconnect()
-        logger.error(f"GRPC ({method_name}): An error occurred: {e}")
-        raise e
-
-    def _handle_unknown_error(self, e: Exception, method_name: str, sender_function: Callable) -> Optional[Callable]:
-        """Handle unknown errors."""
-        logger.warning(f"GRPC ({method_name}): An unknown error occurred: {e}.")
-        if isinstance(e, ValueError):
-            # ValueError is raised when the channel is closed
-            self._disconnect()
-            logger.warning(f"GRPC ({method_name}): Reconnecting to channel.")
-            # recreate the channel
-            self._init_channel(self.host, self.port, self.token)
-            self._init_stubs()
-            return sender_function()
-        raise e
 
     def _disconnect(self) -> None:
         """Disconnect from the combiner."""
@@ -522,3 +483,4 @@ class GrpcHandler:
         self._disconnect()
         self._init_channel(self.host, self.port, self.token)
         self._init_stubs()
+        logger.debug("GRPC channel reconnected.")

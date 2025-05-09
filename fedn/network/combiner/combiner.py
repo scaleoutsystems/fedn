@@ -828,7 +828,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.info("Received ModelMetric from {}".format(request.sender.name))
+        logger.debug("Received ModelMetric from {}".format(request.sender.name))
         metric_msg = MessageToDict(request, preserving_proto_field_name=True)
         metrics = metric_msg.pop("metrics")
 
@@ -847,7 +847,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.AttributeMessage`
         """
-        logger.info("Received Attributes from {}".format(request.sender.name))
+        logger.debug("Received Attributes from {}".format(request.sender.name))
         attribute_msg = MessageToDict(request, preserving_proto_field_name=True)
         attributes = attribute_msg.pop("attributes")
 
@@ -866,7 +866,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.TelemetryMessage`
         """
-        logger.info("Received Telemetry from {}".format(request.sender.name))
+        logger.debug("Received Telemetry from {}".format(request.sender.name))
         telemetry_msg = MessageToDict(request, preserving_proto_field_name=True)
         telemetries = telemetry_msg.pop("telemetries")
         for telemetry in telemetries:
