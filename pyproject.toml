@@ -35,7 +35,7 @@ dependencies = [
   "grpcio>=1.68.1,<=1.70",
   "grpcio-tools>=1.68.1,<=1.70",
   "numpy>=1.21.6",
-  "protobuf>=5.0.0,<5.30.0",
+  "protobuf>=5.0.0,<6.31.0",
   "pymongo",
   "Flask==3.1.0",
   "pyjwt",
