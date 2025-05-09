@@ -14,29 +14,21 @@ from fedn.network.storage.statestore.stores.shared import SortOrder
 def test_combiners():
     start_date = datetime.datetime(2021, 1, 4, 1, 2, 4)
     combiner1 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner1",
-                  parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
-                  updated_at=start_date - datetime.timedelta(days=52), address="test_address")
+                  parent="localhost", ip="123:13:12:2", fqdn="", port=8080, address="test_address")
     combiner2 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner2",
-                  parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
-                  updated_at=start_date - datetime.timedelta(days=12), address="test_address") 
+                  parent="localhost", ip="123:13:12:2", fqdn="", port=8080, address="test_address") 
     combiner3 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner3",
-                    parent="localhost", ip="123:13:12:5", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=322), address="test_address")
+                    parent="localhost", ip="123:13:12:5", fqdn="", port=8080, address="test_address")
     combiner4 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner4",
-                    parent="localhost", ip="123:13:12:4", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=23), address="test_address")
+                    parent="localhost", ip="123:13:12:4", fqdn="", port=8080, address="test_address")
     combiner5 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner5",
-                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=22), address="test_address")
+                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080, address="test_address")
     combiner6 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner6",
-                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=24), address="test_address")
+                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080, address="test_address")
     combiner7 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner8",
-                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=42), address="test_address")
+                    parent="localhost", ip="123:13:12:3", fqdn="", port=8080, address="test_address")
     combiner8 = CombinerDTO(combiner_id=str(uuid.uuid4()), name="test_combiner7",
-                    parent="localhost", ip="123:13:12:2", fqdn="", port=8080,
-                    updated_at=start_date - datetime.timedelta(days=12), address="test_address1")
+                    parent="localhost", ip="123:13:12:2", fqdn="", port=8080, address="test_address1")
     return [combiner1, combiner2, combiner3, combiner4, combiner5, combiner6, combiner7, combiner8]
 
 @pytest.fixture
@@ -90,10 +82,12 @@ class TestCombinerStore:
         combiner_id = read_combiner1_dict["combiner_id"]
         del read_combiner1_dict["combiner_id"]
         del read_combiner1_dict["committed_at"]
+        del read_combiner1_dict["updated_at"]
 
         test_combiner_dict = test_combiner.to_dict()
         del test_combiner_dict["combiner_id"]
         del test_combiner_dict["committed_at"]
+        del test_combiner_dict["updated_at"]
 
         assert read_combiner1_dict == test_combiner_dict
 

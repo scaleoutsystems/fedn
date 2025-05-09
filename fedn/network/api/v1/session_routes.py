@@ -354,7 +354,7 @@ def post():
     """
     try:
         db = Control.instance().db
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
         session_config = SessionConfigDTO()
         session_config.populate_with(data.pop("session_config"))
@@ -410,7 +410,9 @@ def start_session():
     try:
         db = Control.instance().db
         control = Control.instance()
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
+
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
         round_timeout: int = data.get("round_timeout", None)

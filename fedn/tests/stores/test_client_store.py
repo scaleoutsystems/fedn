@@ -76,10 +76,12 @@ class TestClientStore:
         client_id = read_client1_dict["client_id"]
         del read_client1_dict["client_id"]
         del read_client1_dict["committed_at"]
+        del read_client1_dict["updated_at"]
 
         test_client_dict = test_client.to_dict()
         del test_client_dict["client_id"]
         del test_client_dict["committed_at"]
+        del test_client_dict["updated_at"]
 
         assert read_client1_dict == test_client_dict
 

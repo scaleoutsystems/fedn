@@ -16,7 +16,7 @@ import requests
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import logger
-from fedn.network.clients.grpc_handler import GrpcHandler
+from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
 from fedn.network.clients.package_runtime import PackageRuntime
 from fedn.utils.dispatcher import Dispatcher
 
@@ -272,7 +272,10 @@ class FednClient:
         while send_telemetry:
             memory_usage = psutil.virtual_memory().percent
             cpu_usage = psutil.cpu_percent()
-            success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
+            try:
+                success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
+            except RetryException as e:
+                logger.error(f"Sending telemetry failed: {e}")
             if not success:
                 logger.error("Telemetry failed.")
                 send_telemetry = False
