@@ -29,7 +29,7 @@ class ServerFunctions(ServerFunctionsBase):
             client_attrs = attrs_map.get(cid) or {}
             charging = client_attrs.get("charging", None)
             # Default to select to not depend on beta version of attributes.
-            if charging is True or charging is None:
+            if charging == "True" or charging is None:
                 selected.append(cid)
                 charging_count += 1
         if len(selected) < 20:

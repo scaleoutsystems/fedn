@@ -22,7 +22,7 @@ def main():
     client = APIClient(host=args.api_url, token=args.admin_token, secure=True, verify=True)
     while True:
         # Prepare a random charging status
-        attribute_payload = {"key": "charging", "value": random.choice([True, False]), "sender": {"name": "", "role": "", "client_id": args.client_id}}
+        attribute_payload = {"key": "charging", "value": random.choice(["True", "False"]), "sender": {"name": "", "role": "", "client_id": args.client_id}}
 
         # Send to server
         try:
