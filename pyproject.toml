@@ -212,3 +212,6 @@ norecursedirs = [
   ".ci",
   "build"
 ]
+
+log_cli = true
+log_cli_level = "INFO"
