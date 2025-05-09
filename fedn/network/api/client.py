@@ -982,7 +982,7 @@ class APIClient:
         :param attribute: A dict matching AttributeDTO.schema, e.g.
             {
                 "key": "charging",
-                "value": true,
+                "value": "true",
                 "sender": {"name": "", "role": "", "client_id": "abc123"}
             }
         :return: Parsed JSON response from the server.
