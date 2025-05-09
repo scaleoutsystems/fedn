@@ -180,7 +180,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             # check each target function
             for func in functions:
                 if func in defined_funcs:
-                    print(f"Function '{func}' found—assuming it’s implemented.")
+                    print(f"Function '{func}' found—assuming it´s implemented.")
                     self.implemented_functions[func] = True
                 else:
                     print(f"Function '{func}' not found.")

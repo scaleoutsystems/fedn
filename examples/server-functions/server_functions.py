@@ -32,8 +32,10 @@ class ServerFunctions(ServerFunctionsBase):
             if charging is True or charging is None:
                 selected.append(cid)
                 charging_count += 1
-
-        print(f"Selected clients: {selected}")
+        if len(selected) < 20:
+            print(f"Selected clients: {selected}.")
+        else:
+            print(f"Selected {len(selected)} clients.")
         print(f"{charging_count} clients selected based on client attributes, out of {len(client_ids)} clients.")
         return selected
 
