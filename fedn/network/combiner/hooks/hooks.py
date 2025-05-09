@@ -1,3 +1,4 @@
+import ast
 import json
 from concurrent import futures
 
@@ -170,12 +171,19 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.implemented_functions = {}
             self._instansiate_server_functions_code()
             functions = ["client_selection", "client_settings", "aggregate", "incremental_aggregate"]
+            # parse the entire code string into an AST
+            tree = ast.parse(server_functions_code)
+
+            # collect all real function names
+            defined_funcs = {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
+
+            # check each target function
             for func in functions:
-                if func in self.server_functions_code:
-                    logger.info(f"String {func} found in server functions code, assuming function is implemented.")
+                if func in defined_funcs:
+                    print(f"Function '{func}' found—assuming it’s implemented.")
                     self.implemented_functions[func] = True
                 else:
-                    logger.info(f"No {func} found in server functions code.")
+                    print(f"Function '{func}' not found.")
                     self.implemented_functions[func] = False
             logger.info(f"Provided function: {self.implemented_functions}")
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
