@@ -339,7 +339,7 @@ class RoundHandler:
                 selected = len(clients)
                 if not selected:
                     logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
-                    time.sleep(10)
+                    time.sleep(15)
 
         else:
             clients = self._assign_round_clients(self.server.max_clients)
