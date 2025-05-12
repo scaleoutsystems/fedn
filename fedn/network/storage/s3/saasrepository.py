@@ -85,8 +85,8 @@ class SAASRepository(RepositoryBase):
 
         try:
             if is_file:
-                logger.info("Uploading file")
-                self.s3_client.upload_file(instance, bucket, instance_name)
+                logger.info(f"Uploading file: {instance} to bucket: {bucket} with key: {instance_name}")
+                self.s3_client.upload_file(Filename=instance, Bucket=bucket, Key=instance_name)
             else:
                 logger.info("Uploading object")
                 self.s3_client.put_object(Bucket=bucket, Key=instance_name, Body=instance)
