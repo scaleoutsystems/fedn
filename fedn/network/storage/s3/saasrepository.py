@@ -85,8 +85,10 @@ class SAASRepository(RepositoryBase):
 
         try:
             if is_file:
+                logger.info("Uploading file")
                 self.s3_client.upload_file(instance, bucket, instance_name)
             else:
+                logger.info("Uploading object")
                 self.s3_client.put_object(Bucket=bucket, Key=instance_name, Body=instance)
             return True
         except (BotoCoreError, ClientError) as e:
