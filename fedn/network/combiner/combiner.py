@@ -335,7 +335,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
             elif request_type == fedn.StatusType.MODEL_UPDATE:
-                # TODO:
                 request.data = json.dumps(config)
                 request.round_id = config.get("round_id", None)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
