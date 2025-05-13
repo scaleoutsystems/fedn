@@ -1,6 +1,5 @@
 import json
 import queue
-import sys
 import time
 import traceback
 
@@ -162,7 +161,7 @@ class UpdateHandler:
 
         return model
 
-    def load_model_update_bytesIO(self, model_id, retry=3):
+    def load_model_update_bytesIO(self, model_id):
         """Load model update object and return it as BytesIO.
 
         :param model_id: The ID of the model
