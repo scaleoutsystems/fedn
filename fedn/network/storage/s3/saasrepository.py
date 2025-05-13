@@ -57,13 +57,16 @@ class SAASRepository(RepositoryBase):
                 "s3",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
-                config=Config(signature_version="s3v4"),
+                config=Config(request_checksum_calculation="when_required", response_checksum_validation="when_required"),
                 **common_config,
             )
             logger.info(f"Using {self.name} with provided credentials for SaaS storage.")
         else:
             # Use default credentials (e.g., IAM roles, service accounts, or environment variables)
-            self.s3_client = boto3.client("s3", config=Config(signature_version="s3v4") ** common_config)
+            self.s3_client = boto3.client(
+                "s3", config=Config(request_checksum_calculation="when_required", response_checksum_validation="when_required"), **common_config
+            )
+
             logger.info(f"Using {self.name} with default credentials for SaaS storage.")
 
     def set_artifact(self, instance_name: str, instance: IO, bucket: str, is_file: bool = False) -> bool:
