@@ -2,7 +2,9 @@ import json
 import queue
 import time
 import traceback
+from typing import List
 
+import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import ModelService, load_model_from_bytes
 
@@ -11,7 +13,45 @@ class ModelUpdateError(Exception):
     pass
 
 
-class UpdateHandler:
+class UpdateProviderInterface:
+    """Interface for update providers.
+
+    This interface defines the methods that update providers must implement.
+    """
+
+    def next_model_update(self):
+        """Get the next model update from the queue.
+
+        :return: The model update.
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        raise NotImplementedError("next_model_update() must be implemented by subclass")
+
+
+class RoundUpdates(UpdateProviderInterface):
+    """Group model update.
+
+    This class is used to group model updates from the same client
+    into a single model update.
+    """
+
+    def __init__(self, identifier):
+        self.identifier = identifier
+        self.model_updates = queue.Queue()
+
+    def add_model_update(self, model_update: fedn_proto.ModelUpdate):
+        self.model_updates.put(model_update)
+
+    def next_model_update(self):
+        """Get the next model update from the queue.
+
+        :return: The model update.
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        return self.model_updates.get(block=False)
+
+
+class UpdateHandler(UpdateProviderInterface):
     """Update handler.
 
     Responsible for receiving, loading and supplying client model updates.
@@ -25,7 +65,24 @@ class UpdateHandler:
         self.backward_completions = queue.Queue()
         self.modelservice = modelservice
 
-        self.model_id_to_model_data = {}
+        self.grouped_updates: List[RoundUpdates] = []
+
+    def get_group(self, identifier) -> RoundUpdates:
+        """Get the group of model updates for a given round and session.
+
+        :param round_id: The round ID.
+        :type round_id: str
+        :param session_id: The session ID.
+        :type session_id: str
+        :return: The group of model updates.
+        :rtype: RoundUpdates
+        """
+        for group in self.grouped_updates:
+            if group.identifier == identifier:
+                return group
+        new_group = RoundUpdates(identifier)
+        self.grouped_updates.append(new_group)
+        return new_group
 
     def delete_model(self, model_update):
         self.modelservice.temp_model_storage.delete(model_update.model_update_id)
@@ -68,7 +125,7 @@ class UpdateHandler:
             logger.error(tb)
             pass
 
-    def _validate_model_update(self, model_update):
+    def _validate_model_update(self, model_update: fedn_proto.ModelUpdate):
         """Validate the model update.
 
         :param model_update: A ModelUpdate message.
@@ -84,6 +141,11 @@ class UpdateHandler:
             logger.error("UPDATE HANDLER: Invalid model update, missing metadata.")
             logger.error(tb)
             return False
+
+        if not self.modelservice.exist(model_update.model_update_id):
+            logger.error("UPDATE HANDLER: Model update {} not found.".format(model_update.model_update_id))
+            return False
+
         return True
 
     def load_model_update(self, model_update, helper):

@@ -144,6 +144,7 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
+        round_id = config["round_id"]
 
         if provided_functions.get("client_settings", False):
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)

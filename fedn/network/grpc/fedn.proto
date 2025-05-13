@@ -78,6 +78,8 @@ message ModelUpdate {
   string timestamp = 6;
   string meta = 7;
   string config = 8;
+  string round_id = 9;
+  string session_id = 10;
 }
 
 message ModelValidation {
