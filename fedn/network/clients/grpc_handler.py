@@ -127,6 +127,18 @@ def grpc_retry(
     return decorator
 
 
+def compute_checksum(model: BytesIO) -> str:
+    """Compute the checksum of a model.
+
+    :param model: The model to compute the checksum for.
+    :type model: BytesIO
+    :return: The checksum of the model.
+    :rtype: str
+    """
+    # Placeholder for actual checksum computation
+    return None
+
+
 class GrpcHandler:
     """Handler for GRPC connections and operations."""
 
@@ -301,7 +313,7 @@ class GrpcHandler:
         return True
 
     @grpc_retry(max_retries=-1, retry_interval=5)
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
+    def get_model_from_combiner(self, model_id: str, client_id: str) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
         Downloads the model update object via a gRPC streaming channel.
@@ -316,30 +328,39 @@ class GrpcHandler:
         :rtype: Optional[BytesIO]
         """
         data = BytesIO()
-        time_start = time.time()
-        request = fedn.ModelRequest(id=id)
+        request = fedn.ModelRequest(model_id=model_id)
         request.sender.client_id = client_id
         request.sender.role = fedn.CLIENT
 
-        logger.info("Downloading model from combiner.")
-        for part in self.modelStub.Download(request, metadata=self.metadata):
-            if part.status == fedn.ModelStatus.IN_PROGRESS:
+        try:
+            logger.info("Downloading model from combiner.")
+            part_iterator = self.modelStub.Download(request, metadata=self.metadata)
+            for part in part_iterator:
                 data.write(part.data)
+            metadata = dict(part_iterator.trailing_metadata())
+            server_checksum = metadata.get("checksum")
+            if server_checksum:
+                data.seek(0, 0)
+                file_checksum = compute_checksum(data)
+                if file_checksum != server_checksum:
+                    logger.error("Checksum mismatch! File is corrupted!")
+                    # Uncomment the following lines if you want to compute the checksum
+                    # and compare it with the metadata checksum
+                    raise ValueError("Checksum mismatch! File is corrupted!")
+                else:
+                    logger.info("Checksum match! File is valid!")
 
-            if part.status == fedn.ModelStatus.OK:
-                return data
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(model_id, client_id))
+        except Exception as e:
+            logger.error(f"GRPC (Download): An error occurred: {e}")
+            self._handle_unknown_error(e, "Download", lambda: self.get_model_from_combiner(model_id, client_id))
 
-            if part.status == fedn.ModelStatus.FAILED:
-                return None
-
-            if part.status == fedn.ModelStatus.UNKNOWN:
-                if time.time() - time_start >= timeout:
-                    return None
-                continue
+        data.seek(0, 0)
         return data
 
     @grpc_retry(max_retries=-1, retry_interval=5)
-    def send_model_to_combiner(self, model: BytesIO, id: str) -> Optional[BytesIO]:
+    def send_model_to_combiner(self, model: BytesIO, model_id: str) -> Optional[BytesIO]:
         """Send a model update to the assigned combiner.
 
         Uploads the model updated object via a gRPC streaming channel, Upload.
@@ -352,17 +373,26 @@ class GrpcHandler:
         :rtype: Optional[BytesIO]
         """
         if not isinstance(model, BytesIO):
-            bt = BytesIO()
+            byte_stream = BytesIO()
 
             for d in model.stream(32 * 1024):
-                bt.write(d)
+                byte_stream.write(d)
         else:
-            bt = model
+            byte_stream = model
 
-        bt.seek(0, 0)
+        byte_stream.seek(0, 0)
+        file_checksum = compute_checksum(byte_stream)
+        byte_stream.seek(0, 0)
 
-        logger.info("Uploading model to combiner.")
-        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
+        try:
+            logger.info("Uploading model to combiner.")
+            metadata = [*self.metadata, ("model_id", model_id), ("checksum", file_checksum)]
+            result = self.modelStub.Upload(upload_request_generator(byte_stream), metadata=metadata)
+        except grpc.RpcError as e:
+            return self._handle_grpc_error(e, "Upload", lambda: self.send_model_to_combiner(model, model_id))
+        except Exception as e:
+            logger.error(f"GRPC (Upload): An error occurred: {e}")
+            self._handle_unknown_error(e, "Upload", lambda: self.send_model_to_combiner(model, model_id))
         return result
 
     def create_update_message(

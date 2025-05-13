@@ -173,20 +173,9 @@ class UpdateHandler:
         :rtype: class: `io.BytesIO`
         """
         # Try reading model update from local disk/combiner memory
-        model_str = self.modelservice.temp_model_storage.get(model_id)
-        # And if we cannot access that, try downloading from the server
-        if model_str is None:
-            model_str = self.modelservice.get_model(model_id)
-            # TODO: use retrying library
-            tries = 0
-            while tries < retry:
-                tries += 1
-                if not model_str or sys.getsizeof(model_str) == 80:
-                    logger.warning("Model download failed. retrying")
-                    time.sleep(3) # sleep longer
-                    model_str = self.modelservice.get_model(model_id)
+        model_stream = self.modelservice.temp_model_storage.get(model_id)
 
-        return model_str
+        return model_stream
 
     def waitforit(self, config, buffer_size=100, polling_interval=0.1):
         """Defines the policy for how long the server should wait before starting to aggregate models.
