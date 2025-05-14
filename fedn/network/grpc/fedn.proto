@@ -19,6 +19,7 @@ enum StatusType {
   MODEL_VALIDATION = 4;
   MODEL_PREDICTION = 5;
   NETWORK = 6;
+  STATUS_NO_TASK = 7;
 }
 
 enum LogLevel {
@@ -48,13 +49,7 @@ enum Queue {
   TASK_QUEUE = 1;
 }
 
-enum TaskStatus {
-    TASK_PENDING = 0;
-    TASK_RUNNING = 1;
-    TASK_COMPLETED = 2;
-    TASK_FAILED = 3;
-    TASK_INTERRUPTED = 4;
-}
+
 
 message TaskRequest {
   Client sender = 1;
@@ -67,6 +62,9 @@ message TaskRequest {
   string meta = 7;
   string session_id = 8;
   StatusType type = 9;
+  string round_id = 10;
+  string task_type = 11;
+  google.protobuf.Struct parameters = 12;
 }
 
 message ModelUpdate {
@@ -139,27 +137,24 @@ message TelemetryElem {
   float value = 2;
 }
 
-message Activity {
-  string task_id = 1;
-  TaskStatus status = 2;
-  google.protobuf.Struct response = 3;
+enum TaskStatus {
+    TASK_NO_TASK = 0;
+    TASK_PENDING = 1;
+    TASK_RUNNING = 2;
+    TASK_COMPLETED = 3;
+    TASK_FAILED = 4;
+    TASK_INTERRUPTED = 5;
+    TASK_REQUEST_NEW = 6;
 }
 
 message ActivityReport {
-    Client sender = 1;
-    repeated Activity activities = 2;
+  Client sender = 1;
+  string correlation_id = 2;
+  TaskStatus status = 3;
+  bool done = 4;
+  google.protobuf.Struct response = 5;
 }
 
-message Task {
-  string task_id = 1;
-  string type = 2;
-  google.protobuf.Struct task_parameters = 3;
-  TaskRequest request = 4;
-}
-
-message TaskList{
-  repeated Task tasks = 1;
-}
 
 enum ModelStatus {
   OK = 0;
@@ -330,7 +325,7 @@ service Combiner {
     rpc SendAttributeMessage(AttributeMessage) returns (Response);
     rpc SendTelemetryMessage(TelemetryMessage) returns (Response);
 
-    rpc PollAndReport(ActivityReport) returns (TaskList);
+    rpc PollAndReport(ActivityReport) returns (TaskRequest);
 }
 
 message ProvidedFunctionsRequest {

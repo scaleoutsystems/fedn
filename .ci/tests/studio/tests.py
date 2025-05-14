@@ -90,7 +90,7 @@ class TestFednStudio:
             assert round["status"] == "Finished", f"Expected round status 'Finished', got {round['status']}"
             for combiner in round["combiners"]:
                 assert combiner["status"] == "Success", f"Expected combiner status 'Finished', got {combiner['status']}"
-                data = combiner["data"]
+                data = combiner[]
                 assert data["aggregation_time"]["nr_aggregated_models"] == fedn_env["FEDN_NR_EXPECTED_AGG"], f"Expected {fedn_env['FEDN_NR_EXPECTED_AGG']} aggregated models, got {data['aggregation_time']['nr_aggregated_models']}"
 
     @pytest.mark.order(5)

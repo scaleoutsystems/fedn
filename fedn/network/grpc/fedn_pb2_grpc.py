@@ -838,7 +838,7 @@ class CombinerStub(object):
         self.PollAndReport = channel.unary_unary(
                 '/fedn.Combiner/PollAndReport',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.TaskList.FromString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
                 _registered_method=True)
 
 
@@ -935,7 +935,7 @@ def add_CombinerServicer_to_server(servicer, server):
             'PollAndReport': grpc.unary_unary_rpc_method_handler(
                     servicer.PollAndReport,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.TaskList.SerializeToString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1153,7 +1153,7 @@ class Combiner(object):
             target,
             '/fedn.Combiner/PollAndReport',
             network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.TaskList.FromString,
+            network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
             options,
             channel_credentials,
             insecure,

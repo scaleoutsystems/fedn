@@ -95,9 +95,7 @@ class LoggingContext:
             if model_id is None:
                 model_id = request.model_id
             if round_id is None:
-                if request.type == fedn.StatusType.MODEL_UPDATE:
-                    config = json.loads(request.data)
-                    round_id = config["round_id"]
+                round_id = request.round_id
             if session_id is None:
                 session_id = request.session_id
 
@@ -294,24 +292,13 @@ class FednClient:
         elif request.type == fedn.StatusType.MODEL_PREDICTION:
             self.predict_global_model(request)
 
-    def _run_task_callback(self, task: fedn.Task) -> None:
-        if task.request:
-            if task.request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
-                self._task_stream_callback(task.request)
-                return {}
-            else:
-                logger.error(f"Unknown task type: {task.request.type}")
-                raise ValueError(f"Unknown task type: {task.request.type}")
+    def _run_task_callback(self, request: fedn.TaskRequest) -> None:
+        if request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
+            self._task_stream_callback(request)
+            return {}
         else:
-            return self._run_new_task(task)
-
-    def _run_new_task(self, task: fedn.Task) -> None:
-        if task.type == "Task1":
-            logger.info("Running Task1")
-            return {"result": "Task1 completed"}
-        else:
-            logger.error(f"Unknown task type: {task.type}")
-            raise ValueError(f"Unknown task type: {task.type}")
+            logger.error(f"Unknown task type: {request.type}")
+            raise ValueError(f"Unknown task type: {request.type}")
 
     def update_local_model(self, request: fedn.TaskRequest) -> None:
         """Update the local model."""

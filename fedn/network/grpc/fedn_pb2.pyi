@@ -35,6 +35,7 @@ class _StatusTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._Enu
     MODEL_VALIDATION: _StatusType.ValueType  # 4
     MODEL_PREDICTION: _StatusType.ValueType  # 5
     NETWORK: _StatusType.ValueType  # 6
+    STATUS_NO_TASK: _StatusType.ValueType  # 7
 
 class StatusType(_StatusType, metaclass=_StatusTypeEnumTypeWrapper): ...
 
@@ -45,6 +46,7 @@ MODEL_VALIDATION_REQUEST: StatusType.ValueType  # 3
 MODEL_VALIDATION: StatusType.ValueType  # 4
 MODEL_PREDICTION: StatusType.ValueType  # 5
 NETWORK: StatusType.ValueType  # 6
+STATUS_NO_TASK: StatusType.ValueType  # 7
 global___StatusType = StatusType
 
 class _LogLevel:
@@ -91,19 +93,23 @@ class _TaskStatus:
 
 class _TaskStatusEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_TaskStatus.ValueType], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    TASK_PENDING: _TaskStatus.ValueType  # 0
-    TASK_RUNNING: _TaskStatus.ValueType  # 1
-    TASK_COMPLETED: _TaskStatus.ValueType  # 2
-    TASK_FAILED: _TaskStatus.ValueType  # 3
-    TASK_INTERRUPTED: _TaskStatus.ValueType  # 4
+    TASK_NO_TASK: _TaskStatus.ValueType  # 0
+    TASK_PENDING: _TaskStatus.ValueType  # 1
+    TASK_RUNNING: _TaskStatus.ValueType  # 2
+    TASK_COMPLETED: _TaskStatus.ValueType  # 3
+    TASK_FAILED: _TaskStatus.ValueType  # 4
+    TASK_INTERRUPTED: _TaskStatus.ValueType  # 5
+    TASK_REQUEST_NEW: _TaskStatus.ValueType  # 6
 
 class TaskStatus(_TaskStatus, metaclass=_TaskStatusEnumTypeWrapper): ...
 
-TASK_PENDING: TaskStatus.ValueType  # 0
-TASK_RUNNING: TaskStatus.ValueType  # 1
-TASK_COMPLETED: TaskStatus.ValueType  # 2
-TASK_FAILED: TaskStatus.ValueType  # 3
-TASK_INTERRUPTED: TaskStatus.ValueType  # 4
+TASK_NO_TASK: TaskStatus.ValueType  # 0
+TASK_PENDING: TaskStatus.ValueType  # 1
+TASK_RUNNING: TaskStatus.ValueType  # 2
+TASK_COMPLETED: TaskStatus.ValueType  # 3
+TASK_FAILED: TaskStatus.ValueType  # 4
+TASK_INTERRUPTED: TaskStatus.ValueType  # 5
+TASK_REQUEST_NEW: TaskStatus.ValueType  # 6
 global___TaskStatus = TaskStatus
 
 class _ModelStatus:
@@ -261,6 +267,9 @@ class TaskRequest(google.protobuf.message.Message):
     META_FIELD_NUMBER: builtins.int
     SESSION_ID_FIELD_NUMBER: builtins.int
     TYPE_FIELD_NUMBER: builtins.int
+    ROUND_ID_FIELD_NUMBER: builtins.int
+    TASK_TYPE_FIELD_NUMBER: builtins.int
+    PARAMETERS_FIELD_NUMBER: builtins.int
     model_id: builtins.str
     data: builtins.str
     """data is round_config when type is MODEL_UPDATE"""
@@ -269,10 +278,14 @@ class TaskRequest(google.protobuf.message.Message):
     meta: builtins.str
     session_id: builtins.str
     type: global___StatusType.ValueType
+    round_id: builtins.str
+    task_type: builtins.str
     @property
     def sender(self) -> global___Client: ...
     @property
     def receiver(self) -> global___Client: ...
+    @property
+    def parameters(self) -> google.protobuf.struct_pb2.Struct: ...
     def __init__(
         self,
         *,
@@ -285,9 +298,12 @@ class TaskRequest(google.protobuf.message.Message):
         meta: builtins.str = ...,
         session_id: builtins.str = ...,
         type: global___StatusType.ValueType = ...,
+        round_id: builtins.str = ...,
+        task_type: builtins.str = ...,
+        parameters: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "receiver", b"receiver", "sender", b"sender", "session_id", b"session_id", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["parameters", b"parameters", "receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "parameters", b"parameters", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "task_type", b"task_type", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
 
 global___TaskRequest = TaskRequest
 
@@ -553,91 +569,34 @@ class TelemetryElem(google.protobuf.message.Message):
 global___TelemetryElem = TelemetryElem
 
 @typing.final
-class Activity(google.protobuf.message.Message):
+class ActivityReport(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    TASK_ID_FIELD_NUMBER: builtins.int
+    SENDER_FIELD_NUMBER: builtins.int
+    CORRELATION_ID_FIELD_NUMBER: builtins.int
     STATUS_FIELD_NUMBER: builtins.int
+    DONE_FIELD_NUMBER: builtins.int
     RESPONSE_FIELD_NUMBER: builtins.int
-    task_id: builtins.str
+    correlation_id: builtins.str
     status: global___TaskStatus.ValueType
+    done: builtins.bool
+    @property
+    def sender(self) -> global___Client: ...
     @property
     def response(self) -> google.protobuf.struct_pb2.Struct: ...
     def __init__(
         self,
         *,
-        task_id: builtins.str = ...,
+        sender: global___Client | None = ...,
+        correlation_id: builtins.str = ...,
         status: global___TaskStatus.ValueType = ...,
+        done: builtins.bool = ...,
         response: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["response", b"response"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["response", b"response", "status", b"status", "task_id", b"task_id"]) -> None: ...
-
-global___Activity = Activity
-
-@typing.final
-class ActivityReport(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    SENDER_FIELD_NUMBER: builtins.int
-    ACTIVITIES_FIELD_NUMBER: builtins.int
-    @property
-    def sender(self) -> global___Client: ...
-    @property
-    def activities(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Activity]: ...
-    def __init__(
-        self,
-        *,
-        sender: global___Client | None = ...,
-        activities: collections.abc.Iterable[global___Activity] | None = ...,
-    ) -> None: ...
-    def HasField(self, field_name: typing.Literal["sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["activities", b"activities", "sender", b"sender"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["response", b"response", "sender", b"sender"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "done", b"done", "response", b"response", "sender", b"sender", "status", b"status"]) -> None: ...
 
 global___ActivityReport = ActivityReport
-
-@typing.final
-class Task(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    TASK_ID_FIELD_NUMBER: builtins.int
-    TYPE_FIELD_NUMBER: builtins.int
-    TASK_PARAMETERS_FIELD_NUMBER: builtins.int
-    REQUEST_FIELD_NUMBER: builtins.int
-    task_id: builtins.str
-    type: builtins.str
-    @property
-    def task_parameters(self) -> google.protobuf.struct_pb2.Struct: ...
-    @property
-    def request(self) -> global___TaskRequest: ...
-    def __init__(
-        self,
-        *,
-        task_id: builtins.str = ...,
-        type: builtins.str = ...,
-        task_parameters: google.protobuf.struct_pb2.Struct | None = ...,
-        request: global___TaskRequest | None = ...,
-    ) -> None: ...
-    def HasField(self, field_name: typing.Literal["request", b"request", "task_parameters", b"task_parameters"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["request", b"request", "task_id", b"task_id", "task_parameters", b"task_parameters", "type", b"type"]) -> None: ...
-
-global___Task = Task
-
-@typing.final
-class TaskList(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    TASKS_FIELD_NUMBER: builtins.int
-    @property
-    def tasks(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Task]: ...
-    def __init__(
-        self,
-        *,
-        tasks: collections.abc.Iterable[global___Task] | None = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["tasks", b"tasks"]) -> None: ...
-
-global___TaskList = TaskList
 
 @typing.final
 class ModelRequest(google.protobuf.message.Message):
