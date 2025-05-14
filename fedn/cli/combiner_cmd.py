@@ -67,7 +67,7 @@ def start_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn, se
     network_id = get_network_config()
 
     # TODO: set storage_type ?
-    repository = Repository(modelstorage_config["storage_config"], init_buckets=False)
+    repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"], init_buckets=False)
 
     db = DatabaseConnection(statestore_config, network_id)
 
