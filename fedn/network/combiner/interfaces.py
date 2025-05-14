@@ -1,6 +1,7 @@
 import base64
 import copy
 import json
+import time 
 
 import grpc
 
@@ -216,32 +217,46 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, config: RoundConfig):
-        """Submit a compute plan to the combiner.
-
+    def submit(self, config: RoundConfig, max_retries: int = 3, retry_delay: float = 1.0):
+        """Submit a compute plan to the combiner, with retry on UNAVAILABLE errors.
+        
         :param config: The job configuration.
-        :type config: dict
+        :type config: RoundConfig
+        :param max_retries: How many times to retry if gRPC returns UNAVAILABLE.
+        :type max_retries: int
+        :param retry_delay: Seconds to wait before retrying.
+        :type retry_delay: float
         :return: Server ControlResponse object.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
-        control = rpc.ControlStub(channel)
-        request = fedn.ControlRequest()
-        request.command = fedn.Command.START
-        for k, v in config.items():
-            p = request.parameter.add()
-            p.key = str(k)
-            p.value = str(v)
-
-        try:
-            response = control.Start(request)
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-
-        return response
+        for attempt in range(max_retries):
+            channel = Channel(self.address, self.port, self.certificate).get_channel()
+            control = rpc.ControlStub(channel)
+            request = fedn.ControlRequest()
+            request.command = fedn.Command.START
+            
+            for k, v in config.items():
+                p = request.parameter.add()
+                p.key = str(k)
+                p.value = str(v)
+            
+            try:
+                response = control.Start(request)
+                return response  # If call succeeds, return immediately
+                
+            except grpc.RpcError as e:
+                if e.code() == grpc.StatusCode.UNAVAILABLE:
+                    # Final attempt, Raise CombinerUnavailableError
+                    if attempt == max_retries - 1:
+                        raise CombinerUnavailableError
+                    else:
+                        # Sleep before trying again
+                        time.sleep(retry_delay)
+                else:
+                    # For any other error re-raise
+                    raise
+        # as a backup
+        raise CombinerUnavailableError("Exceeded max retries in submit()")
 
     def allowing_clients(self):
         """Check if the combiner is allowing additional client connections.
@@ -269,24 +284,39 @@ class CombinerInterface:
 
         return False
 
-    def list_active_clients(self, queue=1):
-        """List active clients.
+    def list_active_clients(self, queue=1, max_retries=3, retry_delay=1.0):
+        """List active clients with retry logic.
 
         :param queue: The channel (queue) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
-            see :class:`fedn.network.grpc.fedn_pb2.Channel`
-        :type channel: int
+        :type queue: int
+        :param max_retries: How many times to retry if gRPC returns UNAVAILABLE.
+        :type max_retries: int
+        :param retry_delay: Seconds to wait before retrying.
+        :type retry_delay: float
         :return: A list of active clients.
-        :rtype: json
+        :rtype: list
         """
-        channel = Channel(self.address, self.port, self.certificate).get_channel()
-        control = rpc.ConnectorStub(channel)
-        request = fedn.ListClientsRequest()
-        request.channel = queue
-        try:
-            response = control.ListActiveClients(request)
-        except grpc.RpcError as e:
-            if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
-            else:
-                raise
-        return response.client
+        for attempt in range(max_retries):
+            channel = Channel(self.address, self.port, self.certificate).get_channel()
+            control = rpc.ConnectorStub(channel)
+            request = fedn.ListClientsRequest()
+            request.channel = queue
+
+            try:
+                response = control.ListActiveClients(request)
+                # If successful, return immediately
+                return response.client
+
+            except grpc.RpcError as e:
+                if e.code() == grpc.StatusCode.UNAVAILABLE:
+                    # last attempt, raise CombinerUnavailableError
+                    if attempt == max_retries - 1:
+                        raise CombinerUnavailableError
+                    else:
+                        # wait and retry
+                        time.sleep(retry_delay)
+                else:
+                    # other error re-raise
+                    raise
+        # as a backup
+        raise CombinerUnavailableError("Exceeded max retries for list_active_clients")
