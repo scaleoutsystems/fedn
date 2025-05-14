@@ -153,7 +153,7 @@ class RoundHandler:
         # Request model updates from all active clients.
         self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
 
-        # If buffer_size is -1 (default), the round terminates when/if all clients have completed.
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
             buffer_size = len(clients)
         else:
@@ -213,6 +213,88 @@ class RoundHandler:
         :type model_id: str
         """
         self.server.request_model_prediction(prediction_id, model_id, clients=clients)
+
+    def _forward_pass(self, config: dict, clients: list):
+        """Send model forward pass requests to clients.
+
+        :param config: The round config object (passed to the client).
+        :type config: dict
+        :param clients: clients to participate in the training round
+        :type clients: list
+        :return: aggregated embeddings and associated metadata
+        :rtype: model, dict
+        """
+        logger.info("ROUNDHANDLER: Initiating forward pass, participating clients: {}".format(clients))
+
+        meta = {}
+        meta["nr_expected_updates"] = len(clients)
+        meta["nr_required_updates"] = int(config["clients_required"])
+        meta["timeout"] = float(config["round_timeout"])
+
+        session_id = config["session_id"]
+        model_id = config["model_id"]
+        is_sl_inference = config[
+            "is_sl_inference"
+        ]  # determines whether forward pass calculates gradients ("training"), or is used for inference (e.g., for validation)
+        # Request forward pass from all active clients.
+        self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
+
+        # the round should terminate when all clients have completed
+        buffer_size = len(clients)
+
+        # Wait / block until the round termination policy has been met.
+        self.update_handler.waitforit(config, buffer_size=buffer_size)
+
+        tic = time.time()
+        output = None
+        try:
+            helper = get_helper(config["helper_type"])
+            logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
+            if config["delete_models_storage"] == "True":
+                delete_models = True
+            else:
+                delete_models = False
+
+            output = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_sl_inference=is_sl_inference)
+
+        except Exception as e:
+            logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
+
+        meta["time_combination"] = time.time() - tic
+        meta["aggregation_time"] = output["data"]
+        return output, meta
+
+    def _backward_pass(self, config: dict, clients: list):
+        """Send backward pass requests to clients.
+
+        :param config: The round config object (passed to the client).
+        :type config: dict
+        :param clients: clients to participate in the training round
+        :type clients: list
+        :return: associated metadata
+        :rtype: dict
+        """
+        logger.info("ROUNDHANDLER: Initiating backward pass, participating clients: {}".format(clients))
+
+        meta = {}
+        meta["nr_expected_updates"] = len(clients)
+        meta["nr_required_updates"] = int(config["clients_required"])
+        meta["timeout"] = float(config["round_timeout"])
+
+        # Clear previous backward completions queue
+        self.update_handler.clear_backward_completions()
+
+        # Request backward pass from all active clients.
+        logger.info("ROUNDHANDLER: Requesting backward pass, gradient_id: {}".format(config["model_id"]))
+
+        self.server.request_backward_pass(session_id=config["session_id"], gradient_id=config["model_id"], config=config, clients=clients)
+
+        # the round should terminate when all clients have completed
+        buffer_size = len(clients)
+
+        self.update_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
+
+        return meta
 
     def stage_model(self, model_id, timeout_retry=3, retry=2):
         """Download a model from persistent storage and set in modelservice.
@@ -333,7 +415,14 @@ class RoundHandler:
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
 
         if provided_functions.get("client_selection", False):
-            clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+            selected = 0
+            while not selected:
+                clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+                selected = len(clients)
+                if not selected:
+                    logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
+                    time.sleep(15)
+
         else:
             clients = self._assign_round_clients(self.server.max_clients)
         model, meta = self._training_round(config, clients, provided_functions)
@@ -350,6 +439,74 @@ class RoundHandler:
             data["model_id"] = model_id
 
             logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config["_job_id"]))
+
+        # Delete temp model
+        self.modelservice.temp_model_storage.delete(config["model_id"])
+        return data
+
+    def execute_forward_pass(self, config):
+        """Coordinates clients to execute forward pass.
+
+        :param config: The round config object.
+        :type config: dict
+        :return: metadata about the training round.
+        :rtype: dict
+        """
+        logger.info("Processing forward pass, job_id {}".format(config["_job_id"]))
+
+        data = {}
+        data["config"] = config
+        data["round_id"] = config["round_id"]
+
+        data["model_id"] = None
+
+        clients = self._assign_round_clients(self.server.max_clients)
+        output, meta = self._forward_pass(config, clients)
+
+        data["data"] = meta
+
+        if output["gradients"] is None and output["validation_data"] is None:
+            logger.warning("\t Forward pass failed in round {0}!".format(config["round_id"]))
+        elif output["validation_data"] is not None:  # in forward validation pass, no gradients are calculated. Skip in this case.
+            logger.info("FORWARD VALIDATION PASS COMPLETED. Job id: {}".format(config["_job_id"]))
+            return data
+        elif output["gradients"] is not None:
+            gradients = output["gradients"]
+            helper = get_helper(config["helper_type"])
+            a = serialize_model_to_BytesIO(gradients, helper)
+            gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads gradients to storage
+            a.close()
+            data["model_id"] = gradient_id  # intended
+
+            logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
+
+            return data
+
+    def execute_backward_pass(self, config):
+        """Coordinates clients to execute backward pass.
+
+        :param config: The round config object.
+        :type config: dict
+        :return: metadata about the training round.
+        :rtype: dict
+        """
+        logger.info("Processing backward pass, job_id {}".format(config["_job_id"]))
+
+        data = {}
+        data["config"] = config
+        data["round_id"] = config["round_id"]
+
+        logger.info("roundhandler execute_backward_pass: downloading gradients with id: {}".format(config["model_id"]))
+
+        # Download gradients and set in temp storage.
+        self.stage_model(config["model_id"])  # Download a model from persistent storage and set in modelservice
+
+        clients = self._assign_round_clients(self.server.max_clients)
+        meta = self._backward_pass(config, clients)
+        data["data"] = meta
+
+        if meta is None:
+            logger.warning("\t Failed to run backward pass in round {0}!".format(config["round_id"]))
 
         # Delete temp model
         self.modelservice.temp_model_storage.delete(config["model_id"])
@@ -395,6 +552,42 @@ class RoundHandler:
                             prediction_id = round_config["prediction_id"]
                             model_id = round_config["model_id"]
                             self.execute_prediction_round(prediction_id, model_id)
+
+                        elif round_config["task"] == "forward":
+                            session_id = round_config["session_id"]
+                            model_id = round_config["model_id"]
+                            tic = time.time()
+                            round_meta = self.execute_forward_pass(round_config)
+                            round_meta["time_exec_training"] = time.time() - tic
+                            round_meta["status"] = "Success"
+                            round_meta["name"] = self.server.id
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])  # if "combiners" not in active_round:
+                            #     active_round["combiners"] = []
+                            # active_round["combiners"].append(round_meta)
+
+                            # updated = self.server.round_store.update(active_round["id"], active_round)
+
+                            active_round.combiners.append(round_meta)
+                            try:
+                                self.server.db.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Forward pass: Failed to update round data in round store. {}".format(e))
+                                raise Exception("Forward passFailed to update round data in round store.")
+
+                        elif round_config["task"] == "backward":
+                            tic = time.time()
+                            round_meta = self.execute_backward_pass(round_config)
+                            round_meta["time_exec_training"] = time.time() - tic
+                            round_meta["status"] = "Success"
+                            round_meta["name"] = self.server.id
+                            active_round = self.server.db.round_store.get(round_meta["round_id"])
+                            # updated = self.server.round_store.update(active_round["id"], active_round)
+                            active_round.combiners.append(round_meta)
+                            try:
+                                self.server.db.round_store.update(active_round)
+                            except Exception as e:
+                                logger.error("Backward pass: Failed to update round data in round store. {}".format(e))
+                                raise Exception("Backward pass: Failed to update round data in round store.")
                         else:
                             logger.warning("config contains unkown task type.")
                     else:

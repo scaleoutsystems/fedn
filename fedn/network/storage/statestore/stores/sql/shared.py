@@ -30,6 +30,7 @@ class MyAbstractBase(Base):
 
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
     committed_at: Mapped[datetime] = mapped_column(default=datetime.now)
+    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
 
 
 class SessionConfigModel(MyAbstractBase):
@@ -97,6 +98,7 @@ class RoundConfigModel(MyAbstractBase):
     round_id: Mapped[str]
     rounds: Mapped[int]
     client_settings: Mapped[Optional[Dict]] = mapped_column(JSON)
+    is_sl_inference: Mapped[bool]
 
 
 class RoundCombinerDataModel(MyAbstractBase):

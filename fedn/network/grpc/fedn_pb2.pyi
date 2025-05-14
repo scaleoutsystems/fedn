@@ -35,7 +35,10 @@ class _StatusTypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._Enu
     MODEL_VALIDATION: _StatusType.ValueType  # 4
     MODEL_PREDICTION: _StatusType.ValueType  # 5
     NETWORK: _StatusType.ValueType  # 6
-    STATUS_NO_TASK: _StatusType.ValueType  # 7
+    FORWARD_REQUEST: _StatusType.ValueType  # 7
+    FORWARD: _StatusType.ValueType  # 8
+    BACKWARD_REQUEST: _StatusType.ValueType  # 9
+    BACKWARD: _StatusType.ValueType  # 10
 
 class StatusType(_StatusType, metaclass=_StatusTypeEnumTypeWrapper): ...
 
@@ -46,7 +49,10 @@ MODEL_VALIDATION_REQUEST: StatusType.ValueType  # 3
 MODEL_VALIDATION: StatusType.ValueType  # 4
 MODEL_PREDICTION: StatusType.ValueType  # 5
 NETWORK: StatusType.ValueType  # 6
-STATUS_NO_TASK: StatusType.ValueType  # 7
+FORWARD_REQUEST: StatusType.ValueType  # 7
+FORWARD: StatusType.ValueType  # 8
+BACKWARD_REQUEST: StatusType.ValueType  # 9
+BACKWARD: StatusType.ValueType  # 10
 global___StatusType = StatusType
 
 class _LogLevel:
@@ -425,6 +431,43 @@ class ModelPrediction(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "prediction_id", b"prediction_id", "receiver", b"receiver", "sender", b"sender", "timestamp", b"timestamp"]) -> None: ...
 
 global___ModelPrediction = ModelPrediction
+
+@typing.final
+class BackwardCompletion(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SENDER_FIELD_NUMBER: builtins.int
+    RECEIVER_FIELD_NUMBER: builtins.int
+    GRADIENT_ID_FIELD_NUMBER: builtins.int
+    CORRELATION_ID_FIELD_NUMBER: builtins.int
+    SESSION_ID_FIELD_NUMBER: builtins.int
+    TIMESTAMP_FIELD_NUMBER: builtins.int
+    META_FIELD_NUMBER: builtins.int
+    gradient_id: builtins.str
+    correlation_id: builtins.str
+    session_id: builtins.str
+    meta: builtins.str
+    @property
+    def sender(self) -> global___Client: ...
+    @property
+    def receiver(self) -> global___Client: ...
+    @property
+    def timestamp(self) -> google.protobuf.timestamp_pb2.Timestamp: ...
+    def __init__(
+        self,
+        *,
+        sender: global___Client | None = ...,
+        receiver: global___Client | None = ...,
+        gradient_id: builtins.str = ...,
+        correlation_id: builtins.str = ...,
+        session_id: builtins.str = ...,
+        timestamp: google.protobuf.timestamp_pb2.Timestamp | None = ...,
+        meta: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender", "timestamp", b"timestamp"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "gradient_id", b"gradient_id", "meta", b"meta", "receiver", b"receiver", "sender", b"sender", "session_id", b"session_id", "timestamp", b"timestamp"]) -> None: ...
+
+global___BackwardCompletion = BackwardCompletion
 
 @typing.final
 class ModelMetric(google.protobuf.message.Message):

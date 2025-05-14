@@ -820,6 +820,11 @@ class CombinerStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
+        self.SendBackwardCompletion = channel.unary_unary(
+                '/fedn.Combiner/SendBackwardCompletion',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
         self.SendModelMetric = channel.unary_unary(
                 '/fedn.Combiner/SendModelMetric',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
@@ -870,6 +875,12 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendBackwardCompletion(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SendModelMetric(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -915,6 +926,11 @@ def add_CombinerServicer_to_server(servicer, server):
             'SendModelPrediction': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelPrediction,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'SendBackwardCompletion': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendBackwardCompletion,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
             'SendModelMetric': grpc.unary_unary_rpc_method_handler(
@@ -1045,6 +1061,33 @@ class Combiner(object):
             target,
             '/fedn.Combiner/SendModelPrediction',
             network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendBackwardCompletion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/SendBackwardCompletion',
+            network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.Response.FromString,
             options,
             channel_credentials,

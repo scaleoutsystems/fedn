@@ -599,3 +599,61 @@ def get_client_config():
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/<string:id>/attributes", methods=["GET"])
+@jwt_auth_required(role="admin")
+def get_client_attributes(id):
+    """Get client attributes
+    Retrieves the attributes of a client based on the provided id.
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: string
+        description: The id of the client
+    responses:
+        200:
+            description: A list of attributes for the client
+            schema:
+                type: array
+                items:
+                    type: object
+                    properties:
+                        key:
+                            type: string
+                        value:
+                            type: string
+        404:
+            description: The client was not found
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+        500:
+            description: An error occurred
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+    """
+    try:
+        db = Control.instance().db
+
+        client = db.client_store.get(id)
+        if client is None:
+            return jsonify({"message": f"Entity with id: {id} not found"}), 404
+
+        attributes = db.attribute_store.get_current_attributes_for_client(client.client_id)
+        response = {}
+        for attribute in attributes:
+            response[attribute.key] = attribute.value
+        return jsonify(response), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
