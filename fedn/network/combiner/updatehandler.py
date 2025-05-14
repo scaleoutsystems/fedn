@@ -13,31 +13,21 @@ class ModelUpdateError(Exception):
     pass
 
 
-class UpdateProviderInterface:
-    """Interface for update providers.
-
-    This interface defines the methods that update providers must implement.
-    """
-
-    def next_model_update(self):
-        """Get the next model update from the queue.
-
-        :return: The model update.
-        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
-        """
-        raise NotImplementedError("next_model_update() must be implemented by subclass")
-
-
-class RoundUpdates(UpdateProviderInterface):
+class RoundUpdateQueue:
     """Group model update.
 
     This class is used to group model updates from the same client
     into a single model update.
     """
 
-    def __init__(self, identifier):
+    def __init__(self, identifier, accept_strugglers: bool = False, expected_strugglers: List = None):
         self.identifier = identifier
         self.model_updates = queue.Queue()
+        self.model_update_strugglers = queue.Queue()
+        self.expected_correlation_ids: List[str] = []
+
+        self._accept_strugglers = accept_strugglers
+        self._expected_strugglers = expected_strugglers
 
     def add_model_update(self, model_update: fedn_proto.ModelUpdate):
         self.model_updates.put(model_update)
@@ -51,7 +41,7 @@ class RoundUpdates(UpdateProviderInterface):
         return self.model_updates.get(block=False)
 
 
-class UpdateHandler(UpdateProviderInterface):
+class UpdateHandler:
     """Update handler.
 
     Responsible for receiving, loading and supplying client model updates.
@@ -65,9 +55,9 @@ class UpdateHandler(UpdateProviderInterface):
         self.backward_completions = queue.Queue()
         self.modelservice = modelservice
 
-        self.grouped_updates: List[RoundUpdates] = []
+        self.grouped_updates: List[SessionUpdates] = []
 
-    def get_group(self, identifier) -> RoundUpdates:
+    def get_group(self, identifier) -> SessionUpdates:
         """Get the group of model updates for a given round and session.
 
         :param round_id: The round ID.
@@ -80,7 +70,7 @@ class UpdateHandler(UpdateProviderInterface):
         for group in self.grouped_updates:
             if group.identifier == identifier:
                 return group
-        new_group = RoundUpdates(identifier)
+        new_group = SessionUpdates(identifier)
         self.grouped_updates.append(new_group)
         return new_group
 
