@@ -334,10 +334,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
-                request.parameters = {"presigned_url": presigned_url}
             elif request_type == fedn.StatusType.MODEL_UPDATE:
+                # TODO:
                 request.data = json.dumps(config)
-                request.parameters = config
                 request.round_id = config.get("round_id", None)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
         return clients

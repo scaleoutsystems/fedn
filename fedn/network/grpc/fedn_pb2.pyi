@@ -275,7 +275,6 @@ class TaskRequest(google.protobuf.message.Message):
     TYPE_FIELD_NUMBER: builtins.int
     ROUND_ID_FIELD_NUMBER: builtins.int
     TASK_TYPE_FIELD_NUMBER: builtins.int
-    PARAMETERS_FIELD_NUMBER: builtins.int
     model_id: builtins.str
     data: builtins.str
     """data is round_config when type is MODEL_UPDATE"""
@@ -290,8 +289,6 @@ class TaskRequest(google.protobuf.message.Message):
     def sender(self) -> global___Client: ...
     @property
     def receiver(self) -> global___Client: ...
-    @property
-    def parameters(self) -> google.protobuf.struct_pb2.Struct: ...
     def __init__(
         self,
         *,
@@ -306,10 +303,9 @@ class TaskRequest(google.protobuf.message.Message):
         type: global___StatusType.ValueType = ...,
         round_id: builtins.str = ...,
         task_type: builtins.str = ...,
-        parameters: google.protobuf.struct_pb2.Struct | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing.Literal["parameters", b"parameters", "receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "parameters", b"parameters", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "task_type", b"task_type", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
+    def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "task_type", b"task_type", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
 
 global___TaskRequest = TaskRequest
 

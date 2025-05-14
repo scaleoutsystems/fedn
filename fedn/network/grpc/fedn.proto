@@ -67,7 +67,6 @@ message TaskRequest {
   StatusType type = 9;
   string round_id = 10;
   string task_type = 11;
-  google.protobuf.Struct parameters = 12;
 }
 
 message ModelUpdate {
