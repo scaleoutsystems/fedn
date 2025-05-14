@@ -640,6 +640,12 @@ class APIClient:
         :return: A dict with success or failure message and session config.
         :rtype: dict
         """
+        is_splitlearning = aggregator == "splitlearningagg"
+        if is_splitlearning:
+            return self.start_splitlearning_session(
+                name, model_id, round_timeout, rounds, round_buffer_size, delete_models, validate, min_clients, requested_clients
+            )
+
         if model_id is None:
             _headers = self.headers.copy()
             _headers["X-Limit"] = "1"
@@ -699,11 +705,131 @@ class APIClient:
                 verify=self.verify,
                 headers=self.headers,
             )
+            # Try to parse JSON, but handle the case where it fails
+            try:
+                response_json = response.json()
+                response_json["session_id"] = session_id
+                return response_json
+            except requests.exceptions.JSONDecodeError:
+                # Handle invalid JSON response
+                return {"success": response.status_code < 400, "session_id": session_id, "message": f"Session started with status code {response.status_code}"}
+
+        _json = response.json()
+        return _json
+
+    def start_splitlearning_session(
+        self,
+        name: str = None,
+        model_id: str = None,
+        round_timeout: int = 180,
+        rounds: int = 5,
+        round_buffer_size: int = -1,
+        delete_models: bool = True,
+        validate: bool = False,
+        min_clients: int = 1,
+        requested_clients: int = 8,
+    ):
+        """Start a new splitlearning session.
+
+        :param name: The name of the session
+        :type name: str
+        :param model_id: The id of the initial model.
+        :type model_id: str
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_buffer_size: The round buffer size to use.
+        :type round_buffer_size: int
+        :param delete_models: Whether to delete models after each round at combiner (save storage).
+        :type delete_models: bool
+        :param validate: Whether to validate the model after each round.
+        :type validate: bool
+        :param min_clients: The minimum number of clients required.
+        :type min_clients: int
+        :param requested_clients: The requested number of clients.
+        :type requested_clients: int
+        :return: A dict with success or failure message and session config.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("sessions/"),
+            json={
+                "name": name,
+                "session_config": {
+                    "aggregator": "splitlearningagg",
+                    "model_id": model_id,
+                    "round_timeout": round_timeout,
+                    "buffer_size": round_buffer_size,
+                    "delete_models_storage": delete_models,
+                    "clients_required": min_clients,
+                    "requested_clients": requested_clients,
+                    "validate": validate,
+                    "helper_type": "splitlearninghelper",
+                },
+            },
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        if response.status_code == 201:
+            session_id = response.json()["session_id"]
+            response = requests.post(
+                self._get_url_api_v1("sessions/start_splitlearning_session"),
+                json={
+                    "session_id": session_id,
+                    "rounds": rounds,
+                    "round_timeout": round_timeout,
+                },
+                verify=self.verify,
+                headers=self.headers,
+            )
             response_json = response.json()
             response_json["session_id"] = session_id
             return response_json
 
         _json = response.json()
+        return _json
+
+    def continue_session(self, session_id: str, rounds: int = 5, round_timeout: int = 180):
+        """Continue a session.
+
+        :param session_id: The id of the session to continue.
+        :type session_id: str
+        :param rounds: The number of rounds to perform.
+        :type rounds: int
+        :param round_timeout: The round timeout to use in seconds.
+        :type round_timeout: int
+        :return: A dict with success or failure message and session config.
+        :rtype: dict
+        """
+        if not session_id:
+            return {"message": "No session id provided."}
+        if rounds is None or rounds <= 0:
+            return {"message": "Invalid number of rounds provided. Must be greater than 0."}
+        if round_timeout is None or round_timeout <= 0:
+            return {"message": "Invalid round timeout provided. Must be greater than 0."}
+        # Check if session exists
+        session = self.get_session(session_id)
+        if not session or "session_id" not in session:
+            return {"message": "Session not found."}
+        # Check if session is finished
+        if not self.session_is_finished(session_id):
+            return {"message": "Session is already running."}
+
+        response = requests.post(
+            self._get_url_api_v1("sessions/start"),
+            json={
+                "session_id": session_id,
+                "rounds": rounds,
+                "round_timeout": round_timeout,
+            },
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
         return _json
 
     # --- Statuses --- #
@@ -975,3 +1101,20 @@ class APIClient:
         response = requests.post(self._get_url_api_v1("attributes/current"), json=json, verify=self.verify, headers=self.headers)
         _json = response.json()
         return _json
+
+    def add_attributes(self, attribute: dict) -> dict:
+        """Add or update client attributes via the controller API.
+
+        :param attribute: A dict matching AttributeDTO.schema, e.g.
+            {
+                "key": "charging",
+                "value": "true",
+                "sender": {"name": "", "role": "", "client_id": "abc123"}
+            }
+        :return: Parsed JSON response from the server.
+        :rtype: dict
+        """
+        url = self._get_url_api_v1("attributes/")
+        response = requests.post(url, json=attribute, headers=self.headers, verify=self.verify)
+        response.raise_for_status()
+        return response.json()

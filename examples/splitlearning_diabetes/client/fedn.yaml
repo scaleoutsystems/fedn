@@ -1,0 +1,8 @@
+python_env: python_env.yaml
+entry_points:
+  startup:
+    command: python data.py
+  forward:
+    command: python forward.py
+  backward:
+    command: python backward.py

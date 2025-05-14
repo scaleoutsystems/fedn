@@ -65,7 +65,9 @@ def get_telemetries_count():
 def telemetries_count():
     try:
         db = Control.instance().db
-        kwargs = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+
+        kwargs = request.get_json(silent=True) if request.is_json else request.form.to_dict()
+
         count = db.telemetry_store.count(**kwargs)
         response = count
         return jsonify(response), 200
@@ -95,7 +97,7 @@ def get_telemetry(id: str):
 def add_telemetries():
     try:
         db = Control.instance().db
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
         telemetry = TelemetryDTO().patch_with(data)
         result = db.telemetry_store.add(telemetry)

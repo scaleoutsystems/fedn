@@ -1,3 +1,4 @@
+import ast
 import json
 from concurrent import futures
 
@@ -6,9 +7,9 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 
-# imports for user code
+# imports for user defined code
+from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
 from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
@@ -32,6 +33,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.server_functions_code: str = None
         self.client_updates = {}
         self.implemented_functions = {}
+        logger.info("Server Functions initialized.")
 
     def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
         """Distribute client configs to clients from user defined code.
@@ -50,7 +52,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info(f"Client config response: {client_settings}")
             return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
         except Exception as e:
-            logger.exception("Error handling client config request: %s", e)
+            logger.error(f"Error handling client config request: {e}")
 
     def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
         """Handle client selection from user defined code.
@@ -69,7 +71,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.info(f"Clients selected: {client_ids}")
             return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
         except Exception as e:
-            logger.exception("Error handling client selection request: %s", e)
+            logger.error(f"Error handling client selection request: {e}")
 
     def HandleMetadata(self, request: fedn.ClientMetaRequest, context):
         """Store client metadata from a request.
@@ -90,7 +92,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.check_incremental_aggregate(client_id)
             return fedn.ClientMetaResponse(status="Metadata stored")
         except Exception as e:
-            logger.exception("Error handling store metadata request: %s", e)
+            logger.error(f"Error handling store metadata request: {e}")
 
     def HandleStoreModel(self, request_iterator, context):
         try:
@@ -106,7 +108,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.check_incremental_aggregate(client_id)
             return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
         except Exception as e:
-            logger.exception("Error handling store model request: %s", e)
+            logger.error(f"Error handling store model request: {e}")
 
     def check_incremental_aggregate(self, client_id):
         # incremental aggregation (memory secure)
@@ -144,7 +146,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             for response in response_generator:
                 yield response
         except Exception as e:
-            logger.exception("Error handling aggregation request: %s", e)
+            logger.error(f"Error handling aggregation request: {e}")
 
     def HandleProvidedFunctions(self, request: fedn.ProvidedFunctionsResponse, context):
         """Handles the 'provided_functions' request. Sends back which functions are available.
@@ -169,17 +171,24 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.implemented_functions = {}
             self._instansiate_server_functions_code()
             functions = ["client_selection", "client_settings", "aggregate", "incremental_aggregate"]
+            # parse the entire code string into an AST
+            tree = ast.parse(server_functions_code)
+
+            # collect all real function names
+            defined_funcs = {node.name for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)}
+
+            # check each target function
             for func in functions:
-                if func in self.server_functions_code:
-                    logger.info(f"String {func} found in server functions code, assuming function is implemented.")
+                if func in defined_funcs:
+                    print(f"Function '{func}' found—assuming it´s implemented.")
                     self.implemented_functions[func] = True
                 else:
-                    logger.info(f"No {func} found in server functions code.")
+                    print(f"Function '{func}' not found.")
                     self.implemented_functions[func] = False
             logger.info(f"Provided function: {self.implemented_functions}")
             return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
         except Exception as e:
-            logger.exception("Error handling provided functions request: %s", e)
+            logger.error(f"Error handling provided functions request: {e}")
 
     def _instansiate_server_functions_code(self):
         # this will create a new user defined instance of the ServerFunctions class.

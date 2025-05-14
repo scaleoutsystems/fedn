@@ -17,6 +17,7 @@ from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
+from fedn.network.combiner.task_sender import TaskSender
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -168,6 +169,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
 
+        self.task_sender = TaskSender(self)
+
         # Start the gRPC server
         self.server.start()
 
@@ -256,7 +259,38 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         else:
             logger.info("Sent model prediction request for model {} to {} clients".format(model_id, len(clients)))
 
-    def _send_request_type(self, request_type, session_id, model_id, config=None, clients=[]):
+    def request_forward_pass(self, session_id: str, model_id: str, config: dict, clients=[]) -> None:
+        """Ask clients to perform forward pass.
+
+        :param config: the model configuration to send to clients
+        :type config: dict
+        :param clients: the clients to send the request to
+        :type clients: list
+
+        """
+        clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
+
+        if len(clients) < 20:
+            logger.info("Sent forward request to clients {}".format(clients))
+        else:
+            logger.info("Sent forward request to {} clients".format(len(clients)))
+
+    def request_backward_pass(self, session_id: str, gradient_id: str, config: dict, clients=[]) -> None:
+        """Ask clients to perform backward pass.
+
+        :param config: the model configuration to send to clients
+        :type config: dict
+        :param clients: the clients to send the request to
+        :type clients: list
+        """
+        clients = self._send_request_type(fedn.StatusType.BACKWARD, session_id, gradient_id, config, clients)
+
+        if len(clients) < 20:
+            logger.info("Sent backward request for gradients {} to clients {}".format(gradient_id, clients))
+        else:
+            logger.info("Sent backward request for gradients {} to {} clients".format(gradient_id, len(clients)))
+
+    def _send_request_type(self, request_type, session_id, model_id=None, config=None, clients=[]):
         """Send a request of a specific type to clients.
 
         :param request_type: the type of request
@@ -273,13 +307,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: list
         """
         if len(clients) == 0:
-            if request_type == fedn.StatusType.MODEL_UPDATE:
+            if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 clients = self.get_active_trainers()
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
             elif request_type == fedn.StatusType.MODEL_PREDICTION:
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
+
         for client in clients:
             request = fedn.TaskRequest()
             request.model_id = model_id
@@ -287,18 +322,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.timestamp = str(datetime.now())
             request.type = request_type
             request.session_id = session_id
-
             request.sender.name = self.id
             request.sender.role = fedn.COMBINER
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
+
+            request.task_type = fedn.StatusType.Name(request_type)
+
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
             elif request_type == fedn.StatusType.MODEL_UPDATE:
+                # TODO:
                 request.data = json.dumps(config)
+                request.round_id = config.get("round_id", None)
             self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
         return clients
 
@@ -414,11 +453,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
                 self.db.client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "offline"
                 self.db.client_store.update(client_to_update)
 
@@ -747,6 +788,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__whoami(status.sender, self)
         self._send_status(status)
 
+    def PollAndReport(self, report: fedn.ActivityReport, context):
+        # Subscribe client, this also adds the client to self.clients
+        client = report.sender
+        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
+        # Update last_seen
+        self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
+        return self.task_sender.PollAndReport(q, report)
+
     def SendModelUpdate(self, request, context):
         """Send a model update response.
 
@@ -818,6 +869,41 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         response.response = "RECEIVED ModelPrediction {} from client  {}".format(response, response.sender.name)
         return response
 
+    def SendBackwardCompletion(self, request, context):
+        """Send a backward completion response.
+
+        :param request: the request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.BackwardCompletion`
+        :param context: the context
+        :type context: :class:`grpc._server._Context`
+        :return: the response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
+        """
+        logger.info("Received BackwardCompletion from {}".format(request.sender.name))
+
+        # Add completion to the queue
+        self.round_handler.update_handler.backward_completions.put(request)
+
+        # Create and send status message for backward completion
+        status = fedn.Status()
+        status.timestamp.GetCurrentTime()
+        status.sender.name = request.sender.name
+        status.sender.role = request.sender.role
+        status.sender.client_id = request.sender.client_id
+        status.status = "finished_backward"
+        status.type = fedn.StatusType.BACKWARD
+        status.session_id = request.session_id
+
+        logger.info(f"Creating status message with session_id: {request.session_id}")
+        self._send_status(status)
+        logger.info("Status message sent to MongoDB")
+
+        ###########
+
+        response = fedn.Response()
+        response.response = "RECEIVED BackwardCompletion from client {}".format(request.sender.name)
+        return response
+
     def SendModelMetric(self, request, context):
         """Send a model metric response.
 
@@ -828,7 +914,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
-        logger.info("Received ModelMetric from {}".format(request.sender.name))
+        logger.debug("Received ModelMetric from {}".format(request.sender.name))
         metric_msg = MessageToDict(request, preserving_proto_field_name=True)
         metrics = metric_msg.pop("metrics")
 
@@ -847,7 +933,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.AttributeMessage`
         """
-        logger.info("Received Attributes from {}".format(request.sender.name))
+        logger.debug("Received Attributes from {}".format(request.sender.name))
         attribute_msg = MessageToDict(request, preserving_proto_field_name=True)
         attributes = attribute_msg.pop("attributes")
 
@@ -866,7 +952,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param request: the request
         :type request: :class:`fedn.network.grpc.fedn_pb2.TelemetryMessage`
         """
-        logger.info("Received Telemetry from {}".format(request.sender.name))
+        logger.debug("Received Telemetry from {}".format(request.sender.name))
         telemetry_msg = MessageToDict(request, preserving_proto_field_name=True)
         telemetries = telemetry_msg.pop("telemetries")
         for telemetry in telemetries:

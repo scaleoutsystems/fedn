@@ -16,8 +16,9 @@ import requests
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_PACKAGE_EXTRACT_DIR
 from fedn.common.log_config import logger
-from fedn.network.clients.grpc_handler import GrpcHandler
+from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
 from fedn.network.clients.package_runtime import PackageRuntime
+from fedn.network.clients.task_reciever import TaskReceiver
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
@@ -94,9 +95,7 @@ class LoggingContext:
             if model_id is None:
                 model_id = request.model_id
             if round_id is None:
-                if request.type == fedn.StatusType.MODEL_UPDATE:
-                    config = json.loads(request.data)
-                    round_id = config["round_id"]
+                round_id = request.round_id
             if session_id is None:
                 session_id = request.session_id
 
@@ -126,6 +125,8 @@ class FednClient:
 
         self._current_context: Optional[LoggingContext] = None
 
+        self.task_reciever = TaskReceiver(self, self._run_task_callback)
+
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
         self.train_callback = callback
@@ -137,6 +138,12 @@ class FednClient:
     def set_predict_callback(self, callback: callable) -> None:
         """Set the predict callback."""
         self.predict_callback = callback
+
+    def set_forward_callback(self, callback: callable):
+        self.forward_callback = callback
+
+    def set_backward_callback(self, callback: callable):
+        self.backward_callback = callback
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         """Connect to the FEDn API."""
@@ -266,7 +273,10 @@ class FednClient:
         while send_telemetry:
             memory_usage = psutil.virtual_memory().percent
             cpu_usage = psutil.cpu_percent()
-            success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
+            try:
+                success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
+            except RetryException as e:
+                logger.error(f"Sending telemetry failed: {e}")
             if not success:
                 logger.error("Telemetry failed.")
                 send_telemetry = False
@@ -290,6 +300,18 @@ class FednClient:
             self.validate_global_model(request)
         elif request.type == fedn.StatusType.MODEL_PREDICTION:
             self.predict_global_model(request)
+        elif request.type == fedn.StatusType.FORWARD:
+            self.forward_embeddings(request)
+        elif request.type == fedn.StatusType.BACKWARD:
+            self.backward_gradients(request)
+
+    def _run_task_callback(self, request: fedn.TaskRequest) -> None:
+        if request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
+            self._task_stream_callback(request)
+            return {}
+        else:
+            logger.error(f"Unknown task type: {request.type}")
+            raise ValueError(f"Unknown task type: {request.type}")
 
     def update_local_model(self, request: fedn.TaskRequest) -> None:
         """Update the local model."""
@@ -313,7 +335,7 @@ class FednClient:
 
             self.send_status(
                 f"\t Starting processing of training request for model_id {model_id}",
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_UPDATE,
@@ -342,7 +364,7 @@ class FednClient:
                 log_level=fedn.LogLevel.AUDIT,
                 type=fedn.StatusType.MODEL_UPDATE,
                 request=update,
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
             )
 
@@ -353,7 +375,7 @@ class FednClient:
 
             self.send_status(
                 f"Processing validate request for model_id {model_id}",
-                sesssion_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_VALIDATION,
@@ -369,7 +391,7 @@ class FednClient:
                 logger.error("No validate callback set")
                 return
 
-            logger.info(f"Running validate callback with model ID: {model_id}")
+            logger.debug(f"Running validate callback with model ID: {model_id}")
             metrics = self.validate_callback(in_model)
 
             if metrics is not None:
@@ -384,7 +406,7 @@ class FednClient:
                         log_level=fedn.LogLevel.AUDIT,
                         type=fedn.StatusType.MODEL_VALIDATION,
                         request=validation,
-                        sesssion_id=request.session_id,
+                        session_id=request.session_id,
                         sender_name=self.name,
                     )
                 else:
@@ -392,7 +414,7 @@ class FednClient:
                         f"Client {self.name} failed to complete model validation.",
                         log_level=fedn.LogLevel.WARNING,
                         request=request,
-                        sesssion_id=request.session_id,
+                        session_id=request.session_id,
                         sender_name=self.name,
                     )
 
@@ -456,6 +478,97 @@ class FednClient:
         )
 
         return self.grpc_handler.send_model_metric(message)
+
+    def forward_embeddings(self, request):
+        """Forward pass for split learning gradient calculation or inference."""
+        model_id = request.model_id
+        is_sl_inference = json.loads(request.data).get("is_sl_inference", False)
+
+        embedding_update_id = str(uuid.uuid4())
+
+        if not self.forward_callback:
+            logger.error("No forward callback set")
+            return
+
+        self.send_status(f"\t Starting processing of forward request for model_id {model_id}", session_id=request.session_id, sender_name=self.name)
+
+        logger.info(f"Running forward callback with model ID: {model_id}")
+        tic = time.time()
+        out_embeddings, meta = self.forward_callback(self.client_id, is_sl_inference)
+        meta["processing_time"] = time.time() - tic
+
+        tic = time.time()
+        self.send_model_to_combiner(model=out_embeddings, id=embedding_update_id)
+        meta["upload_model"] = time.time() - tic
+
+        meta["config"] = request.data
+
+        update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
+
+        self.send_model_update(update)
+
+        self.send_status(
+            "Forward pass completed.",
+            log_level=fedn.LogLevel.AUDIT,
+            type=fedn.StatusType.MODEL_UPDATE,
+            request=update,
+            session_id=request.session_id,
+            sender_name=self.name,
+        )
+
+    def backward_gradients(self, request):
+        """Split learning backward pass to update the local client models."""
+        model_id = request.model_id
+
+        try:
+            tic = time.time()
+            in_gradients = self.get_model_from_combiner(id=model_id, client_id=self.client_id)  # gets gradients
+
+            if in_gradients is None:
+                logger.error("Could not retrieve gradients from combiner. Aborting backward request.")
+                return
+
+            fetch_model_time = time.time() - tic
+
+            if not self.backward_callback:
+                logger.error("No backward callback set")
+                return
+
+            self.send_status(f"\t Starting processing of backward request for gradient_id {model_id}", session_id=request.session_id, sender_name=self.name)
+
+            logger.info(f"Running backward callback with gradient ID: {model_id}")
+            tic = time.time()
+            meta = self.backward_callback(in_gradients, self.client_id)
+            meta["processing_time"] = time.time() - tic
+
+            meta["fetch_model"] = fetch_model_time
+            meta["config"] = request.data
+            meta["status"] = "success"
+
+            logger.info("Creating and sending backward completion to combiner.")
+            completion = self.create_backward_completion_message(gradient_id=model_id, meta=meta, request=request)
+            self.grpc_handler.send_backward_completion(completion)
+
+            self.send_status(
+                "Backward pass completed. Status: finished_backward",
+                log_level=fedn.LogLevel.AUDIT,
+                type=fedn.StatusType.BACKWARD,
+                session_id=request.session_id,
+                sender_name=self.name,
+            )
+        except Exception as e:
+            logger.error(f"Error in backward pass: {str(e)}")
+
+    def create_backward_completion_message(self, gradient_id: str, meta: dict, request: fedn.TaskRequest):
+        """Create a backward completion message."""
+        return self.grpc_handler.create_backward_completion_message(
+            sender_name=self.name,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            gradient_id=gradient_id,
+            session_id=request.session_id,
+            meta=meta,
+        )
 
     def log_attributes(self, attributes: dict) -> bool:
         """Log the attributes to the server.
@@ -545,14 +658,20 @@ class FednClient:
         logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
-    def run(self, with_telemetry=True, with_heartbeat=True) -> None:
+    def run(self, with_telemetry=True, with_heartbeat=False, with_polling=True) -> None:
         """Run the client."""
         if with_heartbeat:
             threading.Thread(target=self.send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
         if with_telemetry:
             threading.Thread(target=self.default_telemetry_loop, daemon=True).start()
+
         try:
-            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+            if with_polling:
+                self.task_reciever.start()
+                logger.info("Task receiver started.")
+                self.task_reciever._task_manager_thread.join()
+            else:
+                self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 
@@ -570,11 +689,11 @@ class FednClient:
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
-        sesssion_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
         """Send the status."""
-        self.grpc_handler.send_status(msg, log_level, type, request, sesssion_id, sender_name)
+        self.grpc_handler.send_status(msg, log_level, type, request, session_id, sender_name)
 
     def send_model_update(self, update: fedn.ModelUpdate) -> bool:
         """Send the model update."""

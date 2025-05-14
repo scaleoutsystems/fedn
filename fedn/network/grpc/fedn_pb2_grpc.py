@@ -820,6 +820,11 @@ class CombinerStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
+        self.SendBackwardCompletion = channel.unary_unary(
+                '/fedn.Combiner/SendBackwardCompletion',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
         self.SendModelMetric = channel.unary_unary(
                 '/fedn.Combiner/SendModelMetric',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.SerializeToString,
@@ -834,6 +839,11 @@ class CombinerStub(object):
                 '/fedn.Combiner/SendTelemetryMessage',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
+                _registered_method=True)
+        self.PollAndReport = channel.unary_unary(
+                '/fedn.Combiner/PollAndReport',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
                 _registered_method=True)
 
 
@@ -865,6 +875,12 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def SendBackwardCompletion(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def SendModelMetric(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -878,6 +894,12 @@ class CombinerServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def SendTelemetryMessage(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def PollAndReport(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -906,6 +928,11 @@ def add_CombinerServicer_to_server(servicer, server):
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelPrediction.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
             ),
+            'SendBackwardCompletion': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendBackwardCompletion,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.BackwardCompletion.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
             'SendModelMetric': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModelMetric,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelMetric.FromString,
@@ -920,6 +947,11 @@ def add_CombinerServicer_to_server(servicer, server):
                     servicer.SendTelemetryMessage,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'PollAndReport': grpc.unary_unary_rpc_method_handler(
+                    servicer.PollAndReport,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1041,6 +1073,33 @@ class Combiner(object):
             _registered_method=True)
 
     @staticmethod
+    def SendBackwardCompletion(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/SendBackwardCompletion',
+            network_dot_grpc_dot_fedn__pb2.BackwardCompletion.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
     def SendModelMetric(request,
             target,
             options=(),
@@ -1111,6 +1170,33 @@ class Combiner(object):
             '/fedn.Combiner/SendTelemetryMessage',
             network_dot_grpc_dot_fedn__pb2.TelemetryMessage.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.Response.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def PollAndReport(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/PollAndReport',
+            network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
             options,
             channel_credentials,
             insecure,

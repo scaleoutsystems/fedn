@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.27.0"
+version = "0.28.0"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"
@@ -35,7 +35,7 @@ dependencies = [
   "grpcio>=1.68.1,<=1.70",
   "grpcio-tools>=1.68.1,<=1.70",
   "numpy>=1.21.6",
-  "protobuf>=5.0.0,<5.30.0",
+  "protobuf>=5.0.0,<6.31.0",
   "pymongo",
   "Flask==3.1.0",
   "pyjwt",
@@ -110,6 +110,7 @@ exclude = [
     ".mnist-pytorch",
     "fedn_pb2.py",
     "fedn_pb2_grpc.py",
+    "fedn_pb2.pyi",
     ".ci",
     "test*",
     "**/*.ipynb"
@@ -212,3 +213,6 @@ norecursedirs = [
   ".ci",
   "build"
 ]
+
+log_cli = true
+log_cli_level = "INFO"

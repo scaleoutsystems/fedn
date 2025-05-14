@@ -1,0 +1,22 @@
+# Compose schema version
+version: '3.4'
+
+x-env: &defaults
+  GET_HOSTS_FROM: dns
+  FEDN_PACKAGE_EXTRACT_DIR: package
+  FEDN_NUM_DATA_SPLITS: 2
+
+services:
+  combiner:
+    extends:
+      file: ${HOST_REPO_DIR:-.}/docker-compose.yaml
+      service: combiner
+    build:
+      args:
+        INSTALL_TORCH: "1"
+    environment:
+      <<: *defaults
+      FEDN_LABELS_PATH: /app/data/clients/labels.pt
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+      - ${HOST_REPO_DIR:-.}/examples/splitlearning_diabetes/client/data:/app/data
