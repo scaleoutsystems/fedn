@@ -319,12 +319,16 @@ class ModelUpdate(google.protobuf.message.Message):
     TIMESTAMP_FIELD_NUMBER: builtins.int
     META_FIELD_NUMBER: builtins.int
     CONFIG_FIELD_NUMBER: builtins.int
+    ROUND_ID_FIELD_NUMBER: builtins.int
+    SESSION_ID_FIELD_NUMBER: builtins.int
     model_id: builtins.str
     model_update_id: builtins.str
     correlation_id: builtins.str
     timestamp: builtins.str
     meta: builtins.str
     config: builtins.str
+    round_id: builtins.str
+    session_id: builtins.str
     @property
     def sender(self) -> global___Client: ...
     @property
@@ -340,9 +344,11 @@ class ModelUpdate(google.protobuf.message.Message):
         timestamp: builtins.str = ...,
         meta: builtins.str = ...,
         config: builtins.str = ...,
+        round_id: builtins.str = ...,
+        session_id: builtins.str = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["config", b"config", "correlation_id", b"correlation_id", "meta", b"meta", "model_id", b"model_id", "model_update_id", b"model_update_id", "receiver", b"receiver", "sender", b"sender", "timestamp", b"timestamp"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["config", b"config", "correlation_id", b"correlation_id", "meta", b"meta", "model_id", b"model_id", "model_update_id", b"model_update_id", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "timestamp", b"timestamp"]) -> None: ...
 
 global___ModelUpdate = ModelUpdate
 

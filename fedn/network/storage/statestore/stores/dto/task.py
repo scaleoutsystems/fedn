@@ -2,7 +2,7 @@ from typing import Optional
 
 from google.protobuf.json_format import MessageToDict
 
-import fedn.network.grpc.fedn_pb2 as fedn_proto
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.network.storage.statestore.stores.dto.shared import BaseDTO, Field, PrimaryID
 
 
@@ -24,18 +24,18 @@ class TaskState(BaseDTO):
     # but since it is unknown if TaskState will be moved to another store in the future this will do
     task_id: str = PrimaryID(None)
 
-    status: fedn_proto.TaskStatus = Field(None)
+    status: fedn.TaskStatus = Field(None)
     response: dict = Field(None)
 
-    def to_proto(self) -> fedn_proto.TaskState:
-        task_state = fedn_proto.TaskState()
+    def to_proto(self) -> fedn.TaskState:
+        task_state = fedn.TaskState()
         task_state.task_id = self.task_id
         task_state.status = self.status
         task_state.response.update(self.response)
         return task_state
 
     @classmethod
-    def from_proto(cls, proto: fedn_proto.TaskState) -> "TaskState":
+    def from_proto(cls, proto: fedn.TaskState) -> "TaskState":
         task_state = TaskState()
         task_state.task_id = proto.task_id
         task_state.status = proto.status

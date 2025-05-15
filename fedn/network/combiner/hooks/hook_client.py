@@ -1,5 +1,6 @@
 import json
 import os
+import queue
 
 import grpc
 
@@ -91,9 +92,12 @@ class CombinerHookInterface:
         logger.info(f"Store model response: {response.status}")
         # send client models and metadata
         nr_updates = 0
-        while not update_handler.model_updates.empty():
-            logger.info("Getting next model update from queue.")
-            update = update_handler.next_model_update()
+        while True:
+            try:
+                update = update_handler.next_model_update()
+                logger.info("Getting next model update from queue.")
+            except queue.Empty:
+                break
             metadata = json.loads(update.meta)["training_metadata"]
             model = update_handler.load_model_update_bytesIO(update.model_update_id)
             # send metadata

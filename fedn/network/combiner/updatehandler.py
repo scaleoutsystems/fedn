@@ -1,44 +1,17 @@
 import json
 import queue
+import threading
 import time
 import traceback
-from typing import List
+from typing import Dict, List
 
-import fedn.network.grpc.fedn_pb2 as fedn_proto
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import ModelService, load_model_from_bytes
 
 
 class ModelUpdateError(Exception):
     pass
-
-
-class RoundUpdateQueue:
-    """Group model update.
-
-    This class is used to group model updates from the same client
-    into a single model update.
-    """
-
-    def __init__(self, identifier, accept_strugglers: bool = False, expected_strugglers: List = None):
-        self.identifier = identifier
-        self.model_updates = queue.Queue()
-        self.model_update_strugglers = queue.Queue()
-        self.expected_correlation_ids: List[str] = []
-
-        self._accept_strugglers = accept_strugglers
-        self._expected_strugglers = expected_strugglers
-
-    def add_model_update(self, model_update: fedn_proto.ModelUpdate):
-        self.model_updates.put(model_update)
-
-    def next_model_update(self):
-        """Get the next model update from the queue.
-
-        :return: The model update.
-        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
-        """
-        return self.model_updates.get(block=False)
 
 
 class UpdateHandler:
@@ -51,45 +24,44 @@ class UpdateHandler:
     """
 
     def __init__(self, modelservice: ModelService) -> None:
-        self.model_updates = queue.Queue()
         self.backward_completions = queue.Queue()
         self.modelservice = modelservice
 
-        self.grouped_updates: List[SessionUpdates] = []
+        self.session_queue: Dict[str, SessionQueue] = {}
 
-    def get_group(self, identifier) -> SessionUpdates:
-        """Get the group of model updates for a given round and session.
+    def get_session_queue(self, session_id):
+        """Get the session queue for the given session ID.
 
-        :param round_id: The round ID.
-        :type round_id: str
-        :param session_id: The session ID.
+        If the session queue does not exist, create a new one.
+        :param session_id: The session ID
         :type session_id: str
         :return: The group of model updates.
-        :rtype: RoundUpdates
+        :rtype: SessionQueue
         """
-        for group in self.grouped_updates:
-            if group.identifier == identifier:
-                return group
-        new_group = SessionUpdates(identifier)
-        self.grouped_updates.append(new_group)
-        return new_group
+        if session_id not in self.session_queue:
+            logger.info("UPDATE HANDLER: Creating new update queue for session {}".format(session_id))
+            self.session_queue[session_id] = SessionQueue(session_id=session_id)
+        return self.session_queue[session_id]
 
-    def delete_model(self, model_update):
+    def delete_model(self, model_update: fedn.ModelUpdate):
         self.modelservice.temp_model_storage.delete(model_update.model_update_id)
         logger.info("UPDATE HANDLER: Deleted model update {} from storage.".format(model_update.model_update_id))
 
-    def next_model_update(self):
+    def next_model_update(self, session_id):
         """Get the next model update from the queue.
 
-        :param helper: A helper object.
-        :type helper: object
+        :param session_id: The session ID
+        :type session_id: str
         :return: The model update.
         :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
+        :raises: queue.Empty
         """
-        model_update = self.model_updates.get(block=False)
-        return model_update
+        if session_id in self.session_queue:
+            return self.session_queue[session_id].next_model_update()
+        else:
+            raise RuntimeError("No update queue set. Please create an update queue before calling this method.")
 
-    def on_model_update(self, model_update):
+    def on_model_update(self, model_update: fedn.ModelUpdate):
         """Callback when a new client model update is recieved.
 
         Performs (optional) validation and pre-processing,
@@ -106,7 +78,10 @@ class UpdateHandler:
             valid_update = self._validate_model_update(model_update)
             if valid_update:
                 # Push the model update to the processing queue
-                self.model_updates.put(model_update)
+                if model_update.session_id in self.session_queue:
+                    self.session_queue[model_update.session_id].add_model_update(model_update)
+                else:
+                    logger.warning("UPDATE HANDLER: No session queue found for session {}, skipping.".format(model_update.session_id))
             else:
                 logger.warning("UPDATE HANDLER: Invalid model update, skipping.")
         except Exception as e:
@@ -115,7 +90,7 @@ class UpdateHandler:
             logger.error(tb)
             pass
 
-    def _validate_model_update(self, model_update: fedn_proto.ModelUpdate):
+    def _validate_model_update(self, model_update: fedn.ModelUpdate):
         """Validate the model update.
 
         :param model_update: A ModelUpdate message.
@@ -223,34 +198,9 @@ class UpdateHandler:
         :return: Updated model
         :rtype: class: `io.BytesIO`
         """
-        # Try reading model update from local disk/combiner memory
         model_stream = self.modelservice.temp_model_storage.get(model_id)
 
         return model_stream
-
-    def waitforit(self, config, buffer_size=100, polling_interval=0.1):
-        """Defines the policy for how long the server should wait before starting to aggregate models.
-
-        The policy is as follows:
-            1. Wait a maximum of time_window time until the round times out.
-            2. Terminate if a preset number of model updates (buffer_size) are in the queue.
-
-        :param config: The round config object
-        :type config: dict
-        :param buffer_size: The number of model updates to wait for before starting aggregation, defaults to 100
-        :type buffer_size: int, optional
-        :param polling_interval: The polling interval, defaults to 0.1
-        :type polling_interval: float, optional
-        """
-        time_window = float(config["round_timeout"])
-
-        tt = 0.0
-        while tt < time_window:
-            if self.model_updates.qsize() >= buffer_size:
-                break
-
-            time.sleep(polling_interval)
-            tt += polling_interval
 
     def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
         """Wait for backward completion messages.
@@ -275,3 +225,147 @@ class UpdateHandler:
                 self.backward_completions.get_nowait()
             except queue.Empty:
                 break
+
+
+class SessionQueue:
+    def __init__(
+        self,
+        session_id: str,
+        accept_stragglers: bool = False,
+        accept_all: bool = False,
+    ):
+        self.session_id = session_id
+        self.round_id: str = None
+
+        self.model_update = queue.Queue()
+        self.model_update_stragglers = queue.Queue()
+        self.model_update_limbo = queue.Queue()
+        self.model_update_invalid = queue.Queue()
+
+        self.expected_correlation_ids = []
+        self.straggler_correlation_ids: List[str] = []
+
+        self._accept_stragglers = accept_stragglers
+        self._accept_all = accept_all
+        # Flag to indicate if the session is in limbo, i.e. inbetween rounds
+        self._in_limbo = True
+
+        self.lock = threading.RLock()
+
+    def add_model_update(self, model_update: fedn.ModelUpdate) -> bool:
+        if model_update.session_id != self.session_id:
+            # This indicates an error in the implementation
+            logger.error(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to wrong session id.")
+            return False
+
+        with self.lock:
+            if self._in_limbo:
+                # During limbo/in between rounds, model updates are put in waiting queue
+                # until the next round starts
+                self.model_update_limbo.put(model_update)
+                return True
+
+        if self._accept_all:
+            # Accept all model updates
+            self.model_update.put(model_update)
+            return True
+
+        with self.lock:
+            if model_update.correlation_id in self.expected_correlation_ids:
+                # Expected model update
+                self.expected_correlation_ids.remove(model_update.correlation_id)
+                self.model_update.put(model_update)
+                return True
+            elif model_update.correlation_id in self.straggler_correlation_ids:
+                # Straggler model update
+                self.straggler_correlation_ids.remove(model_update.correlation_id)
+                if self._accept_stragglers:
+                    self.model_update_stragglers.put(model_update)
+                    return True
+                else:
+                    logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to late arrival.")
+                    self.model_update_invalid.put(model_update)
+            else:
+                # Unknown model update
+                logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to unknown correlation id.")
+                self.model_update_invalid.put(model_update)
+        return False
+
+    def start_round_queue(self, round_id, expected_correlation_ids: List[str], accept_stragglers: bool = False):
+        """Progress to the next round transfering stragglers to the next round."""
+        with self.lock:
+            self.round_id = round_id
+            self._accept_stragglers = accept_stragglers
+            self._in_limbo = False
+            # Transfer stragglers to the next round
+            self.straggler_correlation_ids.extend(self.expected_correlation_ids)
+            self.expected_correlation_ids = expected_correlation_ids
+
+            # Transfer model updates to the next round
+            # Model updates might contain some stragglers that was sent
+            # between combiner finishing aggregation and the queue changing state to limbo
+            while not self.model_update.empty():
+                model_update = self.model_update.get()
+                self.model_update_stragglers.put(model_update)
+
+            while not self.model_update_limbo.empty():
+                model_update = self.model_update_limbo.get()
+                self.add_model_update(model_update)
+
+    def finish_round(self):
+        """Finish the round"""
+        with self.lock:
+            self._in_limbo = True
+
+    def finish_session(self) -> List[fedn.ModelUpdate]:
+        """Finish the session"""
+        with self.lock:
+            self._in_limbo = True
+            self.expected_correlation_ids = []
+            self.straggler_correlation_ids = []
+            all_invalid_model_updates = []
+            while not self.model_update_invalid.empty():
+                all_invalid_model_updates.append(self.model_update_invalid.get())
+            while not self.model_update.empty():
+                all_invalid_model_updates.append(self.model_update.get())
+            while not self.model_update_stragglers.empty():
+                all_invalid_model_updates.append(self.model_update_stragglers.get())
+            while not self.model_update_limbo.empty():
+                all_invalid_model_updates.append(self.model_update_limbo.get())
+            return all_invalid_model_updates
+
+    def next_model_update(self):
+        """Get the next model update from the queue.
+
+        :return: The model update.
+        :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        try:
+            self.model_update.get(block=False)
+        except queue.Empty:
+            if self._accept_stragglers:
+                return self.model_update_stragglers.get(block=False)
+            else:
+                raise queue.Empty
+
+    def waitforit(self, round_timeout, buffer_size=100, polling_interval=0.1):
+        """Defines the policy for how long the server should wait before starting to aggregate models.
+
+        The policy is as follows:
+            1. Wait a maximum of round_timeout time until the round times out.
+            2. Terminate if a preset number of model updates (buffer_size) are in the queue.
+
+        :param round_timeout: The round timeout
+        :type round_timeout: float
+        :param buffer_size: The number of model updates to wait for before starting aggregation, defaults to 100
+        :type buffer_size: int, optional
+        :param polling_interval: The polling interval, defaults to 0.1
+        :type polling_interval: float, optional
+        """
+        tt = 0.0
+        while tt < round_timeout:
+            if self.model_update.qsize() >= buffer_size:
+                break
+
+            time.sleep(polling_interval)
+            tt += polling_interval

@@ -10,6 +10,7 @@ class SessionConfigDTO(DictDTO):
     aggregator: str = Field(None)
     aggregator_kwargs: Optional[str] = Field(None)
     round_timeout: int = Field(None)
+    accept_stragglers: Optional[bool] = Field(False)
     buffer_size: int = Field(None)
     rounds: Optional[int] = Field(None)
     delete_models_storage: bool = Field(None)

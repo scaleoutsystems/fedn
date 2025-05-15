@@ -1,3 +1,4 @@
+import queue
 import time
 import traceback
 
@@ -19,7 +20,7 @@ class Aggregator(AggregatorBase):
 
         self.name = "fedavg"
 
-    def combine_models(self, helper=None, delete_models=True, parameters=None):
+    def combine_models(self, session_id, helper=None, delete_models=True, parameters=None):
         """Aggregate all model updates in the queue by computing an incremental
         weighted average of model parameters.
 
@@ -44,11 +45,13 @@ class Aggregator(AggregatorBase):
 
         logger.info("AGGREGATOR({}): Aggregating model updates... ".format(self.name))
 
-        while not self.update_handler.model_updates.empty():
+        while True:
             try:
-                logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
-                model_update = self.update_handler.next_model_update()
-
+                try:
+                    model_update = self.update_handler.next_model_update(session_id)
+                    logger.info("AGGREGATOR({}): Getting next model update from queue.".format(self.name))
+                except queue.Empty:
+                    break
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
 

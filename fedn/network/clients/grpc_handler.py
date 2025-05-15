@@ -400,6 +400,9 @@ class GrpcHandler:
         sender_name: str,
         model_id: str,
         model_update_id: str,
+        correlation_id: str,
+        round_id: str,
+        session_id: str,
         receiver_name: str,
         receiver_role: fedn.Role,
         meta: dict,
@@ -413,6 +416,9 @@ class GrpcHandler:
         update.receiver.role = receiver_role
         update.model_id = model_id
         update.model_update_id = model_update_id
+        update.correlation_id = correlation_id
+        update.round_id = round_id
+        update.session_id = session_id
         update.timestamp = str(datetime.now(timezone.utc))
         update.meta = json.dumps(meta)
 
