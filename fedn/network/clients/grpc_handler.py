@@ -332,29 +332,22 @@ class GrpcHandler:
         request.sender.client_id = client_id
         request.sender.role = fedn.CLIENT
 
-        try:
-            logger.info("Downloading model from combiner.")
-            part_iterator = self.modelStub.Download(request, metadata=self.metadata)
-            for part in part_iterator:
-                data.write(part.data)
-            metadata = dict(part_iterator.trailing_metadata())
-            server_checksum = metadata.get("checksum")
-            if server_checksum:
-                data.seek(0, 0)
-                file_checksum = compute_checksum(data)
-                if file_checksum != server_checksum:
-                    logger.error("Checksum mismatch! File is corrupted!")
-                    # Uncomment the following lines if you want to compute the checksum
-                    # and compare it with the metadata checksum
-                    raise ValueError("Checksum mismatch! File is corrupted!")
-                else:
-                    logger.info("Checksum match! File is valid!")
-
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Download", lambda: self.get_model_from_combiner(model_id, client_id))
-        except Exception as e:
-            logger.error(f"GRPC (Download): An error occurred: {e}")
-            self._handle_unknown_error(e, "Download", lambda: self.get_model_from_combiner(model_id, client_id))
+        logger.info("Downloading model from combiner.")
+        part_iterator = self.modelStub.Download(request, metadata=self.metadata)
+        for part in part_iterator:
+            data.write(part.data)
+        metadata = dict(part_iterator.trailing_metadata())
+        server_checksum = metadata.get("checksum")
+        if server_checksum:
+            data.seek(0, 0)
+            file_checksum = compute_checksum(data)
+            if file_checksum != server_checksum:
+                logger.error("Checksum mismatch! File is corrupted!")
+                # Uncomment the following lines if you want to compute the checksum
+                # and compare it with the metadata checksum
+                raise ValueError("Checksum mismatch! File is corrupted!")
+            else:
+                logger.info("Checksum match! File is valid!")
 
         data.seek(0, 0)
         return data
@@ -384,15 +377,10 @@ class GrpcHandler:
         file_checksum = compute_checksum(byte_stream)
         byte_stream.seek(0, 0)
 
-        try:
-            logger.info("Uploading model to combiner.")
-            metadata = [*self.metadata, ("model_id", model_id), ("checksum", file_checksum)]
-            result = self.modelStub.Upload(upload_request_generator(byte_stream), metadata=metadata)
-        except grpc.RpcError as e:
-            return self._handle_grpc_error(e, "Upload", lambda: self.send_model_to_combiner(model, model_id))
-        except Exception as e:
-            logger.error(f"GRPC (Upload): An error occurred: {e}")
-            self._handle_unknown_error(e, "Upload", lambda: self.send_model_to_combiner(model, model_id))
+        logger.info("Uploading model to combiner.")
+        metadata = [*self.metadata, ("model_id", model_id), ("checksum", file_checksum)]
+        result = self.modelStub.Upload(upload_request_generator(byte_stream), metadata=metadata)
+
         return result
 
     def create_update_message(

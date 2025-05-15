@@ -74,7 +74,7 @@ class CombinerHookInterface:
         response = self.stub.HandleClientSelection(request)
         return json.loads(response.client_ids)
 
-    def aggregate(self, previous_global, update_handler: UpdateHandler, helper, delete_models: bool):
+    def aggregate(self, session_id, previous_global, update_handler: UpdateHandler, helper, delete_models: bool):
         """Aggregation call to the hook functions. Sends models in chunks, then asks for aggregation.
 
         :param global_model: The global model that will be distributed to clients.
@@ -94,7 +94,7 @@ class CombinerHookInterface:
         nr_updates = 0
         while True:
             try:
-                update = update_handler.next_model_update()
+                update = update_handler.next_model_update(session_id)
                 logger.info("Getting next model update from queue.")
             except queue.Empty:
                 break
