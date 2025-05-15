@@ -341,7 +341,7 @@ class SessionQueue:
         :rtype: fedn.network.grpc.fedn.proto.ModelUpdate
         """
         try:
-            self.model_update.get(block=False)
+            return self.model_update.get(block=False)
         except queue.Empty:
             if self._accept_stragglers:
                 return self.model_update_stragglers.get(block=False)
