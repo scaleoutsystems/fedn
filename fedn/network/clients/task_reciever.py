@@ -2,7 +2,7 @@ import threading
 import time
 from typing import TYPE_CHECKING
 
-import fedn.network.grpc.fedn_pb2 as fedn_proto
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 
 if TYPE_CHECKING:
@@ -14,10 +14,10 @@ class StoppedException(Exception):
 
 
 class Task:
-    def __init__(self, request: fedn_proto.TaskRequest):
+    def __init__(self, request: fedn.TaskRequest):
         self.request = request
         self.lock = threading.Lock()
-        self.status = fedn_proto.TaskStatus.TASK_PENDING
+        self.status = fedn.TaskStatus.TASK_PENDING
         self.response = None
         self.correlation_id = request.correlation_id
         self.done = False
@@ -44,13 +44,13 @@ class TaskReceiver:
         while True:
             tic = time.time()
 
-            report = fedn_proto.ActivityReport()
+            report = fedn.ActivityReport()
 
             report.sender.client_id = self.client.client_id
             report.sender.name = self.client.name
-            report.sender.role = fedn_proto.Role.CLIENT
+            report.sender.role = fedn.Role.CLIENT
             if self.current_task is None:
-                report.status = fedn_proto.TaskStatus.TASK_REQUEST_NEW
+                report.status = fedn.TaskStatus.TASK_REQUEST_NEW
 
             else:
                 with self.current_task.lock:
@@ -62,11 +62,11 @@ class TaskReceiver:
                     if self.current_task.done:
                         self.current_task = None
 
-            if report.status == fedn_proto.TaskStatus.TASK_REQUEST_NEW:
+            if report.status == fedn.TaskStatus.TASK_REQUEST_NEW:
                 logger.debug("TaskReciever: Polling for task")
             else:
-                logger.debug("TaskReciever: Task status %s", fedn_proto.TaskStatus.Name(report.status))
-            task_request: fedn_proto.TaskRequest = self.client.grpc_handler.PollAndReport(report)
+                logger.debug("TaskReciever: Task status %s", fedn.TaskStatus.Name(report.status))
+            task_request: fedn.TaskRequest = self.client.grpc_handler.PollAndReport(report)
 
             if task_request.correlation_id:
                 logger.info("TaskReciever: Got task %s", task_request.correlation_id)
@@ -82,21 +82,21 @@ class TaskReceiver:
 
     def _run_task(self, task: Task):
         with task.lock:
-            task.status = fedn_proto.TaskStatus.TASK_RUNNING
+            task.status = fedn.TaskStatus.TASK_RUNNING
         try:
             response = self.task_callback(task.request)
             with task.lock:
                 task.response = response
-                task.status = fedn_proto.TaskStatus.TASK_COMPLETED
+                task.status = fedn.TaskStatus.TASK_COMPLETED
         except StoppedException as e:
             with task.lock:
                 logger.error("TaskReciever: Task interupted: %s", e)
-                task.status = fedn_proto.TaskStatus.TASK_INTERRUPTED
+                task.status = fedn.TaskStatus.TASK_INTERRUPTED
                 task.response = {"error": str(e)}
         except Exception as e:
             with task.lock:
                 logger.error("TaskReciever: Task failed: %s", e)
-                task.status = fedn_proto.TaskStatus.TASK_FAILED
+                task.status = fedn.TaskStatus.TASK_FAILED
                 task.response = {"error": str(e)}
         finally:
             with task.lock:

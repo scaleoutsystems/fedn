@@ -1,7 +1,9 @@
 import os
 import tempfile
 from io import BytesIO
+from typing import Generator
 
+import grpc
 import numpy as np
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -12,22 +14,19 @@ from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 CHUNK_SIZE = 1 * 1024 * 1024
 
 
-def upload_request_generator(mdl, id):
+def upload_request_generator(model_stream: BytesIO):
     """Generator function for model upload requests.
 
     :param mdl: The model update object.
     :type mdl: BytesIO
     :return: A model update request.
-    :rtype: fedn.ModelRequest
+    :rtype: fedn.FileChunk
     """
     while True:
-        b = mdl.read(CHUNK_SIZE)
+        b = model_stream.read(CHUNK_SIZE)
         if b:
-            result = fedn.ModelRequest(data=b, id=id, status=fedn.ModelStatus.IN_PROGRESS)
+            yield fedn.FileChunk(data=b)
         else:
-            result = fedn.ModelRequest(id=id, data=None, status=fedn.ModelStatus.OK)
-        yield result
-        if not b:
             break
 
 
@@ -161,28 +160,7 @@ class ModelService(rpc.ModelServiceServicer):
         """
         return self.temp_model_storage.exist(model_id)
 
-    def get_model(self, id):
-        """Download model with id 'id' from server.
-
-        :param id: The model id.
-        :type id: str
-        :return: A BytesIO object containing the model.
-        :rtype: :class:`io.BytesIO`, None if model does not exist.
-        """
-        data = BytesIO()
-        data.seek(0, 0)
-
-        parts = self.Download(fedn.ModelRequest(id=id), self)
-        for part in parts:
-            if part.status == fedn.ModelStatus.IN_PROGRESS:
-                data.write(part.data)
-
-            if part.status == fedn.ModelStatus.OK:
-                return data
-            if part.status == fedn.ModelStatus.FAILED:
-                return None
-
-    def set_model(self, model, id):
+    def set_model(self, model, model_id):
         """Upload model to server.
 
         :param model: A model object (BytesIO)
@@ -191,36 +169,42 @@ class ModelService(rpc.ModelServiceServicer):
         :type id: str
         """
         bt = model_as_bytesIO(model)
-        # TODO: Check result
-        _ = self.Upload(upload_request_generator(bt, id), self)
+        self.temp_model_storage.set_model(model_id, bt)
 
     # Model Service
-    def Upload(self, request_iterator, context):
+    def Upload(self, filechunk_iterator: Generator[fedn.FileChunk, None, None], context: grpc.ServicerContext):
         """RPC endpoints for uploading a model.
 
-        :param request_iterator: The model request iterator.
-        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ModelRequest`
-        :param context: The context object (unused)
+        :param filechunk_iterator: The model request iterator.
+        :type filechunk_iterator: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
+        :param context: The context object
         :type context: :class:`grpc._server._Context`
         :return: A model response object.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
         """
         logger.debug("grpc.ModelService.Upload: Called")
-        result = None
-        for request in request_iterator:
-            if request.status == fedn.ModelStatus.IN_PROGRESS:
-                self.temp_model_storage.get_ptr(request.id).write(request.data)
-                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.IN_PROGRESS)
 
-            if request.status == fedn.ModelStatus.OK and not request.data:
-                result = fedn.ModelResponse(id=request.id, status=fedn.ModelStatus.OK, message="Got model successfully.")
-                # self.temp_model_storage_metadata.update({request.id: fedn.ModelStatus.OK})
-                self.temp_model_storage.set_model_metadata(request.id, fedn.ModelStatus.OK)
-                self.temp_model_storage.get_ptr(request.id).flush()
-                self.temp_model_storage.get_ptr(request.id).close()
-                return result
+        metadata = dict(context.invocation_metadata())
+        model_id = metadata.get("model_id")
+        checksum = metadata.get("checksum")
 
-    def Download(self, request, context):
+        if not model_id:
+            logger.error("ModelServicer: Model ID not provided.")
+            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
+
+        file_hdl = self.temp_model_storage.get_file_hdl(model_id)
+        for file_chunk in filechunk_iterator:
+            file_hdl.write(file_chunk.data)
+
+        file_hdl.flush()
+        file_hdl.close()
+        result = self.temp_model_storage.finalize(model_id, checksum)
+        if result:
+            return fedn.ModelResponse(status=fedn.ModelStatus.OK, message="Got model successfully.")
+        else:
+            return fedn.ModelResponse(status=fedn.ModelStatus.FAILED, message="Failed to upload model.")
+
+    def Download(self, request: fedn.ModelRequest, context: grpc.ServicerContext):
         """RPC endpoints for downloading a model.
 
         :param request: The model request object.
@@ -228,29 +212,25 @@ class ModelService(rpc.ModelServiceServicer):
         :param context: The context object (unused)
         :type context: :class:`grpc._server._Context`
         :return: A model response iterator.
-        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         """
-        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.id}")
-        try:
-            status = self.temp_model_storage.get_model_metadata(request.id)
-            if status != fedn.ModelStatus.OK:
-                logger.error(f"model file is not ready: {request.id}, status: {status}")
-                yield fedn.ModelResponse(id=request.id, data=None, status=status)
-        except Exception:
-            logger.error("Error file does not exist: {}".format(request.id))
-            yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
+        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.model_id}")
+
+        if not self.temp_model_storage.is_ready(request.model_id):
+            logger.error(f"ModelServicer: Model file is not ready: {request.model_id}")
+            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready.")
 
         try:
-            obj = self.temp_model_storage.get(request.id)
-            if obj is None:
-                raise Exception(f"File not found: {request.id}")
+            obj = self.temp_model_storage.get(request.model_id)
             with obj as f:
                 while True:
-                    piece = f.read(CHUNK_SIZE)
-                    if len(piece) == 0:
-                        yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.OK)
-                        return
-                    yield fedn.ModelResponse(id=request.id, data=piece, status=fedn.ModelStatus.IN_PROGRESS)
+                    chunk = f.read(CHUNK_SIZE)
+                    if chunk:
+                        yield fedn.FileChunk(data=chunk)
+                    else:
+                        break
         except Exception as e:
-            logger.error("Downloading went wrong: {} {}".format(request.id, e))
-            yield fedn.ModelResponse(id=request.id, data=None, status=fedn.ModelStatus.FAILED)
+            logger.error("Downloading went wrong: {} {}".format(request.model_id, e))
+            context.abort(grpc.StatusCode.UNKNOWN, "Download failed.")
+
+        context.set_trailing_metadata((("checksum", self.temp_model_storage.get_checksum(request.model_id)),))

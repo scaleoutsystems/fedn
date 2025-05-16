@@ -78,6 +78,8 @@ message ModelUpdate {
   string timestamp = 6;
   string meta = 7;
   string config = 8;
+  string round_id = 9;
+  string session_id = 10;
 }
 
 message ModelValidation {
@@ -169,31 +171,30 @@ message ActivityReport {
 
 
 enum ModelStatus {
-  OK = 0;
+  UNKNOWN = 0;
   IN_PROGRESS = 1;
-  IN_PROGRESS_OK = 2;
+  OK = 2;
   FAILED = 3;
-  UNKNOWN = 4;
 }
 
 message ModelRequest {
   Client sender = 1;
   Client receiver = 2;
-  bytes data = 3;
-  string id = 4;
-  ModelStatus status = 5;
+  string model_id = 3;  
+}
+
+message FileChunk {
+  bytes data = 1;
 }
 
 message ModelResponse {
-  bytes data = 1;
-  string id = 2;
   ModelStatus status = 3;
   string message = 4;
 }
 
 service ModelService {
-  rpc Upload(stream ModelRequest) returns (ModelResponse);
-  rpc Download(ModelRequest) returns (stream ModelResponse);
+  rpc Upload(stream FileChunk) returns (ModelResponse);
+  rpc Download(ModelRequest) returns (stream FileChunk);
 }
 
 

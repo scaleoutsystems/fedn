@@ -36,13 +36,13 @@ class ModelServiceStub(object):
         """
         self.Upload = channel.stream_unary(
                 '/fedn.ModelService/Upload',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 _registered_method=True)
         self.Download = channel.unary_stream(
                 '/fedn.ModelService/Download',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                 _registered_method=True)
 
 
@@ -66,13 +66,13 @@ def add_ModelServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Upload': grpc.stream_unary_rpc_method_handler(
                     servicer.Upload,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
             ),
             'Download': grpc.unary_stream_rpc_method_handler(
                     servicer.Download,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -100,7 +100,7 @@ class ModelService(object):
             request_iterator,
             target,
             '/fedn.ModelService/Upload',
-            network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options,
             channel_credentials,
@@ -128,7 +128,7 @@ class ModelService(object):
             target,
             '/fedn.ModelService/Download',
             network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
             options,
             channel_credentials,
             insecure,
