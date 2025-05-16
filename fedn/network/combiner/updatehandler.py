@@ -40,7 +40,7 @@ class UpdateHandler:
         """
         if session_id not in self.session_queue:
             logger.info("UPDATE HANDLER: Creating new update queue for session {}".format(session_id))
-            self.session_queue[session_id] = SessionQueue(session_id=session_id)
+            self.session_queue[session_id] = SessionQueue(self, session_id=session_id)
         return self.session_queue[session_id]
 
     def delete_model(self, model_update: fedn.ModelUpdate):
@@ -113,7 +113,7 @@ class UpdateHandler:
 
         return True
 
-    def load_model_update(self, model_update, helper):
+    def load_model_update(self, model_update: fedn.ModelUpdate, helper):
         """Load the memory representation of the model update.
 
         Load the model update paramters and the
@@ -142,7 +142,7 @@ class UpdateHandler:
 
         return model, training_metadata
 
-    def load_model_update_byte(self, model_update):
+    def load_model_update_byte(self, model_update: fedn.ModelUpdate):
         """Load the memory representation of the model update.
 
         Load the model update paramters and the
@@ -230,25 +230,21 @@ class UpdateHandler:
 class SessionQueue:
     def __init__(
         self,
+        update_handler: UpdateHandler,
         session_id: str,
         accept_stragglers: bool = False,
-        accept_all: bool = False,
     ):
         self.session_id = session_id
         self.round_id: str = None
+        self.update_handler = update_handler
 
-        self.model_update = queue.Queue()
-        self.model_update_stragglers = queue.Queue()
-        self.model_update_limbo = queue.Queue()
-        self.model_update_invalid = queue.Queue()
+        self.model_update: queue.Queue[fedn.ModelUpdate] = queue.Queue()
+        self.model_update_stragglers: queue.Queue[fedn.ModelUpdate] = queue.Queue()
 
         self.expected_correlation_ids = []
         self.straggler_correlation_ids: List[str] = []
 
         self._accept_stragglers = accept_stragglers
-        self._accept_all = accept_all
-        # Flag to indicate if the session is in limbo, i.e. inbetween rounds
-        self._in_limbo = True
 
         self.lock = threading.RLock()
 
@@ -256,19 +252,8 @@ class SessionQueue:
         if model_update.session_id != self.session_id:
             # This indicates an error in the implementation
             logger.error(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to wrong session id.")
+            self.handle_invalid_model_update(model_update)
             return False
-
-        with self.lock:
-            if self._in_limbo:
-                # During limbo/in between rounds, model updates are put in waiting queue
-                # until the next round starts
-                self.model_update_limbo.put(model_update)
-                return True
-
-        if self._accept_all:
-            # Accept all model updates
-            self.model_update.put(model_update)
-            return True
 
         with self.lock:
             if model_update.correlation_id in self.expected_correlation_ids:
@@ -284,12 +269,32 @@ class SessionQueue:
                     return True
                 else:
                     logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to late arrival.")
-                    self.model_update_invalid.put(model_update)
+                    self.handle_ignored_model_update(model_update)
             else:
                 # Unknown model update
-                logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to unknown correlation id.")
-                self.model_update_invalid.put(model_update)
+                logger.error(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to invalid correlation id.")
+                self.handle_invalid_model_update(model_update)
         return False
+
+    def handle_invalid_model_update(self, model_update: fedn.ModelUpdate):
+        """Handle invalid model update.
+
+        :param model_update: The model update.
+        :type model_update: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        # TODO: Maybe want to properly track invalid model updates somehow
+        # For now, just delete them
+        self.update_handler.delete_model(model_update)
+
+    def handle_ignored_model_update(self, model_update: fedn.ModelUpdate):
+        """Handle invalid model update.
+
+        :param model_update: The model update.
+        :type model_update: fedn.network.grpc.fedn.proto.ModelUpdate
+        """
+        # TODO: Maybe want to properly track ignored model updates somehow
+        # For now, just delete them
+        self.update_handler.delete_model(model_update)
 
     def start_round_queue(self, round_id, expected_correlation_ids: List[str], accept_stragglers: bool = False):
         """Progress to the next round transfering stragglers to the next round."""
@@ -302,37 +307,29 @@ class SessionQueue:
             self.expected_correlation_ids = expected_correlation_ids
 
             # Transfer model updates to the next round
-            # Model updates might contain some stragglers that was sent
-            # between combiner finishing aggregation and the queue changing state to limbo
+            # Model updates might contain some stragglers that was sent after the round
+            # was finished, so we need to transfer them to the next round
             while not self.model_update.empty():
                 model_update = self.model_update.get()
-                self.model_update_stragglers.put(model_update)
+                if self._accept_stragglers:
+                    self.model_update_stragglers.put(model_update)
+                else:
+                    logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to late arrival.")
+                    self.handle_ignored_model_update(model_update)
 
-            while not self.model_update_limbo.empty():
-                model_update = self.model_update_limbo.get()
-                self.add_model_update(model_update)
-
-    def finish_round(self):
-        """Finish the round"""
-        with self.lock:
-            self._in_limbo = True
-
-    def finish_session(self) -> List[fedn.ModelUpdate]:
+    def finish_session(self):
         """Finish the session"""
         with self.lock:
-            self._in_limbo = True
             self.expected_correlation_ids = []
             self.straggler_correlation_ids = []
-            all_invalid_model_updates = []
-            while not self.model_update_invalid.empty():
-                all_invalid_model_updates.append(self.model_update_invalid.get())
             while not self.model_update.empty():
-                all_invalid_model_updates.append(self.model_update.get())
+                model_update = self.model_update.get()
+                logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to session end.")
+                self.handle_ignored_model_update(model_update)
             while not self.model_update_stragglers.empty():
-                all_invalid_model_updates.append(self.model_update_stragglers.get())
-            while not self.model_update_limbo.empty():
-                all_invalid_model_updates.append(self.model_update_limbo.get())
-            return all_invalid_model_updates
+                model_update = self.model_update_stragglers.get()
+                logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to session end.")
+                self.handle_ignored_model_update(model_update)
 
     def next_model_update(self):
         """Get the next model update from the queue.

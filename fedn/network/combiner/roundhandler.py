@@ -6,6 +6,7 @@ import time
 import uuid
 from typing import TYPE_CHECKING, TypedDict
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
@@ -152,9 +153,15 @@ class RoundHandler:
             config["client_settings"] = client_settings
 
         # Request model updates from all active clients.
-        correlation_ids = self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
+        requests = self.server.create_requests(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
         queue = self.update_handler.get_session_queue(session_id)
-        queue.start_round_queue(round_id, correlation_ids, config["accept_stragglers"])
+        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        clients_with_requests = self.server.send_requests(requests)
+
+        if len(clients_with_requests) < 20:
+            logger.info("Sent model update request for model {} to clients {}".format(model_id, clients_with_requests))
+        else:
+            logger.info("Sent model update request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
@@ -188,8 +195,6 @@ class RoundHandler:
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
             raise
-        finally:
-            queue.finish_round()
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
         return model, meta
@@ -242,9 +247,14 @@ class RoundHandler:
             "is_sl_inference"
         ]  # determines whether forward pass calculates gradients ("training"), or is used for inference (e.g., for validation)
         # Request forward pass from all active clients.
-        correlation_ids = self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
+        requests = self.server.create_requests(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
         queue = self.update_handler.get_session_queue(session_id)
-        queue.start_round_queue(round_id, correlation_ids, config["accept_stragglers"])
+        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        clients_with_requests = self.server.send_requests(requests)
+        if len(clients_with_requests) < 20:
+            logger.info("Sent forward pass request for model {} to clients {}".format(model_id, clients_with_requests))
+        else:
+            logger.info("Sent forward pass request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # the round should terminate when all clients have completed
         buffer_size = len(clients)
@@ -266,8 +276,6 @@ class RoundHandler:
 
         except Exception as e:
             logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
-
-        queue.finish_round()
 
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = output["data"]
