@@ -1,4 +1,6 @@
 from gunicorn.app.base import BaseApplication
+from fedn.network.controller.control import Control
+
 
 from fedn.network.controller.control import Control
 
@@ -35,5 +37,6 @@ def run_gunicorn(app, host, port, workers=4):
         # After forking, initialize the database connection
         "post_fork": post_fork,
         "timeout": 120,
+        "post_fork": post_fork,
     }
     GunicornApp(app, options).run()

@@ -5,6 +5,8 @@ data
 *.log
 .async-simulation
 client.yaml
+config.py
+
 tokens.json
 logs/*
 config.py
