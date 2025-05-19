@@ -18,7 +18,7 @@ from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_P
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
 from fedn.network.clients.package_runtime import PackageRuntime
-from fedn.network.clients.task_reciever import TaskReceiver
+from fedn.network.clients.task_receiver import TaskReceiver
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
