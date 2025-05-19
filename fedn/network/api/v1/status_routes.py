@@ -7,6 +7,7 @@ from fedn.network.controller.control import Control
 
 bp = Blueprint("status", __name__, url_prefix=f"/api/{api_version}/statuses")
 
+MAX_STATUSES = 200  # for Async Gunicorn worker timeout error
 
 @bp.route("/", methods=["GET"])
 @jwt_auth_required(role="admin")
@@ -123,6 +124,10 @@ def get_statuses():
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
+        # for async gunicorn worker timeout
+        if not limit or limit > MAX_STATUSES:
+            limit = MAX_STATUSES
+
         result = db.status_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = db.status_store.count(**kwargs)
         response = {"count": count, "result": [item.to_dict() for item in result]}
@@ -217,6 +222,10 @@ def list_statuses():
         db = Control.instance().db
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
+
+        # for async gunicorn worker timeout
+        if not limit or limit > MAX_STATUSES:
+          limit = MAX_STATUSES
 
         result = db.status_store.list(limit, skip, sort_key, sort_order, **kwargs)
         count = db.status_store.count(**kwargs)
