@@ -125,7 +125,7 @@ class FednClient:
 
         self._current_context: Optional[LoggingContext] = None
 
-        self.task_reciever = TaskReceiver(self, self._run_task_callback)
+        self.task_receiver = TaskReceiver(self, self._run_task_callback)
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -670,9 +670,9 @@ class FednClient:
 
         try:
             if with_polling:
-                self.task_reciever.start()
+                self.task_receiver.start()
                 logger.info("Task receiver started.")
-                self.task_reciever._task_manager_thread.join()
+                self.task_receiver._task_manager_thread.join()
             else:
                 self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
