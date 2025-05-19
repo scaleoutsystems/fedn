@@ -60,8 +60,9 @@ class ControlBase(ABC):
         self._state = ReducerState.idle
         
         # For async combinerunavailableerror
-        _active_clients_cache = {},
-        COMBINER_CACHE_COOLDOWN = 20.0  # 20 seconds
+        self._active_clients_cache = {} 
+
+        self.COMBINER_CACHE_COOLDOWN = 20.0  # 20 seconds
 
     @abstractmethod
     def round(self, config, round_number):
@@ -311,14 +312,14 @@ class ControlBase(ABC):
             if (now - last_timestamp) < self.COMBINER_CACHE_COOLDOWN:
                 return nr_active
 
-        # otherwise, we do a fresh call
+        # otherwise, do a fresh call
         try:
             nr_active_clients = len(combiner.list_active_clients())
         except CombinerUnavailableError:
             logger.warning(f"Combiner {combiner.name} is unavailable.")
             return None
 
-        # Update the cache
+        # update the cache
         self._active_clients_cache[combiner.name] = (time.time(), nr_active_clients)
         return nr_active_clients
 
