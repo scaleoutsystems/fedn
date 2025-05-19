@@ -27,6 +27,7 @@ jobs:
           --exclude='tests.py'
           --exclude='controller_cmd.py'
           --exclude='fedn_pb2_grpc.py'
+          --exclude='fedn_pb2.pyi'
           --exclude='combiner_cmd.py'
           --exclude='run_cmd.py'
           --exclude='README.rst'

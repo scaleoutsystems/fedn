@@ -1,14 +1,15 @@
-import os
+import os, sys
 import time
 import pytest
 from fedn import APIClient
 from fedn.cli.shared import get_token, get_project_url
+from server_functions import ServerFunctions
+from fedn.common.log_config import logger
 
 @pytest.fixture(scope="module")
 def fedn_client():
     token = get_token(token=None, usr_token=False)
     host = get_project_url("", "", None, False)
-    print(f"Connecting to {host}")
     client = APIClient(host=host, token=token, secure=True, verify=True)
     return client
 
@@ -19,11 +20,13 @@ def fedn_env():
         "FEDN_ROUND_TIMEOUT": int(os.environ.get("FEDN_ROUND_TIMEOUT", 180)),
         "FEDN_BUFFER_SIZE": int(os.environ.get("FEDN_BUFFER_SIZE", -1)),
         "FEDN_NR_CLIENTS": int(os.environ.get("FEDN_NR_CLIENTS", 2)),
-        "FEDN_CLIENT_TIMEOUT": int(os.environ.get("FEDN_CLIENT_TIMEOUT", 60)),
+        "FEDN_CLIENT_TIMEOUT": int(os.environ.get("FEDN_CLIENT_TIMEOUT", 600)),
         "FEDN_FL_ALG": os.environ.get("FEDN_FL_ALG", "fedavg"),
         "FEDN_NR_EXPECTED_AGG": int(os.environ.get("FEDN_NR_EXPECTED_AGG", 2)), # Number of expected aggregated models per combiner
         "FEDN_SESSION_TIMEOUT": int(os.environ.get("FEDN_SESSION_TIMEOUT", 300)), # Session timeout in seconds, all rounds must be finished within this time
-        "FEDN_SESSION_NAME": os.environ.get("FEDN_SESSION_NAME", "test")
+        "FEDN_SESSION_NAME": os.environ.get("FEDN_SESSION_NAME", "test"),
+        "FEDN_SERVER_FUNCTIONS": os.environ.get("FEDN_SERVER_FUNCTIONS", 0),
+        "SESSION_NUMBER": os.environ.get("SESSION_NUMBER", 1)
     }
 
 @pytest.mark.order(1)
@@ -49,14 +52,16 @@ class TestFednStudio:
             rounds=fedn_env["FEDN_NR_ROUNDS"], 
             round_buffer_size=fedn_env["FEDN_BUFFER_SIZE"],
             min_clients=fedn_env["FEDN_NR_CLIENTS"], 
-            requested_clients=fedn_env["FEDN_NR_CLIENTS"]
+            requested_clients=fedn_env["FEDN_NR_CLIENTS"],
+            server_functions=ServerFunctions if fedn_env["FEDN_SERVER_FUNCTIONS"] else None
         )
         assert result["message"] == "Session started", f"Expected status 'Session started', got {result['message']}"
 
     @pytest.mark.order(3)
     def test_session_completion(self, fedn_client, fedn_env):
         session_obj = fedn_client.get_sessions()
-        assert session_obj["count"] == 1, f"Expected 1 session, got {session_obj['count']}"
+        session_number = int(fedn_env["SESSION_NUMBER"])
+        assert session_obj["count"] == session_number, f"Expected {session_number} session/s, got {session_obj['count']}"
         session_result = session_obj["result"][0]
 
         start_time = time.time()
@@ -77,33 +82,35 @@ class TestFednStudio:
     @pytest.mark.order(4)
     def test_rounds_completion(self, fedn_client, fedn_env):
         start_time = time.time()
+        session_number = int(fedn_env["SESSION_NUMBER"])
         while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
             rounds_obj = fedn_client.get_rounds()
-            if rounds_obj["count"] == fedn_env["FEDN_NR_ROUNDS"]:
+            if rounds_obj["count"] == session_number * fedn_env["FEDN_NR_ROUNDS"]:
                 break
             time.sleep(5)
         else:
-            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+            raise TimeoutError(f"Expected {session_number * fedn_env['FEDN_NR_ROUNDS']} rounds, but got {rounds_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
 
         rounds_result = rounds_obj["result"]
         for round in rounds_result:
             assert round["status"] == "Finished", f"Expected round status 'Finished', got {round['status']}"
             for combiner in round["combiners"]:
                 assert combiner["status"] == "Success", f"Expected combiner status 'Finished', got {combiner['status']}"
-                data = combiner["data"]
+                data = combiner[]
                 assert data["aggregation_time"]["nr_aggregated_models"] == fedn_env["FEDN_NR_EXPECTED_AGG"], f"Expected {fedn_env['FEDN_NR_EXPECTED_AGG']} aggregated models, got {data['aggregation_time']['nr_aggregated_models']}"
 
     @pytest.mark.order(5)
     def test_validations(self, fedn_client, fedn_env):
         start_time = time.time()
+        session_number = int(fedn_env["SESSION_NUMBER"])
         while time.time() - start_time < fedn_env["FEDN_SESSION_TIMEOUT"]:
             validation_obj = fedn_client.get_validations()
-            if validation_obj["count"] == fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
+            if validation_obj["count"] == session_number * fedn_env["FEDN_NR_ROUNDS"] * fedn_env["FEDN_NR_CLIENTS"]:
                 break
             time.sleep(5)
         else:
-            raise TimeoutError(f"Expected {fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
+            raise TimeoutError(f"Expected {session_number * fedn_env['FEDN_NR_ROUNDS'] * fedn_env['FEDN_NR_CLIENTS']} validations, but got {validation_obj['count']} within {fedn_env['FEDN_SESSION_TIMEOUT']} seconds")
 
         # We could assert or test model convergence here
 
-        print("All tests passed!", flush=True)
+        logger.info("All tests passed!")

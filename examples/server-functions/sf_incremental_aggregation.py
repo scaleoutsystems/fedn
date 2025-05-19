@@ -21,8 +21,9 @@ class ServerFunctions(ServerFunctionsBase):
         return {"learning_rate": self.lr}
 
     def incremental_aggregate(self, client_id: str, model: List[np.ndarray], client_metadata: Dict, previous_global: List[np.ndarray]):
+        # set previous global to fail safe if no updates
+        self.previous_global = previous_global
         # Initialize the global model during the first aggregation.
-
         # Use the client metadata to get the number of examples the client has.
         num_examples = client_metadata.get("num_examples", 1)
         self.total_examples += num_examples
@@ -40,4 +41,7 @@ class ServerFunctions(ServerFunctionsBase):
         # Return the current running aggregate global model and reset it.
         ret = self.global_model
         self.global_model = None
+        if ret is None:
+            # if no model updates was received, return the previous global model.
+            return self.previous_global
         return ret

@@ -5,13 +5,15 @@ from flask import Blueprint, jsonify, request, send_from_directory
 from werkzeug.security import safe_join
 
 from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
-from fedn.common.log_config import logger
+from fedn.common.log_config import logger, tracer
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_checksum as _get_checksum
-from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
+from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
+                                        get_typed_list_headers)
 from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
-from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
+from fedn.network.storage.statestore.stores.shared import (MissingFieldError,
+                                                           ValidationError)
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -585,7 +587,8 @@ def upload_package():
             if not os.path.exists(FEDN_COMPUTE_PACKAGE_DIR):
                 os.makedirs(FEDN_COMPUTE_PACKAGE_DIR, exist_ok=True)
             file.save(file_path)
-            repository.set_compute_package(storage_file_name, file_path)
+            with tracer.start_as_current_span("set-compute-package"):
+                repository.set_compute_package(storage_file_name, file_path)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             db.package_store.delete(package.package_id)
