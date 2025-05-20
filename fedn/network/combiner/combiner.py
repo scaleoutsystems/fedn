@@ -7,7 +7,7 @@ import time
 import uuid
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import TypedDict
+from typing import List, Tuple, TypedDict
 
 from google.protobuf.json_format import MessageToDict
 
@@ -17,6 +17,7 @@ from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
+from fedn.network.combiner.task_sender import TaskSender
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -168,6 +169,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
 
+        self.task_sender = TaskSender(self)
+
         # Start the gRPC server
         self.server.start()
 
@@ -204,21 +207,23 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         client.role = role_to_proto_role(instance.role)
         return client
 
-    def request_model_update(self, session_id, model_id, config, clients=[]):
-        """Ask clients to update the current global model.
+    def send_requests(self, requests: List[fedn.TaskRequest]) -> List[str]:
+        """Send requests to clients.
 
-        :param config: the model configuration to send to clients
-        :type config: dict
-        :param clients: the clients to send the request to
-        :type clients: list
-
+        :param requests: the requests to send
+        :type requests: list
+        :param queue_name: the name of the queue to send the requests to
+        :type queue_name: str
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
-
-        if len(clients) < 20:
-            logger.info("Sent model update request for model {} to clients {}".format(model_id, clients))
-        else:
-            logger.info("Sent model update request for model {} to {} clients".format(model_id, len(clients)))
+        clients = []
+        for request in requests:
+            try:
+                self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
+            except Exception:  # noqa: S112
+                # Exception already logged in _put_request_to_client_queue
+                continue
+            clients.append(request.receiver.client_id)
+        return clients
 
     def request_model_validation(self, session_id, model_id, clients=[]):
         """Ask clients to validate the current global model.
@@ -231,7 +236,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_VALIDATION, session_id, model_id, clients)
+        requests = self.create_requests(fedn.StatusType.MODEL_VALIDATION, session_id, model_id, clients)
+        self.send_requests(requests)
 
         if len(clients) < 20:
             logger.info("Sent model validation request for model {} to clients {}".format(model_id, clients))
@@ -249,28 +255,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :type clients: list
 
         """
-        clients = self._send_request_type(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, {}, clients)
+        requests = self.create_requests(fedn.StatusType.MODEL_PREDICTION, prediction_id, model_id, {}, clients)
+        self.send_requests(requests)
 
         if len(clients) < 20:
             logger.info("Sent model prediction request for model {} to clients {}".format(model_id, clients))
         else:
             logger.info("Sent model prediction request for model {} to {} clients".format(model_id, len(clients)))
-
-    def request_forward_pass(self, session_id: str, model_id: str, config: dict, clients=[]) -> None:
-        """Ask clients to perform forward pass.
-
-        :param config: the model configuration to send to clients
-        :type config: dict
-        :param clients: the clients to send the request to
-        :type clients: list
-
-        """
-        clients = self._send_request_type(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
-
-        if len(clients) < 20:
-            logger.info("Sent forward request to clients {}".format(clients))
-        else:
-            logger.info("Sent forward request to {} clients".format(len(clients)))
 
     def request_backward_pass(self, session_id: str, gradient_id: str, config: dict, clients=[]) -> None:
         """Ask clients to perform backward pass.
@@ -280,19 +271,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param clients: the clients to send the request to
         :type clients: list
         """
-        clients = self._send_request_type(fedn.StatusType.BACKWARD, session_id, gradient_id, config, clients)
+        requests = self.create_requests(fedn.StatusType.BACKWARD, session_id, gradient_id, config, clients)
+        self.send_requests(requests)
 
         if len(clients) < 20:
             logger.info("Sent backward request for gradients {} to clients {}".format(gradient_id, clients))
         else:
             logger.info("Sent backward request for gradients {} to {} clients".format(gradient_id, len(clients)))
 
-    def _send_request_type(self, request_type, session_id, model_id=None, config=None, clients=[]):
-        """Send a request of a specific type to clients.
+    def create_requests(self, request_type, session_id, model_id=None, config=None, clients=[]) -> List[fedn.TaskRequest]:
+        """Create requests of a specific type to clients.
 
         :param request_type: the type of request
         :type request_type: :class:`fedn.network.grpc.fedn_pb2.StatusType`
-        :param session_id: the session id to send in the request. Obs that for prediction, this is the prediction id.
+        :param session_id: the session id to send in the request. Obs that for prediction, this is the prediction id.q
         :type session_id: str
         :param model_id: the model id to send in the request
         :type model_id: str
@@ -312,6 +304,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 # TODO: add prediction clients type
                 clients = self.get_active_validators()
 
+        requests: List[Tuple[str, fedn.TaskRequest]] = []
         for client in clients:
             request = fedn.TaskRequest()
             request.model_id = model_id
@@ -319,11 +312,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.timestamp = str(datetime.now())
             request.type = request_type
             request.session_id = session_id
-
             request.sender.name = self.id
             request.sender.role = fedn.COMBINER
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
+            request.task_type = fedn.StatusType.Name(request_type)
 
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
@@ -332,8 +325,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 request.data = json.dumps({"presigned_url": presigned_url})
             elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 request.data = json.dumps(config)
-            self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
-        return clients
+                request.round_id = config.get("round_id", None)
+            requests.append(request)
+        return requests
 
     def get_active_trainers(self):
         """Get a list of active trainers.
@@ -447,11 +441,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
                 self.db.client_store.update(client_to_update)
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = self.db.client_store.get(client)
+                client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "offline"
                 self.db.client_store.update(client_to_update)
 
@@ -780,6 +776,16 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self.__whoami(status.sender, self)
         self._send_status(status)
 
+    def PollAndReport(self, report: fedn.ActivityReport, context):
+        # Subscribe client, this also adds the client to self.clients
+        client = report.sender
+        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
+        # Update last_seen
+        self.clients[client.client_id]["last_seen"] = datetime.now()
+
+        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
+        return self.task_sender.PollAndReport(q, report)
+
     def SendModelUpdate(self, request, context):
         """Send a model update response.
 
@@ -864,7 +870,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Received BackwardCompletion from {}".format(request.sender.name))
 
         # Add completion to the queue
-        self.round_handler.update_handler.backward_completions.put(request)
+        self.round_handler.backward_handler.backward_completions.put(request)
 
         # Create and send status message for backward completion
         status = fedn.Status()

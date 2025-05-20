@@ -506,7 +506,6 @@ class Control(ControlBase):
         :param session_id: The session id
         :type session_id: str
         """
-        # session_id = session_config.session_id
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -634,8 +633,8 @@ class Control(ControlBase):
                     pass
             logger.info("Controller: Split Learning Validation completed")
 
-        self.set_round_status(round_id, "Finished")
-        return None, self.db.round_store.get(round_id)
+        self.set_round_status(round_id, "Success")
+        return model_id, self.db.round_store.get(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.

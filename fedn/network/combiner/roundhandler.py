@@ -6,12 +6,13 @@ import time
 import uuid
 from typing import TYPE_CHECKING, TypedDict
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
 from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
-from fedn.network.combiner.updatehandler import UpdateHandler
+from fedn.network.combiner.updatehandler import BackwardHandler, UpdateHandler
 from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
@@ -101,6 +102,7 @@ class RoundHandler:
         self.modelservice = modelservice
         self.server_functions = inspect.getsource(ServerFunctions)
         self.update_handler = UpdateHandler(modelservice=modelservice)
+        self.backward_handler = BackwardHandler()
         self.hook_interface = CombinerHookInterface()
 
     def set_aggregator(self, aggregator):
@@ -144,6 +146,7 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
+        round_id = config["round_id"]
 
         if provided_functions.get("client_settings", False):
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
@@ -151,7 +154,15 @@ class RoundHandler:
             config["client_settings"] = client_settings
 
         # Request model updates from all active clients.
-        self.server.request_model_update(session_id=session_id, model_id=model_id, config=config, clients=clients)
+        requests = self.server.create_requests(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
+        queue = self.update_handler.get_session_queue(session_id)
+        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        clients_with_requests = self.server.send_requests(requests)
+
+        if len(clients_with_requests) < 20:
+            logger.info("Sent model update request for model {} to clients {}".format(model_id, clients_with_requests))
+        else:
+            logger.info("Sent model update request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
@@ -160,7 +171,7 @@ class RoundHandler:
             buffer_size = int(config["buffer_size"])
 
         # Wait / block until the round termination policy has been met.
-        self.update_handler.waitforit(config, buffer_size=buffer_size)
+        queue.waitforit(float(config["round_timeout"]), buffer_size=buffer_size)
         tic = time.time()
         model = None
         data = None
@@ -179,13 +190,12 @@ class RoundHandler:
                 parameters = None
             if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
             else:
-                model, data = self.aggregator.combine_models(helper=helper, delete_models=delete_models, parameters=parameters)
+                model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
             raise
-
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
         return model, meta
@@ -233,17 +243,25 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
+        round_id = config["round_id"]
         is_sl_inference = config[
             "is_sl_inference"
         ]  # determines whether forward pass calculates gradients ("training"), or is used for inference (e.g., for validation)
         # Request forward pass from all active clients.
-        self.server.request_forward_pass(session_id=session_id, model_id=model_id, config=config, clients=clients)
+        requests = self.server.create_requests(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
+        queue = self.update_handler.get_session_queue(session_id)
+        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        clients_with_requests = self.server.send_requests(requests)
+        if len(clients_with_requests) < 20:
+            logger.info("Sent forward pass request for model {} to clients {}".format(model_id, clients_with_requests))
+        else:
+            logger.info("Sent forward pass request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # the round should terminate when all clients have completed
         buffer_size = len(clients)
 
         # Wait / block until the round termination policy has been met.
-        self.update_handler.waitforit(config, buffer_size=buffer_size)
+        queue.waitforit(float(config["round_timeout"]), buffer_size=buffer_size)
 
         tic = time.time()
         output = None
@@ -255,7 +273,7 @@ class RoundHandler:
             else:
                 delete_models = False
 
-            output = self.aggregator.combine_models(helper=helper, delete_models=delete_models, is_sl_inference=is_sl_inference)
+            output = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, is_sl_inference=is_sl_inference)
 
         except Exception as e:
             logger.warning("EMBEDDING CONCATENATION in FORWARD PASS FAILED AT COMBINER! {}".format(e))
@@ -282,7 +300,7 @@ class RoundHandler:
         meta["timeout"] = float(config["round_timeout"])
 
         # Clear previous backward completions queue
-        self.update_handler.clear_backward_completions()
+        self.backward_handler.clear_backward_completions()
 
         # Request backward pass from all active clients.
         logger.info("ROUNDHANDLER: Requesting backward pass, gradient_id: {}".format(config["model_id"]))
@@ -292,7 +310,7 @@ class RoundHandler:
         # the round should terminate when all clients have completed
         buffer_size = len(clients)
 
-        self.update_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
+        self.backward_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
 
         return meta
 
