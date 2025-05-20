@@ -17,7 +17,7 @@ class TelemetryStore(Store[TelemetryDTO]):
 class MongoDBTelemetryStore(TelemetryStore, MongoDBStore[TelemetryDTO]):
     def __init__(self, database: Database, collection: str):
         super().__init__(database, collection, "telemetry_id")
-        self.database[self.collection].create_index([("sender_id", pymongo.DESCENDING)])
+        self.database[self.collection].create_index([("sender.client_id", pymongo.DESCENDING)])
 
     def add(self, item: TelemetryDTO) -> TelemetryDTO:
         telemetry = super().add(item)
