@@ -12,7 +12,7 @@ from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
 from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
-from fedn.network.combiner.updatehandler import UpdateHandler
+from fedn.network.combiner.updatehandler import BackwardHandler, UpdateHandler
 from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
 from fedn.utils.parameters import Parameters
@@ -102,6 +102,7 @@ class RoundHandler:
         self.modelservice = modelservice
         self.server_functions = inspect.getsource(ServerFunctions)
         self.update_handler = UpdateHandler(modelservice=modelservice)
+        self.backward_handler = BackwardHandler()
         self.hook_interface = CombinerHookInterface()
 
     def set_aggregator(self, aggregator):
@@ -299,7 +300,7 @@ class RoundHandler:
         meta["timeout"] = float(config["round_timeout"])
 
         # Clear previous backward completions queue
-        self.update_handler.clear_backward_completions()
+        self.backward_handler.clear_backward_completions()
 
         # Request backward pass from all active clients.
         logger.info("ROUNDHANDLER: Requesting backward pass, gradient_id: {}".format(config["model_id"]))
@@ -309,7 +310,7 @@ class RoundHandler:
         # the round should terminate when all clients have completed
         buffer_size = len(clients)
 
-        self.update_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
+        self.backward_handler.waitforbackwardcompletion(config, required_backward_completions=buffer_size)
 
         return meta
 
