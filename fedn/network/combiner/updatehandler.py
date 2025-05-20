@@ -378,3 +378,27 @@ class SessionQueue:
 
             time.sleep(polling_interval)
             tt += polling_interval
+
+    def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
+        """Wait for backward completion messages.
+
+        :param config: The round config object
+        :param required_backward_completions: Number of required backward completions
+        """
+        time_window = float(config["round_timeout"])
+        tt = 0.0
+
+        while tt < time_window:
+            if self.backward_completions.qsize() >= required_backward_completions:
+                break
+
+            time.sleep(polling_interval)
+            tt += polling_interval
+
+    def clear_backward_completions(self):
+        """Clear the backward completions queue."""
+        while not self.backward_completions.empty():
+            try:
+                self.backward_completions.get_nowait()
+            except queue.Empty:
+                break
