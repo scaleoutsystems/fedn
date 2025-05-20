@@ -24,7 +24,6 @@ class UpdateHandler:
     """
 
     def __init__(self, modelservice: ModelService) -> None:
-        self.backward_completions = queue.Queue()
         self.modelservice = modelservice
 
         self.session_queue: Dict[str, SessionQueue] = {}
@@ -201,6 +200,19 @@ class UpdateHandler:
         model_stream = self.modelservice.temp_model_storage.get(model_id)
 
         return model_stream
+
+
+class BackwardHandler:
+    """Backward handler.
+
+    Handles the backward completion messages during split learning backward passes.
+
+    :param modelservice: A handle to the model service :class: `fedn.network.combiner.modelservice.ModelService`
+    :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
+    """
+
+    def __init__(self) -> None:
+        self.backward_completions = queue.Queue()
 
     def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
         """Wait for backward completion messages.

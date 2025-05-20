@@ -306,7 +306,13 @@ class FednClient:
             self.backward_gradients(request)
 
     def _run_task_callback(self, request: fedn.TaskRequest) -> None:
-        if request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
+        if request.type in (
+            fedn.StatusType.MODEL_UPDATE,
+            fedn.StatusType.MODEL_VALIDATION,
+            fedn.StatusType.MODEL_PREDICTION,
+            fedn.StatusType.FORWARD,
+            fedn.StatusType.BACKWARD,
+        ):
             self._task_stream_callback(request)
             return {}
         else:
@@ -505,7 +511,7 @@ class FednClient:
 
         update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
 
-        self.send_model_update(update)
+        self.send_model_update(update)  # embeddings
 
         self.send_status(
             "Forward pass completed.",
