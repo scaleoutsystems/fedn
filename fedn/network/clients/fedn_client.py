@@ -18,7 +18,7 @@ from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_P
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
 from fedn.network.clients.package_runtime import PackageRuntime
-from fedn.network.clients.task_reciever import TaskReceiver
+from fedn.network.clients.task_receiver import TaskReceiver
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
@@ -125,7 +125,7 @@ class FednClient:
 
         self._current_context: Optional[LoggingContext] = None
 
-        self.task_reciever = TaskReceiver(self, self._run_task_callback)
+        self.task_receiver = TaskReceiver(self, self._run_task_callback)
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -306,7 +306,13 @@ class FednClient:
             self.backward_gradients(request)
 
     def _run_task_callback(self, request: fedn.TaskRequest) -> None:
-        if request.type in (fedn.StatusType.MODEL_UPDATE, fedn.StatusType.MODEL_VALIDATION, fedn.StatusType.MODEL_PREDICTION):
+        if request.type in (
+            fedn.StatusType.MODEL_UPDATE,
+            fedn.StatusType.MODEL_VALIDATION,
+            fedn.StatusType.MODEL_PREDICTION,
+            fedn.StatusType.FORWARD,
+            fedn.StatusType.BACKWARD,
+        ):
             self._task_stream_callback(request)
             return {}
         else:
@@ -505,7 +511,7 @@ class FednClient:
 
         update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
 
-        self.send_model_update(update)
+        self.send_model_update(update)  # embeddings
 
         self.send_status(
             "Forward pass completed.",
@@ -618,6 +624,9 @@ class FednClient:
             sender_name=self.name,
             model_id=model_id,
             model_update_id=model_update_id,
+            correlation_id=request.correlation_id,
+            round_id=request.round_id,
+            session_id=request.session_id,
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
             meta=meta,
@@ -667,17 +676,17 @@ class FednClient:
 
         try:
             if with_polling:
-                self.task_reciever.start()
+                self.task_receiver.start()
                 logger.info("Task receiver started.")
-                self.task_reciever._task_manager_thread.join()
+                self.task_receiver._task_manager_thread.join()
             else:
                 self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+    def get_model_from_combiner(self, id: str, client_id: str) -> BytesIO:
         """Get the model from the combiner."""
-        return self.grpc_handler.get_model_from_combiner(id=id, client_id=client_id, timeout=timeout)
+        return self.grpc_handler.get_model_from_combiner(model_id=id, client_id=client_id)
 
     def send_model_to_combiner(self, model: BytesIO, id: str) -> None:
         """Send the model to the combiner."""

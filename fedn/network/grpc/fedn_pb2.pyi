@@ -124,19 +124,17 @@ class _ModelStatus:
 
 class _ModelStatusEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_ModelStatus.ValueType], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    OK: _ModelStatus.ValueType  # 0
+    UNKNOWN: _ModelStatus.ValueType  # 0
     IN_PROGRESS: _ModelStatus.ValueType  # 1
-    IN_PROGRESS_OK: _ModelStatus.ValueType  # 2
+    OK: _ModelStatus.ValueType  # 2
     FAILED: _ModelStatus.ValueType  # 3
-    UNKNOWN: _ModelStatus.ValueType  # 4
 
 class ModelStatus(_ModelStatus, metaclass=_ModelStatusEnumTypeWrapper): ...
 
-OK: ModelStatus.ValueType  # 0
+UNKNOWN: ModelStatus.ValueType  # 0
 IN_PROGRESS: ModelStatus.ValueType  # 1
-IN_PROGRESS_OK: ModelStatus.ValueType  # 2
+OK: ModelStatus.ValueType  # 2
 FAILED: ModelStatus.ValueType  # 3
-UNKNOWN: ModelStatus.ValueType  # 4
 global___ModelStatus = ModelStatus
 
 class _Role:
@@ -321,12 +319,16 @@ class ModelUpdate(google.protobuf.message.Message):
     TIMESTAMP_FIELD_NUMBER: builtins.int
     META_FIELD_NUMBER: builtins.int
     CONFIG_FIELD_NUMBER: builtins.int
+    ROUND_ID_FIELD_NUMBER: builtins.int
+    SESSION_ID_FIELD_NUMBER: builtins.int
     model_id: builtins.str
     model_update_id: builtins.str
     correlation_id: builtins.str
     timestamp: builtins.str
     meta: builtins.str
     config: builtins.str
+    round_id: builtins.str
+    session_id: builtins.str
     @property
     def sender(self) -> global___Client: ...
     @property
@@ -342,9 +344,11 @@ class ModelUpdate(google.protobuf.message.Message):
         timestamp: builtins.str = ...,
         meta: builtins.str = ...,
         config: builtins.str = ...,
+        round_id: builtins.str = ...,
+        session_id: builtins.str = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["config", b"config", "correlation_id", b"correlation_id", "meta", b"meta", "model_id", b"model_id", "model_update_id", b"model_update_id", "receiver", b"receiver", "sender", b"sender", "timestamp", b"timestamp"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["config", b"config", "correlation_id", b"correlation_id", "meta", b"meta", "model_id", b"model_id", "model_update_id", b"model_update_id", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "timestamp", b"timestamp"]) -> None: ...
 
 global___ModelUpdate = ModelUpdate
 
@@ -643,12 +647,8 @@ class ModelRequest(google.protobuf.message.Message):
 
     SENDER_FIELD_NUMBER: builtins.int
     RECEIVER_FIELD_NUMBER: builtins.int
-    DATA_FIELD_NUMBER: builtins.int
-    ID_FIELD_NUMBER: builtins.int
-    STATUS_FIELD_NUMBER: builtins.int
-    data: builtins.bytes
-    id: builtins.str
-    status: global___ModelStatus.ValueType
+    MODEL_ID_FIELD_NUMBER: builtins.int
+    model_id: builtins.str
     @property
     def sender(self) -> global___Client: ...
     @property
@@ -658,36 +658,43 @@ class ModelRequest(google.protobuf.message.Message):
         *,
         sender: global___Client | None = ...,
         receiver: global___Client | None = ...,
-        data: builtins.bytes = ...,
-        id: builtins.str = ...,
-        status: global___ModelStatus.ValueType = ...,
+        model_id: builtins.str = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "id", b"id", "receiver", b"receiver", "sender", b"sender", "status", b"status"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["model_id", b"model_id", "receiver", b"receiver", "sender", b"sender"]) -> None: ...
 
 global___ModelRequest = ModelRequest
+
+@typing.final
+class FileChunk(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    DATA_FIELD_NUMBER: builtins.int
+    data: builtins.bytes
+    def __init__(
+        self,
+        *,
+        data: builtins.bytes = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["data", b"data"]) -> None: ...
+
+global___FileChunk = FileChunk
 
 @typing.final
 class ModelResponse(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    DATA_FIELD_NUMBER: builtins.int
-    ID_FIELD_NUMBER: builtins.int
     STATUS_FIELD_NUMBER: builtins.int
     MESSAGE_FIELD_NUMBER: builtins.int
-    data: builtins.bytes
-    id: builtins.str
     status: global___ModelStatus.ValueType
     message: builtins.str
     def __init__(
         self,
         *,
-        data: builtins.bytes = ...,
-        id: builtins.str = ...,
         status: global___ModelStatus.ValueType = ...,
         message: builtins.str = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "id", b"id", "message", b"message", "status", b"status"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["message", b"message", "status", b"status"]) -> None: ...
 
 global___ModelResponse = ModelResponse
 
