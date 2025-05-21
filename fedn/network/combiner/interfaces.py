@@ -7,7 +7,6 @@ import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
-from fedn.network.combiner.roundhandler import RoundConfig
 
 
 class CombinerUnavailableError(Exception):
