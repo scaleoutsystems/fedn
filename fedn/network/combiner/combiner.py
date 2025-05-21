@@ -516,23 +516,34 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the control response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
-        logger.info("grpc.Combiner.Start: Starting round")
+        if control.command == fedn.Command.START:
+            logger.info("grpc.Combiner.Start: Starting round")
 
-        config = RoundConfig()
-        for parameter in control.parameter:
-            config.update({parameter.key: parameter.value})
+            config = RoundConfig()
+            for parameter in control.parameter:
+                config.update({parameter.key: parameter.value})
+            logger.debug("grpc.Combiner.Start: Round config {}".format(config))
 
-        logger.debug("grpc.Combiner.Start: Round config {}".format(config))
+            job_id = self.round_handler.push_round_config(config)
+            logger.info("grcp.Combiner.Start: Pushed round config (job_id): {}".format(job_id))
 
-        job_id = self.round_handler.push_round_config(config)
-        logger.info("grcp.Combiner.Start: Pushed round config (job_id): {}".format(job_id))
-
-        response = fedn.ControlResponse()
-        p = response.parameter.add()
-        p.key = "job_id"
-        p.value = job_id
-
-        return response
+            response = fedn.ControlResponse()
+            p = response.parameter.add()
+            p.key = "job_id"
+            p.value = job_id
+            return response
+        elif control.command == fedn.Command.STOP:
+            logger.info("grpc.Combiner.Start: Stopping current round")
+            self.round_handler.flow_controller.stop_event.set()
+            response = fedn.ControlResponse()
+            response.message = "Success"
+            return response
+        elif control.command == fedn.Command.CONTINUE:
+            logger.info("grpc.Combiner.Start: Continuing current round")
+            self.round_handler.flow_controller.continue_event.set()
+            response = fedn.ControlResponse()
+            response.message = "Success"
+            return response
 
     def SetAggregator(self, control: fedn.ControlRequest, context):
         """Set the active aggregator.

@@ -264,6 +264,7 @@ enum Command {
   STOP = 3;
   RESET = 4;
   REPORT = 5;
+  CONTINUE = 6;
 }
 
 message Parameter {

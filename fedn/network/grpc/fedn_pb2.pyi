@@ -168,6 +168,7 @@ class _CommandEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTy
     STOP: _Command.ValueType  # 3
     RESET: _Command.ValueType  # 4
     REPORT: _Command.ValueType  # 5
+    CONTINUE: _Command.ValueType  # 6
 
 class Command(_Command, metaclass=_CommandEnumTypeWrapper): ...
 
@@ -177,6 +178,7 @@ PAUSE: Command.ValueType  # 2
 STOP: Command.ValueType  # 3
 RESET: Command.ValueType  # 4
 REPORT: Command.ValueType  # 5
+CONTINUE: Command.ValueType  # 6
 global___Command = Command
 
 class _ConnectionStatus:
