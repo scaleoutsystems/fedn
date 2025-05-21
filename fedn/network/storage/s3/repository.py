@@ -12,7 +12,7 @@ from fedn.common.log_config import logger
 class Repository:
     """Interface for storing model objects and compute packages in S3 compatible storage."""
 
-    def __init__(self, config: dict, init_buckets: bool = True, storage_type: str = "") -> None:
+    def __init__(self, config: dict, init_buckets: bool = True, storage_type: str = None) -> None:
         """Initialize the repository.
 
         :param config: Configuration dictionary for credentials and bucket names.
