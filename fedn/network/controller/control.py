@@ -348,17 +348,39 @@ class Control(ControlBase):
         combiners_are_done = combiners_done()
         if not combiners_are_done:
             return None, self.db.round_store.get(round_id)
+        
+        # -------------------------Updated Async------------------
 
-        # Due to the distributed nature of the computation, there might be a
-        # delay before combiners have reported the round data to the db,
-        # so we need some robustness here.
-        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
-        def check_combiners_done_reporting():
+        # check how many combiners responded:
+        start = time.time()
+        while time.time() - start < 5:
             round = self.db.round_store.get(round_id)
-            if len(round.combiners) != len(participating_combiners):
-                raise KeyError("Combiners have not yet reported.")
+            if len(round.combiners) > 0:
+                break
+            time.sleep(1)
+        
+        num_reported = len(round.combiners)
+        if num_reported == 0:
+            logger.warning("No combiner models after timeout. Marking round as Failed.")
+            self.set_round_status(round_id, "Failed")
+            return None, self.db.round_store.get(round_id)
 
-        check_combiners_done_reporting()
+        logger.info(f"{num_reported} combiner(s) have reported. Proceeding to partial aggregator.")
+
+
+        # This could cause an infinite loop over retries if if len(round.combiners) != len(participating_combiners)
+        # ------------------------------
+        # # Due to the distributed nature of the computation, there might be a
+        # # delay before combiners have reported the round data to the db,
+        # # so we need some robustness here.
+        # @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
+        # def check_combiners_done_reporting():
+        #     round = self.db.round_store.get(round_id)
+        #     if len(round.combiners) != len(participating_combiners):
+        #         raise KeyError("Combiners have not yet reported.")
+
+        # check_combiners_done_reporting()
+        # -------------------------------
 
         round = self.db.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round.to_dict())
@@ -469,8 +491,10 @@ class Control(ControlBase):
                     model = load_model_from_bytes(data, helper)
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
-
+        try:
             self.repository.delete_model(model_id)
+        except Exception as e:
+            logger.error(f"Failed to delete model {model_id} from repository")
 
         return model, meta
 
