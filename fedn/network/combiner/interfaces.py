@@ -1,6 +1,7 @@
 import base64
 import copy
 import json
+from typing import Dict
 
 import grpc
 
@@ -216,7 +217,7 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, config: RoundConfig):
+    def submit(self, command: fedn.Command, config: RoundConfig = None):
         """Submit a compute plan to the combiner.
 
         :param config: The job configuration.
@@ -227,11 +228,12 @@ class CombinerInterface:
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
         request = fedn.ControlRequest()
-        request.command = fedn.Command.START
-        for k, v in config.items():
-            p = request.parameter.add()
-            p.key = str(k)
-            p.value = str(v)
+        request.command = command
+        if config:
+            for k, v in config.items():
+                p = request.parameter.add()
+                p.key = str(k)
+                p.value = str(v)
 
         try:
             response = control.Start(request)

@@ -5,6 +5,7 @@ from typing import Optional
 
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.modelservice import load_model_from_bytes
@@ -272,7 +273,7 @@ class Control(ControlBase):
         if round_start:
             logger.info("Prediction round start policy met, {} participating combiners.".format(len(participating_combiners)))
             for combiner, _ in participating_combiners:
-                combiner.submit(config)
+                combiner.submit(fedn.Command.START, config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
     def splitlearning_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
@@ -416,6 +417,8 @@ class Control(ControlBase):
 
         combiners_are_done = combiners_done()
         if not combiners_are_done:
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
             return None, self.db.round_store.get(round_id)
 
         # Due to the distributed nature of the computation, there might be a
@@ -424,10 +427,18 @@ class Control(ControlBase):
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.db.round_store.get(round_id)
+            session_status = self.get_session_status(session_id)
+            if session_status == "Terminated":
+                self.set_round_status(round_id, "Terminated")
+                return False
             if len(round.combiners) != len(participating_combiners):
                 raise KeyError("Combiners have not yet reported.")
+            return True
 
-        check_combiners_done_reporting()
+        if not check_combiners_done_reporting():
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
+            return None, self.db.round_store.get(round_id)
 
         round = self.db.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round.to_dict())
@@ -487,7 +498,7 @@ class Control(ControlBase):
             for combiner, combiner_config in validating_combiners:
                 try:
                     logger.info("Submitting validation round to combiner {}".format(combiner))
-                    combiner.submit(combiner_config)
+                    combiner.submit(fedn.Command.START, combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
@@ -627,7 +638,7 @@ class Control(ControlBase):
             for combiner, config in validating_combiners:
                 try:
                     logger.info("Submitting validation for split learning to combiner {}".format(combiner))
-                    combiner.submit(config)
+                    combiner.submit(fedn.Command.START, config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
@@ -746,7 +757,7 @@ class Control(ControlBase):
         # Synch combiners with latest model and trigger prediction
         for combiner, combiner_config in validating_combiners:
             try:
-                combiner.submit(combiner_config)
+                combiner.submit(fedn.Command.START, combiner_config)
             except CombinerUnavailableError:
                 # It is OK if prediction fails for a combiner
                 self._handle_unavailable_combiner(combiner)

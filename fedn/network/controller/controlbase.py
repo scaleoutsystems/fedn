@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple
 
+import fedn.network.grpc.fedn_pb2 as fedn_proto
 import fedn.utils.helpers.helpers
 from fedn.common.log_config import logger
 from fedn.network.api.network import Network
@@ -212,7 +213,7 @@ class ControlBase(ABC):
         round.round_config = round_config
         self.db.round_store.update(round)
 
-    def request_model_updates(self, combiners):
+    def request_model_updates(self, combiners: List[Tuple[CombinerInterface, Dict]]):
         """Ask Combiner server to produce a model update.
 
         :param combiners: A list of combiners
@@ -220,7 +221,7 @@ class ControlBase(ABC):
         """
         cl = []
         for combiner, combiner_round_config in combiners:
-            response = combiner.submit(combiner_round_config)
+            response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
             cl.append((combiner, response))
         return cl
 

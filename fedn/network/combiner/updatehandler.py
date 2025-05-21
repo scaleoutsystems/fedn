@@ -313,7 +313,7 @@ class SessionQueue:
         with self.lock:
             self.round_id = round_id
             self._accept_stragglers = accept_stragglers
-            self._in_limbo = False
+
             # Transfer stragglers to the next round
             self.straggler_correlation_ids.extend(self.expected_correlation_ids)
             self.expected_correlation_ids = expected_correlation_ids
@@ -357,48 +357,12 @@ class SessionQueue:
             else:
                 raise queue.Empty
 
-    def waitforit(self, round_timeout, buffer_size=100, polling_interval=0.1):
-        """Defines the policy for how long the server should wait before starting to aggregate models.
+    def aggregation_condition(self, buffer_size=100):
+        """Check if the round has enough updates to continue to aggregate.
 
-        The policy is as follows:
-            1. Wait a maximum of round_timeout time until the round times out.
-            2. Terminate if a preset number of model updates (buffer_size) are in the queue.
-
-        :param round_timeout: The round timeout
-        :type round_timeout: float
         :param buffer_size: The number of model updates to wait for before starting aggregation, defaults to 100
         :type buffer_size: int, optional
-        :param polling_interval: The polling interval, defaults to 0.1
-        :type polling_interval: float, optional
+        :return: True if the round is complete, False otherwise.
+        :rtype: bool
         """
-        tt = 0.0
-        while tt < round_timeout:
-            if self.model_update.qsize() >= buffer_size:
-                break
-
-            time.sleep(polling_interval)
-            tt += polling_interval
-
-    def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
-        """Wait for backward completion messages.
-
-        :param config: The round config object
-        :param required_backward_completions: Number of required backward completions
-        """
-        time_window = float(config["round_timeout"])
-        tt = 0.0
-
-        while tt < time_window:
-            if self.backward_completions.qsize() >= required_backward_completions:
-                break
-
-            time.sleep(polling_interval)
-            tt += polling_interval
-
-    def clear_backward_completions(self):
-        """Clear the backward completions queue."""
-        while not self.backward_completions.empty():
-            try:
-                self.backward_completions.get_nowait()
-            except queue.Empty:
-                break
+        return self.model_update.qsize() >= buffer_size
