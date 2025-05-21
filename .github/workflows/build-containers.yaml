@@ -36,7 +36,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ghcr.io/scaleoutsystems/${{ github.repository }}
+            ghcr.io/scaleoutsystems/fedn/fedn
           tags: |
             type=ref,event=branch
             type=ref,event=pr
