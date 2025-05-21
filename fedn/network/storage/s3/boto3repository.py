@@ -138,11 +138,11 @@ class Boto3Repository(RepositoryBase):
         """
         try:
             self.s3_client.create_bucket(Bucket=bucket_name)
+            logger.info(f"Bucket {bucket_name} created successfully.")
         except self.s3_client.exceptions.BucketAlreadyExists:
-            logger.info(f"Bucket {bucket_name} already exists.")
+            logger.info(f"Bucket {bucket_name} already exists. No new bucket was created.")
         except self.s3_client.exceptions.BucketAlreadyOwnedByYou:
-            logger.info(f"Bucket {bucket_name} already owned by you. No action needed.")
+            logger.info(f"Bucket {bucket_name} already owned by you. No new bucket was created.")
         except (BotoCoreError, ClientError) as e:
             logger.error(f"Failed to create bucket: {bucket_name}. Error: {e}")
             raise Exception(f"Could not create bucket: {e}") from e
-        logger.info(f"Bucket {bucket_name} created successfully.")
