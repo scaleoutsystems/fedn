@@ -159,8 +159,8 @@ class RoundHandler:
 
         # Request model updates from all active clients.
         requests = self.server.create_requests(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
-        queue = self.update_handler.get_session_queue(session_id)
-        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        session_queue = self.update_handler.get_session_queue(session_id)
+        session_queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
         clients_with_requests = self.server.send_requests(requests)
 
         if len(clients_with_requests) < 20:
@@ -175,7 +175,7 @@ class RoundHandler:
             buffer_size = int(config["buffer_size"])
 
         # Wait / block until the round termination policy has been met.
-        reason = self.flow_controller.wait_until_true(lambda: queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
+        reason = self.flow_controller.wait_until_true(lambda: session_queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
 
         tic = time.time()
         model = None
@@ -255,8 +255,8 @@ class RoundHandler:
         ]  # determines whether forward pass calculates gradients ("training"), or is used for inference (e.g., for validation)
         # Request forward pass from all active clients.
         requests = self.server.create_requests(fedn.StatusType.FORWARD, session_id, model_id, config, clients)
-        queue = self.update_handler.get_session_queue(session_id)
-        queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
+        session_queue = self.update_handler.get_session_queue(session_id)
+        session_queue.start_round_queue(round_id, [r.correlation_id for r in requests], config["accept_stragglers"])
         clients_with_requests = self.server.send_requests(requests)
         if len(clients_with_requests) < 20:
             logger.info("Sent forward pass request for model {} to clients {}".format(model_id, clients_with_requests))
@@ -267,7 +267,7 @@ class RoundHandler:
         buffer_size = len(clients)
 
         # Wait / block until the round termination policy has been met.
-        reason = self.flow_controller.wait_until_true(lambda: queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
+        reason = self.flow_controller.wait_until_true(lambda: session_queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
 
         tic = time.time()
         output = None
