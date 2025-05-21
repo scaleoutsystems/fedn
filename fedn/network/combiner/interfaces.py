@@ -217,7 +217,7 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, command: fedn.Command, config: RoundConfig = None):
+    def submit(self, command: fedn.Command, config: Dict = None):
         """Submit a compute plan to the combiner.
 
         :param config: The job configuration.
