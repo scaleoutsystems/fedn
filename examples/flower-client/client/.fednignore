@@ -1,3 +1,6 @@
 __pycache__
 .flower-client
 data
+*.tgz
+*.tar.gz
+*.zip
