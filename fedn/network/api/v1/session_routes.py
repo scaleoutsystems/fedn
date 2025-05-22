@@ -385,15 +385,25 @@ def post():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-def _get_number_of_available_clients():
+def _get_number_of_available_clients(client_ids: list[str]):
     control = Control.instance()
+
     result = 0
+    active_clients = None
     for combiner in control.network.get_combiners():
         try:
-            nr_active_clients = len(combiner.list_active_clients())
-            result = result + int(nr_active_clients)
+            if active_clients is None:
+                active_clients = combiner.list_active_clients()
+            else:
+                active_clients += combiner.list_active_clients()
         except CombinerUnavailableError:
             return 0
+
+    if client_ids is not None:
+        filtered = [item for item in active_clients if item.client_id in client_ids]
+        result = len(filtered)
+    else:
+        result = len(active_clients)
 
     return result
 
@@ -417,6 +427,16 @@ def start_session():
         rounds: int = data.get("rounds", "")
         round_timeout: int = data.get("round_timeout", None)
         model_name_prefix: str = data.get("model_name_prefix", None)
+        client_ids: str = data.get("client_ids", None)
+
+        if client_ids is not None and not isinstance(client_ids, str):
+            return jsonify({"message": "client_ids must be a comma separated string"}), 400
+        if client_ids is not None:
+            client_ids: list[str] = client_ids.split(",")
+            if len(client_ids) == 0:
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
+            if any(not isinstance(client_id, str) for client_id in client_ids):
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
 
         if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
             model_name_prefix = None
@@ -425,6 +445,9 @@ def start_session():
             return jsonify({"message": "Session ID is required"}), 400
 
         session = db.session_store.get(session_id)
+
+        if not session:
+            return jsonify({"message": "Session with specified ID does not exist"}), 400
 
         session_config = session.session_config
         model_id = session_config.model_id
@@ -435,7 +458,7 @@ def start_session():
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config.rounds
-        nr_available_clients = _get_number_of_available_clients()
+        nr_available_clients = _get_number_of_available_clients(client_ids=client_ids)
 
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
@@ -444,7 +467,7 @@ def start_session():
         if model is None:
             return jsonify({"message": "Session seed model not found"}), 400
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix)).start()
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix, client_ids)).start()
 
         return jsonify({"message": "Session started"}), 200
     except Exception as e:

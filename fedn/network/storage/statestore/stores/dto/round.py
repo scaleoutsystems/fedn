@@ -13,6 +13,7 @@ class RoundConfigDTO(SessionConfigDTO):
     round_id: str = Field(None)
     client_settings: Optional[dict] = Field({})
     is_sl_inference: Optional[bool] = Field(False)
+    selected_clients: Optional[list] = Field(None)  # client selection
 
 
 class RoundReduceDTO(DictDTO):
