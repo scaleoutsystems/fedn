@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Type
 
-from sqlalchemy import JSON, Column, ForeignKey, MetaData, String, Table
+from sqlalchemy import JSON, ForeignKey, MetaData, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 constraint_naming_conventions = {
