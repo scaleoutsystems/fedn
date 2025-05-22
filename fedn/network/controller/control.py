@@ -147,7 +147,9 @@ class Control(ControlBase):
 
         return None
 
-    def start_session(self, session_id: str, rounds: int, round_timeout: int, model_name_prefix: Optional[str] = None) -> None:
+    def start_session(
+        self, session_id: str, rounds: int, round_timeout: int, model_name_prefix: Optional[str] = None, client_ids: Optional[list[str]] = None
+    ) -> None:
         if self._state == ReducerState.instructing:
             logger.info("Controller already in INSTRUCTING state. A session is in progress.")
             return
@@ -223,6 +225,7 @@ class Control(ControlBase):
                     round_id=str(current_round),
                     session_id=session_id,
                     model_name=f"{model_name_prefix}_{count_models_of_session}" if model_name_prefix else None,
+                    client_ids=client_ids,
                 )
                 count_models_of_session += 1
                 logger.info("Round completed with status {}".format(round_data.status))
@@ -344,7 +347,9 @@ class Control(ControlBase):
 
         self.set_session_config(session_id, session_config.to_dict())
 
-    def round(self, session_config: SessionConfigDTO, round_id: str, session_id: str, model_name: Optional[str] = None) -> tuple:
+    def round(
+        self, session_config: SessionConfigDTO, round_id: str, session_id: str, model_name: Optional[str] = None, client_ids: Optional[list[str]] = None
+    ) -> tuple:
         """Execute one global round.
 
         : param session_config: The session config.
@@ -361,11 +366,14 @@ class Control(ControlBase):
             return None, self.db.round_store.get(round_id)
 
         # Assemble round config for this global round
-        round_config = session_config.to_dict()
+        round_config: RoundConfig = session_config.to_dict()
         round_config["rounds"] = 1
         round_config["round_id"] = round_id
         round_config["task"] = "training"
         round_config["session_id"] = session_id
+
+        if client_ids and len(client_ids) > 0:
+            round_config["selected_clients"] = client_ids
 
         self.set_round_config(round_id, round_config)
 
