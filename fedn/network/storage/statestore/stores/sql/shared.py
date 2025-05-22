@@ -1,8 +1,9 @@
+import json
 import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Type
 
-from sqlalchemy import JSON, ForeignKey, MetaData, String
+from sqlalchemy import JSON, Column, ForeignKey, MetaData, String, Table
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 constraint_naming_conventions = {
@@ -99,6 +100,16 @@ class RoundConfigModel(MyAbstractBase):
     rounds: Mapped[int]
     client_settings: Mapped[Optional[Dict]] = mapped_column(JSON)
     is_sl_inference: Mapped[bool]
+
+    @property
+    def selected_clients(self):
+        if self.selected_clients_json:
+            return json.loads(self.selected_clients_json)
+        return []
+
+    @selected_clients.setter
+    def selected_clients(self, value):
+        self.selected_clients_json = json.dumps(value)
 
 
 class RoundCombinerDataModel(MyAbstractBase):
