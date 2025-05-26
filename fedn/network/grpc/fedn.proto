@@ -4,6 +4,7 @@ package fedn;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
 
 message Response {
     Client sender = 1;
@@ -51,6 +52,8 @@ enum Queue {
   TASK_QUEUE = 1;
 }
 
+
+
 message TaskRequest {
   Client sender = 1;
   Client receiver = 2;
@@ -62,6 +65,8 @@ message TaskRequest {
   string meta = 7;
   string session_id = 8;
   StatusType type = 9;
+  string round_id = 10;
+  string task_type = 11;
 }
 
 message ModelUpdate {
@@ -73,6 +78,8 @@ message ModelUpdate {
   string timestamp = 6;
   string meta = 7;
   string config = 8;
+  string round_id = 9;
+  string session_id = 10;
 }
 
 message ModelValidation {
@@ -144,32 +151,50 @@ message TelemetryElem {
   float value = 2;
 }
 
+enum TaskStatus {
+    TASK_NO_TASK = 0;
+    TASK_PENDING = 1;
+    TASK_RUNNING = 2;
+    TASK_COMPLETED = 3;
+    TASK_FAILED = 4;
+    TASK_INTERRUPTED = 5;
+    TASK_REQUEST_NEW = 6;
+}
+
+message ActivityReport {
+  Client sender = 1;
+  string correlation_id = 2;
+  TaskStatus status = 3;
+  bool done = 4;
+  google.protobuf.Struct response = 5;
+}
+
+
 enum ModelStatus {
-  OK = 0;
+  UNKNOWN = 0;
   IN_PROGRESS = 1;
-  IN_PROGRESS_OK = 2;
+  OK = 2;
   FAILED = 3;
-  UNKNOWN = 4;
 }
 
 message ModelRequest {
   Client sender = 1;
   Client receiver = 2;
-  bytes data = 3;
-  string id = 4;
-  ModelStatus status = 5;
+  string model_id = 3;  
+}
+
+message FileChunk {
+  bytes data = 1;
 }
 
 message ModelResponse {
-  bytes data = 1;
-  string id = 2;
   ModelStatus status = 3;
   string message = 4;
 }
 
 service ModelService {
-  rpc Upload(stream ModelRequest) returns (ModelResponse);
-  rpc Download(ModelRequest) returns (stream ModelResponse);
+  rpc Upload(stream FileChunk) returns (ModelResponse);
+  rpc Download(ModelRequest) returns (stream FileChunk);
 }
 
 
@@ -312,6 +337,8 @@ service Combiner {
     rpc SendModelMetric(ModelMetric) returns (Response);
     rpc SendAttributeMessage(AttributeMessage) returns (Response);
     rpc SendTelemetryMessage(TelemetryMessage) returns (Response);
+
+    rpc PollAndReport(ActivityReport) returns (TaskRequest);
 }
 
 message ProvidedFunctionsRequest {
