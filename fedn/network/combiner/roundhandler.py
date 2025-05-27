@@ -57,6 +57,8 @@ class RoundConfig(TypedDict):
     :type aggregator: str
     :param client_settings: Settings that are distributed to clients.
     :type client_settings: dict
+    :param selected_clients: List of client ids to participate in the round
+    :type selected_clients: list[str]
     """
 
     _job_id: str
@@ -75,6 +77,7 @@ class RoundConfig(TypedDict):
     helper_type: str
     aggregator: str
     client_settings: dict
+    selected_clients: list[str]
 
 
 class RoundHandler:
@@ -328,7 +331,7 @@ class RoundHandler:
 
         self.modelservice.set_model(model, model_id)
 
-    def _assign_round_clients(self, n, type="trainers"):
+    def _assign_round_clients(self, n: int, type: str = "trainers", selected_clients: list = None):
         """Obtain a list of clients(trainers or validators) to ask for updates in this round.
 
         :param n: Size of a random set taken from active trainers(clients), if n > "active trainers" all is used
@@ -344,6 +347,9 @@ class RoundHandler:
             clients = self.server.get_active_trainers()
         else:
             logger.error("(ERROR): {} is not a supported type of client".format(type))
+
+        if selected_clients is not None and len(selected_clients) > 0:
+            clients = [client for client in clients if client in selected_clients]
 
         # If the number of requested trainers exceeds the number of available, use all available.
         n = min(n, len(clients))
@@ -424,7 +430,9 @@ class RoundHandler:
                     time.sleep(15)
 
         else:
-            clients = self._assign_round_clients(self.server.max_clients)
+            selected_clients = config["selected_clients"] if "selected_clients" in config and len(config["selected_clients"]) > 0 else None
+
+            clients = self._assign_round_clients(n=self.server.max_clients, type="trainers", selected_clients=selected_clients)
         model, meta = self._training_round(config, clients, provided_functions)
         data["data"] = meta
 
