@@ -5,6 +5,7 @@ import random
 import time
 import uuid
 from typing import TYPE_CHECKING, TypedDict
+from pymongo import ReturnDocument 
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
@@ -512,6 +513,7 @@ class RoundHandler:
         self.modelservice.temp_model_storage.delete(config["model_id"])
         return data
 
+
     def run(self, polling_interval=1.0):
         """Main control loop. Execute rounds based on round config on the queue.
 
@@ -540,7 +542,13 @@ class RoundHandler:
 
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.db.round_store.update(active_round)
+                                # self.server.db.round_store.update(active_round)
+                                # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")
@@ -564,12 +572,17 @@ class RoundHandler:
                             active_round = self.server.db.round_store.get(round_meta["round_id"])  # if "combiners" not in active_round:
                             #     active_round["combiners"] = []
                             # active_round["combiners"].append(round_meta)
-
                             # updated = self.server.round_store.update(active_round["id"], active_round)
 
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.db.round_store.update(active_round)
+                                #self.server.db.round_store.update(active_round)
+                                # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Forward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Forward passFailed to update round data in round store.")
@@ -585,6 +598,12 @@ class RoundHandler:
                             active_round.combiners.append(round_meta)
                             try:
                                 self.server.db.round_store.update(active_round)
+                                # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Backward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Backward pass: Failed to update round data in round store.")

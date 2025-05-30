@@ -420,35 +420,35 @@ class Control(ControlBase):
         
         # -------------------------Updated Async------------------
 
-        # check how many combiners responded:
-        start = time.time()
-        while time.time() - start < 5:
-            round = self.db.round_store.get(round_id)
-            if len(round.combiners) > 0:
-                break
-            time.sleep(1)
+        # # check how many combiners responded:
+        # start = time.time()
+        # while time.time() - start < 5:
+        #     round = self.db.round_store.get(round_id)
+        #     if len(round.combiners) > 0:
+        #         break
+        #     time.sleep(1)
         
-        num_reported = len(round.combiners)
-        if num_reported == 0:
-            logger.warning("No combiner models after timeout. Marking round as Failed.")
-            self.set_round_status(round_id, "Failed")
-            return None, self.db.round_store.get(round_id)
+        # num_reported = len(round.combiners)
+        # if num_reported == 0:
+        #     logger.warning("No combiner models after timeout. Marking round as Failed.")
+        #     self.set_round_status(round_id, "Failed")
+        #     return None, self.db.round_store.get(round_id)
 
-        logger.info(f"{num_reported} combiner(s) have reported. Proceeding to partial aggregator.")
+        # logger.info(f"{num_reported} combiner(s) have reported. Proceeding to partial aggregator.")
 
 
         # This could cause an infinite loop over retries if if len(round.combiners) != len(participating_combiners)
         # ------------------------------
-        # # Due to the distributed nature of the computation, there might be a
-        # # delay before combiners have reported the round data to the db,
-        # # so we need some robustness here.
-        # @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
-        # def check_combiners_done_reporting():
-        #     round = self.db.round_store.get(round_id)
-        #     if len(round.combiners) != len(participating_combiners):
-        #         raise KeyError("Combiners have not yet reported.")
+        # Due to the distributed nature of the computation, there might be a
+        # delay before combiners have reported the round data to the db,
+        # so we need some robustness here.
+        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
+        def check_combiners_done_reporting():
+            round = self.db.round_store.get(round_id)
+            if len(round.combiners) != len(participating_combiners):
+                raise KeyError("Combiners have not yet reported.")
 
-        # check_combiners_done_reporting()
+        check_combiners_done_reporting()
         # -------------------------------
 
         round = self.db.round_store.get(round_id)
