@@ -9,6 +9,7 @@ import yaml
 from fedn.cli.main import main
 from fedn.cli.shared import CONTROLLER_DEFAULTS, STUDIO_DEFAULTS, apply_config, get_context, get_response, print_response
 from fedn.common.exceptions import InvalidClientConfig
+from fedn.common.log_config import set_log_level_from_string
 from fedn.network.clients.client_v2 import Client as ClientV2
 from fedn.network.clients.client_v2 import ClientOptions
 
@@ -185,6 +186,7 @@ def _complement_client_params(config: dict) -> None:
 @click.option("-n", "--name", required=False)
 @click.option("-i", "--client-id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
+@click.option("--log-level", required=False, default="INFO", help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
 @click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attach directly to combiner host.")
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
@@ -201,6 +203,7 @@ def client_start_v2_cmd(
     name: str,
     client_id: str,
     local_package: bool,
+    log_level: str,
     preferred_combiner: str,
     combiner: str,
     combiner_port: int,
@@ -211,6 +214,12 @@ def client_start_v2_cmd(
 ):
     """Start client."""
     package = "local" if local_package else "remote"
+
+    if log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
+        click.echo(f"Invalid log level: {log_level}. Defaulting to INFO.")
+        log_level = "INFO"
+
+    set_log_level_from_string(log_level)
 
     config = {
         "api_url": None,
