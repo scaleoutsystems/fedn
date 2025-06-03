@@ -1,3 +1,4 @@
+from typing import List
 import pytest
 
 import datetime
@@ -7,6 +8,7 @@ import itertools
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.tests.stores.test_store import StoreTester
 
 @pytest.fixture
 def test_statuses():
@@ -26,22 +28,6 @@ def test_status():
     return StatusDTO(status_id=str(uuid.uuid4()), status="status1", timestamp=start_time, log_level="test_log_level1", type="test_type", sender={"name":"test_sender", "role":"test_role"})
 
 @pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_statuses):
-    for c in test_statuses:
-        mongo_connection.status_store.add(c)
-        postgres_connection.status_store.add(c)
-        sql_connection.status_store.add(c)
-        
-    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
-
-    
-    for c in test_statuses:
-        mongo_connection.status_store.delete(c.status_id)
-        postgres_connection.status_store.delete(c.status_id)
-        sql_connection.status_store.delete(c.status_id)
-
-
-@pytest.fixture
 def options():
     sorting_keys = (None, 
                     "log_level",
@@ -57,52 +43,21 @@ def options():
 
 
 
+class TestStatusStore(StoreTester):
+    @pytest.fixture
+    def store(self, db_connection: DatabaseConnection):
+        yield db_connection.status_store
+    
+    @pytest.fixture
+    def test_dto(self, test_status: StatusDTO):
+        yield test_status
+        
+    @pytest.fixture
+    def stores_with_data(self, all_db_connections, test_statuses: List[StatusDTO]):
+        yield from self.helper_prepare_and_clenup(all_db_connections, "status_store", test_statuses)
 
-class TestStatusStore:
-
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_status: StatusDTO):
-        test_status.check_validity()
-
-        read_status1 = db_connection.status_store.add(test_status)
-        assert isinstance(read_status1.status_id, str)
-        assert isinstance(read_status1.committed_at, datetime.datetime)
-
-        read_status1_dict = read_status1.to_dict()
-        status_id = read_status1_dict["status_id"]
-        del read_status1_dict["status_id"]
-        del read_status1_dict["committed_at"]
-        del read_status1_dict["updated_at"]
-
-        test_status_dict = test_status.to_dict()
-        del test_status_dict["status_id"]
-        del test_status_dict["committed_at"]
-        del test_status_dict["updated_at"]
-
-        assert read_status1_dict == test_status_dict
-
-        # Assert we get the same status back
-        read_status2 = db_connection.status_store.get(status_id)
-        assert read_status2 is not None
-        assert read_status2.to_dict() == read_status1.to_dict()    
-
-        # Delete the status and check that it is deleted
-        success = db_connection.status_store.delete(status_id)
-        assert success == True
-
-    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-            print("Running tests between databases {} and {}".format(name1, name2))
-            for *opt,kwargs in options:
-                gathered_statuses = db_1.status_store.list(*opt, **kwargs)
-                count =  db_1.status_store.count(**kwargs)
-
-                gathered_statuses2 = db_2.status_store.list(*opt, **kwargs)
-                count2 =  db_2.status_store.count(**kwargs)
-
-                assert count == count2
-                assert len(gathered_statuses) == len(gathered_statuses2)
-
-                for i in range(len(gathered_statuses)):
-                    assert gathered_statuses[i].status_id == gathered_statuses2[i].status_id
+    def test_update(self, store, test_dto):
+        with pytest.raises(NotImplementedError):
+            store.update(test_dto)
 
 

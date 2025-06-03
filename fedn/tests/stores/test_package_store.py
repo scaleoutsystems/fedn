@@ -1,3 +1,4 @@
+from typing import List
 import pytest
 
 import itertools
@@ -7,6 +8,7 @@ import uuid
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.tests.stores.test_store import StoreTester
 
 @pytest.fixture
 def test_packages():
@@ -23,22 +25,6 @@ def test_package():
     return PackageDTO(description="Test package1", file_name="test_package.tar.gz", helper="numpyhelper", name="test_package1")
 
 @pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_packages):
-    for c in test_packages:
-        mongo_connection.package_store.add(c)
-        postgres_connection.package_store.add(c)
-        sql_connection.package_store.add(c)
-
-    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
-
-    for c in test_packages:
-        mongo_connection.package_store.delete(c.package_id)
-        postgres_connection.package_store.delete(c.package_id)
-        sql_connection.package_store.delete(c.package_id)
-
-
-
-@pytest.fixture
 def options():
     sorting_keys = (None, 
                     "name",
@@ -52,55 +38,48 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-class TestPackageStore:
+
+class TestPackageStore(StoreTester):
+    @pytest.fixture
+    def store(self, db_connection: DatabaseConnection):
+        yield db_connection.package_store
     
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_package: PackageDTO):
-        test_package.check_validity()
+    @pytest.fixture
+    def test_dto(self, test_package: PackageDTO):
+        yield test_package
+        
+    @pytest.fixture
+    def stores_with_data(self, all_db_connections, test_packages: List[PackageDTO]):
+        yield from self.helper_prepare_and_clenup(all_db_connections, "package_store", test_packages)
 
-        # Add a package and check that we get the added package back
-        read_package1 = db_connection.package_store.add(test_package)
-        assert isinstance(read_package1.package_id, str)
-        assert isinstance(read_package1.committed_at, datetime.datetime)
-        assert isinstance(read_package1.storage_file_name, str)
+    def test_update(self, store, test_dto):
+        with pytest.raises(NotImplementedError):
+            store.update(test_dto)
+    
+    def test_add_delete(self, store, test_dto):
+        added_dto = store.add(test_dto)
+        added_primary_id = added_dto.primary_id
+        assert added_dto is not test_dto, "Added DTO should be a new instance, not the original test DTO."
+        assert isinstance(added_dto.primary_id, str)
+        assert isinstance(added_dto.committed_at, datetime.datetime)
+        assert isinstance(added_dto.updated_at, datetime.datetime)
 
-        read_package1_dict = read_package1.to_dict()
-        package_id = read_package1_dict["package_id"]
-        del read_package1_dict["package_id"]
-        del read_package1_dict["committed_at"]
-        del read_package1_dict["storage_file_name"]
-        del read_package1_dict["updated_at"]
+        added_dto_dict = added_dto.to_dict()
+        
+        del added_dto_dict[added_dto.primary_key]
+        del added_dto_dict["storage_file_name"]
+        del added_dto_dict["committed_at"]
+        del added_dto_dict["updated_at"]
 
-        test_package_dict = test_package.to_dict()
-        del test_package_dict["package_id"]
-        del test_package_dict["committed_at"]
-        del test_package_dict["storage_file_name"]
-        del test_package_dict["updated_at"]
+        test_dto_dict = test_dto.to_dict()
+        del test_dto_dict[added_dto.primary_key]
+        del test_dto_dict["storage_file_name"]
+        del test_dto_dict["committed_at"]
+        del test_dto_dict["updated_at"]
 
-        assert read_package1_dict == test_package_dict
+        assert added_dto_dict == test_dto_dict 
 
-        # Assert we get the same package back
-        read_package2 = db_connection.package_store.get(package_id)
-        assert read_package2 is not None
-        assert read_package2.to_dict() == read_package1.to_dict()    
-
-        # Delete the package and check that it is deleted
-        success = db_connection.package_store.delete(package_id)
+        # Delete the attribute and check that it is deleted
+        success = store.delete(added_primary_id)
         assert success == True
-    
-    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-            print("Running tests between databases {} and {}".format(name1, name2))
-            for *opt,kwargs in options:
-                gathered_packages = db_1.package_store.list(*opt, **kwargs)
-                count = db_1.package_store.count(**kwargs)
-                
-                gathered_packages2 = db_2.package_store.list(*opt, **kwargs)
-                count2 = db_2.package_store.count(**kwargs)
-                
-                assert count == count2
-                assert len(gathered_packages) == len(gathered_packages2)
 
-                for i in range(len(gathered_packages)):
-                    assert gathered_packages2[i].package_id == gathered_packages[i].package_id
-                    
-                    

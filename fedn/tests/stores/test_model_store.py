@@ -1,5 +1,6 @@
 import datetime
 import itertools
+from typing import List
 import uuid
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.tests.stores.test_store import StoreTester
 
 
 @pytest.fixture
@@ -25,25 +27,6 @@ def test_models():
 def test_model():
     return ModelDTO(name="model_name", parent_model=None, session_id=None)
 
-
-@pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_models):
-    for c in test_models:
-        mongo_connection.model_store.add(c)
-        postgres_connection.model_store.add(c)
-        sql_connection.model_store.add(c)
-        
-
-    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
-
-    for m in test_models:
-        mongo_connection.model_store.delete(m.model_id)
-        postgres_connection.model_store.delete(m.model_id)
-        sql_connection.model_store.delete(m.model_id)
-        
-
-
-
 @pytest.fixture
 def options():
     sorting_keys = (None, 
@@ -57,63 +40,48 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-class TestModelStore:
 
-    def test_add_update_delete(self, db_connection:DatabaseConnection, test_model:ModelDTO):
-        test_model.check_validity()
-
-        # Add a model and check that we get the added model back
-        read_model1 = db_connection.model_store.add(test_model)
-        assert isinstance(read_model1.model_id, str)
-        read_model1_dict = read_model1.to_dict()
-        model_id = read_model1.model_id
-        del read_model1_dict["model_id"]
-        del read_model1_dict["model"]
-        del read_model1_dict["committed_at"]
-        del read_model1_dict["updated_at"]
-
-
-        input_dict = test_model.to_dict()
-        del input_dict["model_id"]
-        del input_dict["model"]
-        del input_dict["committed_at"]
-        del input_dict["updated_at"]
-
-        assert read_model1_dict == input_dict
-
-        # Assert we get the same model back
-        read_model2 = db_connection.model_store.get(model_id)
-        assert read_model2 is not None
-        assert read_model2.to_dict() == read_model1.to_dict()
+class TestModelStore(StoreTester):
+    @pytest.fixture
+    def store(self, db_connection: DatabaseConnection):
+        yield db_connection.model_store
+    
+    @pytest.fixture
+    def test_dto(self, test_model: ModelDTO):
+        yield test_model
         
-        # Update the model and check that we get the updated model back
-        read_model2.name = "new_name"         
-        read_model3 = db_connection.model_store.update(read_model2)
-        assert read_model3.name == "new_name"
+    @pytest.fixture
+    def stores_with_data(self, all_db_connections, test_models: List[ModelDTO]):
+        yield from self.helper_prepare_and_clenup(all_db_connections, "model_store", test_models)
 
-        # Assert we get the same model back
-        read_model4 = db_connection.model_store.get(model_id)
-        assert read_model4 is not None
-        assert read_model3.to_dict() == read_model4.to_dict()
+    def update_function(self, dto):
+        dto.name = "new_name"         
+        return dto
+    
+    def test_add_delete(self, store, test_dto):
+        added_dto = store.add(test_dto)
+        added_primary_id = added_dto.primary_id
+        assert added_dto is not test_dto, "Added DTO should be a new instance, not the original test DTO."
+        assert isinstance(added_dto.primary_id, str)
+        assert isinstance(added_dto.committed_at, datetime.datetime)
+        assert isinstance(added_dto.updated_at, datetime.datetime)
 
+        added_dto_dict = added_dto.to_dict()
+        
+        del added_dto_dict[added_dto.primary_key]
+        del added_dto_dict["model"]
+        del added_dto_dict["committed_at"]
+        del added_dto_dict["updated_at"]
 
-        # Delete the model and check that it is deleted
-        success = db_connection.model_store.delete(model_id)
+        test_dto_dict = test_dto.to_dict()
+        del test_dto_dict[added_dto.primary_key]
+        del test_dto_dict["model"]
+        del test_dto_dict["committed_at"]
+        del test_dto_dict["updated_at"]
+
+        assert added_dto_dict == test_dto_dict 
+
+        # Delete the attribute and check that it is deleted
+        success = store.delete(added_primary_id)
         assert success == True
-
-    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-            print("Running tests between databases {} and {}".format(name1, name2))
-            for *opt,kwargs in options: 
-                gathered_models1 = db_1.model_store.list(*opt, **kwargs)
-                count1 = db_1.model_store.count(**kwargs)
-
-                gathered_models2 = db_2.model_store.list(*opt, **kwargs)
-                count2 = db_2.model_store.count(**kwargs)
-
-                assert count1 == count2
-                assert len(gathered_models1) == len(gathered_models2)
-
-                for i in range(len(gathered_models1)):
-                    assert gathered_models1[i].model_id == gathered_models2[i].model_id
-                    
+        
