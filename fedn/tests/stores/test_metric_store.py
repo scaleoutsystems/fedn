@@ -57,18 +57,6 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-@pytest.fixture
-def db_connections_with_data(all_db_connections: List[Tuple[str, DatabaseConnection]], test_metrics: Tuple[ModelDTO, List[MetricDTO]]):
-    model, metrics = test_metrics
-
-    for connection_name, connection in all_db_connections:
-        connection.model_store.add(model)
-    
-    yield from helper_prepare_and_clenup(all_db_connections, "metric_store", metrics)
-
-    for connection_name, connection in all_db_connections:
-        connection.model_store.delete(model.model_id)
-
 class TestMetricStore(StoreTester):
     @pytest.fixture
     def store(self, db_connection: DatabaseConnection):
