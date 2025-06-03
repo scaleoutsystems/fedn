@@ -186,7 +186,13 @@ def _complement_client_params(config: dict) -> None:
 @click.option("-n", "--name", required=False)
 @click.option("-i", "--client-id", required=False)
 @click.option("--local-package", is_flag=True, help="Enable local compute package")
-@click.option("--log-level", required=False, default="INFO", type=click.Choice(['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']), help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)")
+@click.option(
+    "--log-level",
+    required=False,
+    default="INFO",
+    type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
+    help="Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+)
 @click.option("-c", "--preferred-combiner", type=str, required=False, default="", help="name of the preferred combiner")
 @click.option("--combiner", type=str, required=False, default=None, help="Skip combiner assignment from discover service and attach directly to combiner host.")
 @click.option("--combiner-port", type=str, required=False, default=None, help="Combiner port, need to be used with --combiner")
