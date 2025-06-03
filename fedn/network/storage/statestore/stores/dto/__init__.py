@@ -7,9 +7,11 @@ from fedn.network.storage.statestore.stores.dto.model import ModelDTO
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
+from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.dto.shared import NodeDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
+from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 
 __all__ = [
@@ -25,4 +27,6 @@ __all__ = [
     "RoundDTO",
     "StatusDTO",
     "ValidationDTO",
+    "RunDTO",
+    "TelemetryDTO",
 ]

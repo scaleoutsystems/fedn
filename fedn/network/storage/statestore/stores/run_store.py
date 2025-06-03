@@ -42,3 +42,6 @@ class SQLRunStore(RunStore, SQLStore[RunDTO, RunModel]):
         orm_dict = from_orm_model(item, RunModel)
         orm_dict["run_id"] = orm_dict.pop("id")
         return RunDTO().populate_with(orm_dict)
+
+    def update(self, item):
+        return self.sql_update(item)

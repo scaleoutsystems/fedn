@@ -1,6 +1,7 @@
 import datetime
 import itertools
 import time
+from typing import List
 import uuid
 
 import pytest
@@ -10,10 +11,11 @@ from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.dto.session import (
     SessionConfigDTO, SessionDTO)
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.tests.stores.test_store import StoreTester
 
 
 @pytest.fixture
-def test_sessions():
+def test_model_sessions():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
@@ -29,7 +31,7 @@ def test_sessions():
     return model,[session1, session2, session3, session4, session5, session6]
 
 @pytest.fixture
-def test_session_and_model():
+def test_model_session():
     model = ModelDTO(model_id=str(uuid.uuid4()), parent_model="test_parent_model", session_id=None, name="test_name1")
 
     session_config = {"aggregator":"test_aggregator", "round_timeout":100, "buffer_size":100, "delete_models_storage":True, 
@@ -38,34 +40,6 @@ def test_session_and_model():
     session = SessionDTO(name="sessionname",  session_config=SessionConfigDTO().patch_with(session_config))
 
     return model, session
-
-@pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_sessions):
-    model, test_sessions = test_sessions
-    
-    mongo_connection.model_store.add(model)    
-    postgres_connection.model_store.add(model)
-    sql_connection.model_store.add(model)
-    
-
-    for c in test_sessions:
-        mongo_connection.session_store.add(c)
-        postgres_connection.session_store.add(c)
-        sql_connection.session_store.add(c)
-        
-
-    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
-
-    for c in test_sessions:
-        mongo_connection.session_store.delete(c.session_id)
-        postgres_connection.session_store.delete(c.session_id)
-        sql_connection.session_store.delete(c.session_id)
-    
-    mongo_connection.model_store.delete(model.model_id)
-    postgres_connection.model_store.delete(model.model_id)
-    sql_connection.model_store.delete(model.model_id)
-
-
 
 @pytest.fixture
 def options():
@@ -82,62 +56,29 @@ def options():
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
 
-class TestSessionStore:
-
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_session_and_model: tuple[ModelDTO, SessionDTO]):
-        model, session = test_session_and_model
-        
+class TestSessionStore(StoreTester):
+    @pytest.fixture
+    def store(self, db_connection: DatabaseConnection):
+        yield db_connection.session_store
+    
+    @pytest.fixture
+    def test_dto(self, db_connection, test_model_session: SessionDTO):
+        model, test_session = test_model_session
         db_connection.model_store.add(model)
-        # Add a session and check that we get the added session back
-        read_session1 = db_connection.session_store.add(session)
-        assert isinstance(read_session1.session_id, str)
-        assert isinstance(read_session1.committed_at, datetime.datetime)
-        read_session1_dict = read_session1.to_dict()
-
-        assert read_session1_dict["name"] == session.name
-        
-
-        session_config_dict = session.session_config.to_dict()
-        assert read_session1_dict["session_config"] == session_config_dict
-
-        session_id = read_session1_dict["session_id"]
-
-        # Assert we get the same session back
-        read_session2 = db_connection.session_store.get(session_id)
-        assert read_session2 is not None
-        assert read_session2.to_dict() == read_session1.to_dict()
-        
-        # Update the session and check that we get the updated session back
-        read_session2.name = "new_name"         
-        read_session3 = db_connection.session_store.update(read_session2)
-        assert read_session3.name == "new_name"
-
-        # Assert we get the same session back
-        read_session4 = db_connection.session_store.get(session_id)
-        assert read_session4 is not None
-        assert read_session3.to_dict() == read_session4.to_dict()
-
-        # Delete the session and check that it is deleted
-        success = db_connection.session_store.delete(session_id)
-        assert success == True
+        yield test_session
         db_connection.model_store.delete(model.model_id)
+        
+    @pytest.fixture
+    def stores_with_data(self, all_db_connections, test_model_sessions: List[SessionDTO]):
+        model, test_sessions = test_model_sessions
+        for connection_name, connection in all_db_connections:
+            connection.model_store.add(model) 
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "session_store", test_sessions)
+        for connection_name, connection in all_db_connections:
+            connection.model_store.delete(model.model_id)
 
-
-
-    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-            print("Running tests between databases {} and {}".format(name1, name2))
-            for *opt,kwargs in options:
-                gathered_sessions = db_1.session_store.list(*opt, **kwargs)
-                count = db_1.session_store.count(**kwargs)
-
-                gathered_sessions2 = db_2.session_store.list(*opt, **kwargs)
-                count2 = db_2.session_store.count(**kwargs)
-                
-                assert(len(gathered_sessions) == len(gathered_sessions2))
-                assert count == count2
-
-                for i in range(len(gathered_sessions)):
-                    assert gathered_sessions2[i].session_id == gathered_sessions[i].session_id
+    def update_function(self, dto):
+        dto.status = "new_status"
+        return dto
 
 

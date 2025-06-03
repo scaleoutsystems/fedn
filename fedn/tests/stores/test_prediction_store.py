@@ -1,3 +1,4 @@
+from typing import List
 import pytest
 
 import datetime
@@ -7,6 +8,7 @@ import itertools
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.tests.stores.test_store import StoreTester
 
 
 
@@ -42,23 +44,6 @@ def test_prediction():
     prediction.timestamp = "2024-13"
     return prediction
 
-
-@pytest.fixture
-def db_connections_with_data(postgres_connection:DatabaseConnection, sql_connection: DatabaseConnection, mongo_connection:DatabaseConnection, test_predictions):
-    for c in test_predictions:
-        mongo_connection.prediction_store.add(c)
-        postgres_connection.prediction_store.add(c)
-        sql_connection.prediction_store.add(c)
-
-    yield [("postgres", postgres_connection), ("sqlite", sql_connection), ("mongo", mongo_connection)]
-
-    for c in test_predictions:
-        mongo_connection.prediction_store.delete(c.prediction_id)
-        postgres_connection.prediction_store.delete(c.prediction_id)
-        sql_connection.prediction_store.delete(c.prediction_id)
-
-
-
 @pytest.fixture
 def options():
     sorting_keys = (None, 
@@ -73,51 +58,19 @@ def options():
 
     return list(itertools.product(limits, skips, sorting_keys, desc, opt_kwargs))
 
-class TestPredictionStore:
-
-    def test_add_update_delete(self, db_connection: DatabaseConnection, test_prediction: PredictionDTO):
-        test_prediction.check_validity()
-
-        read_prediction1 = db_connection.prediction_store.add(test_prediction)
-        assert isinstance(read_prediction1.prediction_id, str)
-        assert isinstance(read_prediction1.committed_at, datetime.datetime)
-
-        read_prediction1_dict = read_prediction1.to_dict()
-        prediction_id = read_prediction1_dict["prediction_id"]
-        del read_prediction1_dict["prediction_id"]
-        del read_prediction1_dict["committed_at"]
-        del read_prediction1_dict["updated_at"]
-
-        test_prediction_dict = test_prediction.to_dict()
-        del test_prediction_dict["prediction_id"]
-        del test_prediction_dict["committed_at"]
-        del test_prediction_dict["updated_at"]
-
-        assert read_prediction1_dict == test_prediction_dict
-
-        # Assert we get the same prediction back
-        read_prediction2 = db_connection.prediction_store.get(prediction_id)
-        assert read_prediction2 is not None
-        assert read_prediction2.to_dict() == read_prediction1.to_dict()    
-
-        # Delete the prediction and check that it is deleted
-        success = db_connection.prediction_store.delete(prediction_id)
-        assert success == True
+class TestPredictionStore(StoreTester):
+    @pytest.fixture
+    def store(self, db_connection: DatabaseConnection):
+        yield db_connection.prediction_store
     
+    @pytest.fixture
+    def test_dto(self, test_prediction: PredictionDTO):
+        yield test_prediction
+        
+    @pytest.fixture
+    def stores_with_data(self, all_db_connections, test_predictions: List[PredictionDTO]):
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "prediction_store", test_predictions)
 
-    def test_list(self, db_connections_with_data: list[tuple[str, DatabaseConnection]], options: list[tuple]):   
-        for (name1, db_1), (name2, db_2) in zip(db_connections_with_data[1:], db_connections_with_data[:-1]):
-            print("Running tests between databases {} and {}".format(name1, name2))
-            for *opt,kwargs in options:
-                gathered_models = db_1.prediction_store.list(*opt, **kwargs)
-                count = db_1.prediction_store.count(**kwargs)
-
-                gathered_models2 = db_2.prediction_store.list(*opt, **kwargs)
-                count2 = db_2.prediction_store.count(**kwargs)
-
-                assert count == count2
-                assert len(gathered_models) == len(gathered_models2)
-
-                for i in range(len(gathered_models)):
-                    assert gathered_models[i].prediction_id == gathered_models2[i].prediction_id
-                    
+    def test_update(self, store, test_dto):
+       with pytest.raises(NotImplementedError):
+            store.update(test_dto)

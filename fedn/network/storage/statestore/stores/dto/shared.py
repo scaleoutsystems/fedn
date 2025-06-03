@@ -362,6 +362,7 @@ class BaseDTO(DictDTO):
                         return getattr(self, key)
         raise AttributeError(f"{self.__class__.__name__} has no field of type PrimaryID")
 
+    @property
     def primary_key(self) -> str:
         """Get the key of the primary id."""
         for base in self.__class__.__mro__:
