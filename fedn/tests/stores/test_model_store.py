@@ -52,7 +52,7 @@ class TestModelStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_models: List[ModelDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "model_store", test_models)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "model_store", test_models)
 
     def update_function(self, dto):
         dto.name = "new_name"         

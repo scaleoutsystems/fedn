@@ -67,7 +67,7 @@ class TestRoundStore(StoreTester):
 
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_rounds: List[RoundDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "round_store", test_rounds)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "round_store", test_rounds)
 
     def update_function(self, dto: RoundDTO):
         dto.round_config.aggregator = "new_aggregator"

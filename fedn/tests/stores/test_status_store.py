@@ -54,7 +54,7 @@ class TestStatusStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_statuses: List[StatusDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "status_store", test_statuses)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "status_store", test_statuses)
 
     def test_update(self, store, test_dto):
         with pytest.raises(NotImplementedError):

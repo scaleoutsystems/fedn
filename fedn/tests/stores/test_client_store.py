@@ -61,7 +61,7 @@ class TestClientStore(StoreTester):
             
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_clients: List[ClientDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "client_store", test_clients)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "client_store", test_clients)
 
     def update_function(self, dto):
         dto.name = "updated_name"

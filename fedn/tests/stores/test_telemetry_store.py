@@ -53,7 +53,7 @@ class TestTelemetryStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_telemetries: List[TelemetryDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "telemetry_store", test_telemetries)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "telemetry_store", test_telemetries)
     
     def test_update(self, store, test_dto):
        with pytest.raises(NotImplementedError):

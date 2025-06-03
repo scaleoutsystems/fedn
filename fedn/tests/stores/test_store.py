@@ -89,7 +89,7 @@ class StoreTester:
 
         store.delete(added_primary_id)
         
-    def helper_prepare_and_clenup(self, connections: List[Tuple[str, DatabaseConnection]], store_name:str, items: List[BaseDTO]):
+    def helper_prepare_and_cleanup(self, connections: List[Tuple[str, DatabaseConnection]], store_name:str, items: List[BaseDTO]):
         for c in items:
             for _, connection in connections:
                 store:Store = getattr(connection, store_name)

@@ -53,7 +53,7 @@ class TestAttributeStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_attributes: List[AttributeDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "attribute_store", test_attributes)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "attribute_store", test_attributes)
     
     def test_update(self, store, test_dto):
        with pytest.raises(NotImplementedError):

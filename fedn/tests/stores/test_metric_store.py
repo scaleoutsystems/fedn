@@ -74,7 +74,7 @@ class TestMetricStore(StoreTester):
         model, test_metrics = test_model_metrics
         for connection_name, connection in all_db_connections:
             connection.model_store.add(model) 
-        yield from self.helper_prepare_and_clenup(all_db_connections, "metric_store", test_metrics)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "metric_store", test_metrics)
         for connection_name, connection in all_db_connections:
             connection.model_store.delete(model.model_id)
 

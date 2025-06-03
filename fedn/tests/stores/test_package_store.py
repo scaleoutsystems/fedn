@@ -50,7 +50,7 @@ class TestPackageStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_packages: List[PackageDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "package_store", test_packages)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "package_store", test_packages)
 
     def test_update(self, store, test_dto):
         with pytest.raises(NotImplementedError):

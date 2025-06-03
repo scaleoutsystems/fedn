@@ -56,7 +56,7 @@ class TestRunStore(StoreTester):
             
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_runs: List[RunDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "run_store", test_runs)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "run_store", test_runs)
 
     def update_function(self, dto):
         dto.rounds = 1

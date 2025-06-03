@@ -54,7 +54,7 @@ class TestValidationStore(StoreTester):
             
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_validations: List[ValidationDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "validation_store", test_validations)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "validation_store", test_validations)
 
     def test_update(self, store, test_dto):
         with pytest.raises(NotImplementedError):

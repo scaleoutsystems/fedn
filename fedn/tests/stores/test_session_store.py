@@ -73,7 +73,7 @@ class TestSessionStore(StoreTester):
         model, test_sessions = test_model_sessions
         for connection_name, connection in all_db_connections:
             connection.model_store.add(model) 
-        yield from self.helper_prepare_and_clenup(all_db_connections, "session_store", test_sessions)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "session_store", test_sessions)
         for connection_name, connection in all_db_connections:
             connection.model_store.delete(model.model_id)
 

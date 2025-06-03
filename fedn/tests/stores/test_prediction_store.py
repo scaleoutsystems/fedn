@@ -69,7 +69,7 @@ class TestPredictionStore(StoreTester):
         
     @pytest.fixture
     def stores_with_data(self, all_db_connections, test_predictions: List[PredictionDTO]):
-        yield from self.helper_prepare_and_clenup(all_db_connections, "prediction_store", test_predictions)
+        yield from self.helper_prepare_and_cleanup(all_db_connections, "prediction_store", test_predictions)
 
     def test_update(self, store, test_dto):
        with pytest.raises(NotImplementedError):
