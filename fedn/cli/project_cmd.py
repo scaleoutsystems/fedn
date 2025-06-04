@@ -174,7 +174,7 @@ def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
 
         # Call the authentication API
         try:
-            requests.post(url, data={"slug": id}, headers=headers)
+            response = requests.post(url, data={"slug": id}, headers=headers)
         except requests.exceptions.RequestException:
             sys.exit(1)
     else:
