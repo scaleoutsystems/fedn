@@ -1,4 +1,5 @@
 import os
+import sys
 
 import click
 import requests
@@ -174,9 +175,8 @@ def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
         # Call the authentication API
         try:
             requests.post(url, data={"slug": id}, headers=headers)
-        except requests.exceptions.RequestException as e:
-            click.secho(str(e), fg="red")
-        click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
+        except requests.exceptions.RequestException:
+            sys.exit(1)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
