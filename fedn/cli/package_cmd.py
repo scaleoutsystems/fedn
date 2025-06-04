@@ -123,10 +123,10 @@ def get_package(_: click.Context, protocol: str, host: str, port: str, token: st
 @click.option("-P", "--port", required=False, default=CONTROLLER_DEFAULTS["port"], help="Port of controller (api)")
 @click.option("-t", "--token", required=False, help="Authentication token")
 @click.option("-f", "--file", required=True, help="Path to the compute package file")
-@package_cmd.command("set-active")
+@package_cmd.command("upload")
 @click.pass_context
 def set_active_package(ctx, protocol: str, host: str, port: str, token: str, file: str):
-    """Creates the compute package and upload to package repository."""
+    """Uploads compute package to package repository."""
     headers = {}
     _token = get_token(token=token, usr_token=False)
     if _token:
