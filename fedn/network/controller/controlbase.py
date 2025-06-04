@@ -239,7 +239,7 @@ class ControlBase(ABC):
         if model is not None:
             outfile_name = helper.save(model)
             logger.info("Saving model file temporarily to {}".format(outfile_name))
-            logger.info("CONTROL: Uploading model to Minio...")
+            logger.info("CONTROL: Uploading model to object store...")
             model_id = self.repository.set_model(outfile_name, is_file=True)
 
             logger.info("CONTROL: Deleting temporary model file...")

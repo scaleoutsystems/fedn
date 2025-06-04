@@ -12,7 +12,7 @@ from fedn.cli.shared import CONTROLLER_DEFAULTS, get_response, print_response
 from fedn.common.log_config import logger
 
 
-def create_tar_with_ignore(path: str, name: str) -> None:
+def create_tar_with_ignore(path: str, output_path: str) -> None:
     """Create a tar archive from a directory with an ignore and fedn.yaml file."""
     try:
         ignore_patterns = []
@@ -26,8 +26,7 @@ def create_tar_with_ignore(path: str, name: str) -> None:
             relative_path = os.path.relpath(file_path, path)
             return any(fnmatch.fnmatch(relative_path, pattern) or fnmatch.fnmatch(os.path.basename(file_path), pattern) for pattern in ignore_patterns)
 
-        tar_path = os.path.join(path, name)
-        with tarfile.open(tar_path, "w:gz") as tar:
+        with tarfile.open(output_path, "w:gz") as tar:
             for root, dirs, files in os.walk(path):
                 dirs[:] = [d for d in dirs if not is_ignored(os.path.join(root, d))]
                 for file in files:
@@ -36,7 +35,7 @@ def create_tar_with_ignore(path: str, name: str) -> None:
                         logger.debug(f"Adding file to tar archive: {file_path}")
                         tar.add(file_path, arcname=os.path.relpath(file_path, path))
 
-        logger.info(f"Created tar archive: {tar_path}")
+        logger.info(f"Created tar archive: {output_path}")
     except FileNotFoundError as e:
         logger.error(f"File not found: {e}")
     except PermissionError as e:
@@ -55,20 +54,27 @@ def package_cmd(_: click.Context) -> None:
 @package_cmd.command("create")
 @click.option("-p", "--path", required=True, help="Path to package directory containing fedn.yaml")
 @click.option("-n", "--name", required=False, default="package.tgz", help="Name of package tarball")
+@click.option("-o", "--output", required=False, default=os.getcwd(), help="Output directory for the generated tarball")
 @click.pass_context
-def create_cmd(_: click.Context, path: str, name: str) -> None:
+def create_cmd(_: click.Context, path: str, name: str, output: str) -> None:
     """Create compute package.
 
-    Make a tar.gz archive of folder given by --path. The archive will be named --name.
+    Make a tar.gz archive of folder given by --path. The archive will be named --name and saved in --output.
     """
     try:
         path = os.path.abspath(path)
+        output = os.path.abspath(output)
         yaml_file = os.path.join(path, "fedn.yaml")
         if not os.path.exists(yaml_file):
             logger.error(f"Could not find fedn.yaml in {path}")
             sys.exit(-1)
 
-        create_tar_with_ignore(path, name)
+        if not os.path.exists(output):
+            logger.error(f"Output directory does not exist: {output}")
+            sys.exit(-1)
+
+        tar_path = os.path.join(output, name)
+        create_tar_with_ignore(path, tar_path)
     except Exception as e:
         logger.error(f"An error occurred: {e}")
         sys.exit(-1)

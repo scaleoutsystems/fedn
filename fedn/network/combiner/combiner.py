@@ -665,7 +665,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
 
         for client in active_clients:
-            clients.client.append(fedn.Client(name=client, role=fedn.CLIENT))
+            clients.client.append(fedn.Client(name=client, role=fedn.CLIENT, client_id=client))
         return clients
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):

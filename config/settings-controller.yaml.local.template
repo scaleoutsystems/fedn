@@ -14,12 +14,12 @@ statestore:
     port: 6534
 
 storage:
-  storage_type: S3
+  storage_type: BOTO3
   storage_config:
-    storage_hostname: localhost
-    storage_port: 9000
+    storage_endpoint_url: http://minio:9000
     storage_access_key: fedn_admin
     storage_secret_key: password
     storage_bucket: fedn-models
     context_bucket: fedn-context
-    storage_secure_mode: False 
+    storage_secure_mode: False
+    storage_verify_ssl: False

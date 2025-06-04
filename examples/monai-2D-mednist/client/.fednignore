@@ -1,3 +1,6 @@
 __pycache__
 .monai-2d-mdnist
 data
+*.tgz
+*.tar.gz
+*.zip
