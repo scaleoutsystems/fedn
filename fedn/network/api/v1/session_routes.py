@@ -354,7 +354,7 @@ def post():
     """
     try:
         db = Control.instance().db
-        data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
         session_config = SessionConfigDTO()
         session_config.populate_with(data.pop("session_config"))
@@ -380,19 +380,30 @@ def post():
         logger.error(f"ValueError occurred: {e}")
         return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
+        logger.error("error when creating a session")
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-def _get_number_of_available_clients():
+def _get_number_of_available_clients(client_ids: list[str]):
     control = Control.instance()
+
     result = 0
+    active_clients = None
     for combiner in control.network.get_combiners():
         try:
-            nr_active_clients = len(combiner.list_active_clients())
-            result = result + int(nr_active_clients)
+            if active_clients is None:
+                active_clients = combiner.list_active_clients()
+            else:
+                active_clients += combiner.list_active_clients()
         except CombinerUnavailableError:
             return 0
+
+    if client_ids is not None:
+        filtered = [item for item in active_clients if item.client_id in client_ids]
+        result = len(filtered)
+    else:
+        result = len(active_clients)
 
     return result
 
@@ -409,6 +420,68 @@ def start_session():
     try:
         db = Control.instance().db
         control = Control.instance()
+
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
+
+        session_id: str = data.get("session_id")
+        rounds: int = data.get("rounds", "")
+        round_timeout: int = data.get("round_timeout", None)
+        model_name_prefix: str = data.get("model_name_prefix", None)
+        client_ids: str = data.get("client_ids", None)
+
+        if client_ids is not None and not isinstance(client_ids, str):
+            return jsonify({"message": "client_ids must be a comma separated string"}), 400
+        if client_ids is not None:
+            client_ids: list[str] = client_ids.split(",")
+            if len(client_ids) == 0:
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
+            if any(not isinstance(client_id, str) for client_id in client_ids):
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
+
+        if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
+            model_name_prefix = None
+
+        if not session_id or session_id == "":
+            return jsonify({"message": "Session ID is required"}), 400
+
+        session = db.session_store.get(session_id)
+
+        if not session:
+            return jsonify({"message": "Session with specified ID does not exist"}), 400
+
+        session_config = session.session_config
+        model_id = session_config.model_id
+        min_clients = session_config.clients_required
+
+        if control.state() == ReducerState.monitoring:
+            return jsonify({"message": "A session is already running!"}), 400
+
+        if not rounds or not isinstance(rounds, int):
+            rounds = session_config.rounds
+        nr_available_clients = _get_number_of_available_clients(client_ids=client_ids)
+
+        if nr_available_clients < min_clients:
+            return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
+
+        model = db.model_store.get(model_id)
+        if model is None:
+            return jsonify({"message": "Session seed model not found"}), 400
+
+        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix, client_ids)).start()
+
+        return jsonify({"message": "Session started"}), 200
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An unexpected error occurred"}), 500
+
+
+@bp.route("/start_splitlearning_session", methods=["POST"])
+@jwt_auth_required(role="admin")
+def start_splitlearning_session():
+    """Starts a new split learning session."""
+    try:
+        db = Control.instance().db
+        control = Control.instance()
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
@@ -422,9 +495,7 @@ def start_session():
             return jsonify({"message": "Session ID is required"}), 400
 
         session = db.session_store.get(session_id)
-
         session_config = session.session_config
-        model_id = session_config.model_id
         min_clients = session_config.clients_required
 
         if control.state() == ReducerState.monitoring:
@@ -437,16 +508,12 @@ def start_session():
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        model = db.model_store.get(model_id)
-        if model is None:
-            return jsonify({"message": "Session seed model not found"}), 400
+        threading.Thread(target=control.splitlearning_session, args=(session_id, rounds, round_timeout)).start()
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix)).start()
-
-        return jsonify({"message": "Session started"}), 200
+        return jsonify({"message": "Splitlearning session started"}), 200
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-        return jsonify({"message": "An unexpected error occurred"}), 500
+        logger.error(f"An unexpected error occurred in split learning session: {e}")
+        return jsonify({"message": "An unexpected error occurred when starting split learning session"}), 500
 
 
 @bp.route("/<string:id>", methods=["PATCH"])
