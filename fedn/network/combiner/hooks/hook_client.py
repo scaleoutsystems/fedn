@@ -1,5 +1,6 @@
 import json
 import os
+import queue
 
 import grpc
 
@@ -73,7 +74,7 @@ class CombinerHookInterface:
         response = self.stub.HandleClientSelection(request)
         return json.loads(response.client_ids)
 
-    def aggregate(self, previous_global, update_handler: UpdateHandler, helper, delete_models: bool):
+    def aggregate(self, session_id, previous_global, update_handler: UpdateHandler, helper, delete_models: bool):
         """Aggregation call to the hook functions. Sends models in chunks, then asks for aggregation.
 
         :param global_model: The global model that will be distributed to clients.
@@ -91,9 +92,12 @@ class CombinerHookInterface:
         logger.info(f"Store model response: {response.status}")
         # send client models and metadata
         nr_updates = 0
-        while not update_handler.model_updates.empty():
-            logger.info("Getting next model update from queue.")
-            update = update_handler.next_model_update()
+        while True:
+            try:
+                update = update_handler.next_model_update(session_id)
+                logger.info("Getting next model update from queue.")
+            except queue.Empty:
+                break
             metadata = json.loads(update.meta)["training_metadata"]
             model = update_handler.load_model_update_bytesIO(update.model_update_id)
             # send metadata
