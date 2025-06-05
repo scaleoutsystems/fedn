@@ -14,7 +14,7 @@ from fedn.network.storage.models.tempmodelstorage import TempModelStorage
 CHUNK_SIZE = 1 * 1024 * 1024
 
 
-def upload_request_generator(model_stream: BytesIO):
+def upload_request_generator(model_stream: BytesIO, correlation_id: str = None, checksum: str = None):
     """Generator function for model upload requests.
 
     :param mdl: The model update object.
@@ -25,7 +25,7 @@ def upload_request_generator(model_stream: BytesIO):
     while True:
         b = model_stream.read(CHUNK_SIZE)
         if b:
-            yield fedn.FileChunk(data=b)
+            yield fedn.FileChunk(data=b, correlation_id=correlation_id, checksum=checksum)
         else:
             break
 
@@ -173,26 +173,24 @@ class ModelService(rpc.ModelServiceServicer):
 
     # Model Service
     def Upload(self, filechunk_iterator: Generator[fedn.FileChunk, None, None], context: grpc.ServicerContext):
-        """RPC endpoints for uploading a model.
-
-        :param filechunk_iterator: The model request iterator.
-        :type filechunk_iterator: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
-        :param context: The context object
-        :type context: :class:`grpc._server._Context`
-        :return: A model response object.
-        :rtype: :class:`fedn.network.grpc.fedn_pb2.ModelResponse`
-        """
+        """RPC endpoints for uploading a model."""
         logger.debug("grpc.ModelService.Upload: Called")
 
-        metadata = dict(context.invocation_metadata())
-        model_id = metadata.get("model_id")
-        checksum = metadata.get("checksum")
+        try:
+            first_chunk = next(filechunk_iterator)
+        except StopIteration:
+            logger.error("ModelServicer: No chunks received.")
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No chunks received.")
 
+        model_id = first_chunk.correlation_id
+        checksum = first_chunk.checksum
         if not model_id:
             logger.error("ModelServicer: Model ID not provided.")
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
 
         file_hdl = self.temp_model_storage.get_file_hdl(model_id)
+        file_hdl.write(first_chunk.data)
+
         for file_chunk in filechunk_iterator:
             file_hdl.write(file_chunk.data)
 

@@ -185,6 +185,8 @@ message ModelRequest {
 
 message FileChunk {
   bytes data = 1;
+  string correlation_id = 2;
+  string checksum = 3;
 }
 
 message ModelResponse {
