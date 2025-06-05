@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from network.grpc import fedn_pb2 as network_dot_grpc_dot_fedn__pb2
+from fedn.network.grpc import fedn_pb2 as network_dot_grpc_dot_fedn__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
