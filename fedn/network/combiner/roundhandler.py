@@ -544,7 +544,7 @@ class RoundHandler:
                             try:
                                 # self.server.db.round_store.update(active_round)
                                 # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
-                                self.server.db.round_store.collection.update_one(
+                                self.server.db.round_store.update_one(
                                         {"round_id": round_meta["round_id"]},
                                         {"$push": {"combiners": round_meta}},
                                         upsert=True 
@@ -578,7 +578,7 @@ class RoundHandler:
                             try:
                                 #self.server.db.round_store.update(active_round)
                                 # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
-                                self.server.db.round_store.collection.update_one(
+                                self.server.db.round_store.update_one(
                                         {"round_id": round_meta["round_id"]},
                                         {"$push": {"combiners": round_meta}},
                                         upsert=True 
@@ -599,7 +599,7 @@ class RoundHandler:
                             try:
                                 self.server.db.round_store.update(active_round)
                                 # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
-                                self.server.db.round_store.collection.update_one(
+                                self.server.db.round_store.update_one(
                                         {"round_id": round_meta["round_id"]},
                                         {"$push": {"combiners": round_meta}},
                                         upsert=True 

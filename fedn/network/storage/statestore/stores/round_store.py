@@ -36,6 +36,10 @@ class MongoDBRoundStore(RoundStore, MongoDBStore[RoundDTO]):
             return int(obj["round_id"])
         else:
             return 0
+    
+    def update_one(self, *args, **kwargs):
+        return self.database[self.collection].update_one(*args, *kwargs)
+    
 
     def _document_from_dto(self, item: RoundDTO) -> Dict:
         return item.to_db(exclude_unset=False)
