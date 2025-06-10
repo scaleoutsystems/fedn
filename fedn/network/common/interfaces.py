@@ -8,7 +8,6 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.common.command import CommandType
 from fedn.network.common.state import ReducerState
 
 

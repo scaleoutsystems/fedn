@@ -73,10 +73,40 @@ services:
       - minio
       - mongo
     command:
-      - controller
+      - api-server
       - start
     ports:
       - 8092:8092
+
+  controller:
+    environment:
+      - PYTHONUNBUFFERED=0
+      - GET_HOSTS_FROM=dns
+      - STATESTORE_CONFIG=/app/config/settings-controller.yaml.template
+      - MODELSTORAGE_CONFIG=/app/config/settings-controller.yaml.template
+      - TMPDIR=/app/tmp
+    build:
+      context: .
+      args:
+        BASE_IMG: ${BASE_IMG:-python:3.12-slim}
+    working_dir: /app
+    volumes:
+      - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    healthcheck:
+      test: [ "CMD", "/app/grpc_health_probe", "-addr=localhost:12090" ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      - minio
+      - mongo
+    command:
+      - controller
+      - start
+    ports:
+      - 12090:12090
+
+
 
   # Combiner
   combiner:
@@ -110,6 +140,7 @@ services:
     depends_on:
       - api-server
       - hooks
+      
   # Hooks
   hooks:
     container_name: hook

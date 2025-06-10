@@ -4,7 +4,6 @@ from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 
 bp = Blueprint("combiner", __name__, url_prefix=f"/api/{api_version}/combiners")
 

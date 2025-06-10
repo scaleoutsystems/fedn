@@ -1,7 +1,12 @@
 network_id: fedn-network
+
 api:
-  host: api-server
+  host: localhost
   port: 8092
+
+controller:
+  host: controller
+  port: 12090
   debug: True
 
 statestore:

@@ -1,5 +1,3 @@
-import json
-
 from flask import Blueprint, jsonify, request
 from grpc import RpcError
 
