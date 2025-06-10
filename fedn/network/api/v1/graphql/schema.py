@@ -15,21 +15,21 @@ class StatusType(graphene.ObjectType):
     id = graphene.String()
     logLevel = graphene.String()  # noqa: N815
     sender = graphene.Field(ActorType)
-    sessionId = graphene.String()  # noqa: N815
+    session_id = graphene.String()  # noqa: N815
     status = graphene.String()
     timestamp = graphene.String()
     type = graphene.String()
 
 
 class ValidationType(graphene.ObjectType):
-    correlationId = graphene.String()  # noqa: N815
+    correlation_id = graphene.String()  # noqa: N815
     data = graphene.String()
     id = graphene.String()
     meta = graphene.String()
-    modelId = graphene.String()  # noqa: N815
+    model_id = graphene.String()  # noqa: N815
     receiver = graphene.Field(ActorType)
     sender = graphene.Field(ActorType)
-    sessionId = graphene.String()  # noqa: N815
+    session_id = graphene.String()  # noqa: N815
     timestamp = graphene.String()
 
     def resolve_receiver(self, info):
@@ -47,13 +47,21 @@ class ModelType(graphene.ObjectType):
     session_id = graphene.String()
     parent_model = graphene.String()
     validations = graphene.List(ValidationType)
+    session = graphene.Field(lambda: SessionType)
 
     def resolve_validations(self, info):
         db = Control.instance().db
-        kwargs = {"modelId": self["model"]}
+        kwargs = {"model_id": self["model_id"]}
         result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
         return result
+
+    def resolve_session(self, info):
+        db = Control.instance().db
+        session = db.session_store.get(self["session_id"])
+        if session:
+            return session.to_dict()
+        return None
 
 
 class SessionConfigType(graphene.ObjectType):
@@ -92,7 +100,7 @@ class SessionType(graphene.ObjectType):
 
     def resolve_validations(self, info):
         db = Control.instance().db
-        kwargs = {"sessionId": self["session_id"]}
+        kwargs = {"session_id": self["session_id"]}
         result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
 
@@ -100,7 +108,7 @@ class SessionType(graphene.ObjectType):
 
     def resolve_statuses(self, info):
         db = Control.instance().db
-        kwargs = {"sessionId": self["session_id"]}
+        kwargs = {"session_id": self["session_id"]}
         result = db.status_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [status.to_dict() for status in result]
 
