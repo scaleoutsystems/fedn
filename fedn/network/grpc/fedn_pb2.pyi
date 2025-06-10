@@ -923,7 +923,9 @@ class ControlRequest(google.protobuf.message.Message):
 
     COMMAND_FIELD_NUMBER: builtins.int
     PARAMETER_FIELD_NUMBER: builtins.int
+    COMMAND_TYPE_FIELD_NUMBER: builtins.int
     command: global___Command.ValueType
+    command_type: builtins.str
     @property
     def parameter(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Parameter]: ...
     def __init__(
@@ -931,10 +933,32 @@ class ControlRequest(google.protobuf.message.Message):
         *,
         command: global___Command.ValueType = ...,
         parameter: collections.abc.Iterable[global___Parameter] | None = ...,
+        command_type: builtins.str = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["command", b"command", "parameter", b"parameter"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["command", b"command", "command_type", b"command_type", "parameter", b"parameter"]) -> None: ...
 
 global___ControlRequest = ControlRequest
+
+@typing.final
+class CommandRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    COMMAND_FIELD_NUMBER: builtins.int
+    COMMAND_TYPE_FIELD_NUMBER: builtins.int
+    PARAMETERS_FIELD_NUMBER: builtins.int
+    command: global___Command.ValueType
+    command_type: builtins.str
+    parameters: builtins.str
+    def __init__(
+        self,
+        *,
+        command: global___Command.ValueType = ...,
+        command_type: builtins.str = ...,
+        parameters: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["command", b"command", "command_type", b"command_type", "parameters", b"parameters"]) -> None: ...
+
+global___CommandRequest = CommandRequest
 
 @typing.final
 class ControlResponse(google.protobuf.message.Message):
@@ -954,6 +978,21 @@ class ControlResponse(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["message", b"message", "parameter", b"parameter"]) -> None: ...
 
 global___ControlResponse = ControlResponse
+
+@typing.final
+class ControlStateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    STATE_FIELD_NUMBER: builtins.int
+    state: builtins.str
+    def __init__(
+        self,
+        *,
+        state: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing.Literal["state", b"state"]) -> None: ...
+
+global___ControlStateResponse = ControlStateResponse
 
 @typing.final
 class ConnectionRequest(google.protobuf.message.Message):

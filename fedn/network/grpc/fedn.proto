@@ -275,6 +275,13 @@ message Parameter {
 message ControlRequest {
   Command command = 1;
   repeated Parameter parameter = 2;
+  string command_type = 3;
+}
+
+message CommandRequest{
+  Command command = 1;
+  string command_type = 2;
+  string parameters = 3;
 }
 
 message ControlResponse {
@@ -282,12 +289,18 @@ message ControlResponse {
   repeated Parameter parameter = 2;
 }
 
+message ControlStateResponse {
+  string state = 1;
+}
+
 service Control {
   rpc Start(ControlRequest) returns (ControlResponse);
   rpc Stop(ControlRequest) returns (ControlResponse);
+  rpc SendCommand(CommandRequest) returns (ControlResponse);
   rpc FlushAggregationQueue(ControlRequest) returns (ControlResponse);
   rpc SetAggregator(ControlRequest) returns (ControlResponse);
   rpc SetServerFunctions(ControlRequest) returns (ControlResponse);
+  rpc GetState(ControlRequest) returns (ControlStateResponse);
 }
 
 service Reducer {
@@ -341,6 +354,7 @@ service Combiner {
 
     rpc PollAndReport(ActivityReport) returns (TaskRequest);
 }
+
 
 message ProvidedFunctionsRequest {
   string function_code = 1;

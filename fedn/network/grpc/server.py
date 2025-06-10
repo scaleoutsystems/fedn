@@ -56,13 +56,13 @@ class Server:
             rpc.add_ReducerServicer_to_server(servicer, self.server)
         if isinstance(modelservicer, rpc.ModelServiceServicer):
             rpc.add_ModelServiceServicer_to_server(modelservicer, self.server)
-        if isinstance(servicer, rpc.CombinerServicer):
+        if isinstance(servicer, (rpc.CombinerServicer, rpc.ControlServicer)):
             rpc.add_ControlServicer_to_server(servicer, self.server)
 
         health_pb2_grpc.add_HealthServicer_to_server(self.health_servicer, self.server)
 
         if config["secure"]:
-            logger.info("Creating secure gRPCS server using certificate")
+            logger.info(f"Creating secure gRPCS server using certificate at {config['port']}")
             server_credentials = grpc.ssl_server_credentials(
                 (
                     (
@@ -73,7 +73,7 @@ class Server:
             )
             self.server.add_secure_port("[::]:" + str(config["port"]), server_credentials)
         else:
-            logger.info("Creating gRPC server")
+            logger.info(f"Creating gRPC server at {config['port']}")
             self.server.add_insecure_port("[::]:" + str(config["port"]))
 
     def start(self):
