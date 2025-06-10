@@ -12,7 +12,6 @@ class ActorType(graphene.ObjectType):
 class StatusType(graphene.ObjectType):
     data = graphene.String()
     extra = graphene.String()
-    id = graphene.String()
     logLevel = graphene.String()  # noqa: N815
     sender = graphene.Field(ActorType)
     session_id = graphene.String()  # noqa: N815
@@ -24,13 +23,13 @@ class StatusType(graphene.ObjectType):
 class ValidationType(graphene.ObjectType):
     correlation_id = graphene.String()  # noqa: N815
     data = graphene.String()
-    id = graphene.String()
     meta = graphene.String()
     model_id = graphene.String()  # noqa: N815
     receiver = graphene.Field(ActorType)
     sender = graphene.Field(ActorType)
     session_id = graphene.String()  # noqa: N815
     timestamp = graphene.String()
+    session = graphene.Field(lambda: SessionType)
 
     def resolve_receiver(self, info):
         return self["receiver"]
@@ -38,10 +37,15 @@ class ValidationType(graphene.ObjectType):
     def resolve_sender(self, info):
         return self["sender"]
 
+    def resolve_session(self, info):
+        db = Control.instance().db
+        session = db.session_store.get(self["session_id"])
+        if session:
+            return session.to_dict()
+        return None
+
 
 class ModelType(graphene.ObjectType):
-    id = graphene.String()
-    model = graphene.String()
     name = graphene.String()
     committed_at = graphene.DateTime()
     session_id = graphene.String()
@@ -78,7 +82,6 @@ class SessionConfigType(graphene.ObjectType):
 
 
 class SessionType(graphene.ObjectType):
-    id = graphene.String()
     session_id = graphene.String()
     name = graphene.String()
     committed_at = graphene.DateTime()
