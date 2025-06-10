@@ -13,6 +13,6 @@ def api_server_cmd(ctx):
 @api_server_cmd.command("start")
 @click.pass_context
 def api_server_cmd(ctx):
-    from fedn.network.api.server import start_server_api
+    from fedn.network.api.server import start_server_api  # not-floating-import
 
     start_server_api()
