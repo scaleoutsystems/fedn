@@ -217,7 +217,7 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, config: RoundConfig, max_retries: int = 3, retry_delay: float = 1.0):
+    def submit(self, config: RoundConfig, max_retries: int = 10, retry_delay: float = 2.0):
         """Submit a compute plan to the combiner, with retry on UNAVAILABLE errors.
         
         :param config: The job configuration.

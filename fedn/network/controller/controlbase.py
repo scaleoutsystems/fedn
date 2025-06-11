@@ -322,6 +322,10 @@ class ControlBase(ABC):
         # update the cache
         self._active_clients_cache[combiner.name] = (time.time(), nr_active_clients)
         return nr_active_clients
+    
+
+    def _handle_unavailable_combiner(self, combiner):
+        logger.warning(f"Ignoring unavailable combiner {combiner.name}.")
 
     def evaluate_round_participation_policy(self, clients_required: int, nr_active_clients: int) -> bool:
         """Evaluate policy for combiner round-participation.
