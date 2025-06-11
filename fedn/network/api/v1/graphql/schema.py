@@ -28,6 +28,14 @@ class StatusType(graphene.ObjectType):
     status = graphene.String()
     timestamp = graphene.String()
     type = graphene.String()
+    session = graphene.Field(lambda: SessionType)
+
+    def resolve_session(self, info):
+        db = Control.instance().db
+        session = db.session_store.get(self["session_id"])
+        if session:
+            return session.to_dict()
+        return None
 
 
 class ValidationType(graphene.ObjectType):
