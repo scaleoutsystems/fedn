@@ -135,7 +135,14 @@ class RoundHandler:
         :type clients: list
         :return: an aggregated model and associated metadata
         :rtype: model, dict
+
         """
+        # Ensure an aggregator is configured
+        if not hasattr(self, "aggregator"):
+            default_aggr = config.get("aggregator", "fedavg")
+            logger.warning("Aggregator not set; defaulting to %s", default_aggr)
+            self.set_aggregator(default_aggr)
+        
         logger.info("ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
@@ -145,6 +152,7 @@ class RoundHandler:
 
         session_id = config["session_id"]
         model_id = config["model_id"]
+
 
         if provided_functions.get("client_settings", False):
             global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
@@ -178,6 +186,7 @@ class RoundHandler:
                 parameters = Parameters(dict_parameters)
             else:
                 parameters = None
+                logger.info("aggregator_kwargs was not in config.keys")
             if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
                 previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                 model, data = self.hook_interface.aggregate(previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
@@ -225,6 +234,12 @@ class RoundHandler:
         :return: aggregated embeddings and associated metadata
         :rtype: model, dict
         """
+        # Ensure an aggregator is configured
+        if not hasattr(self, "aggregator"):
+            default_aggr = config.get("aggregator", "fedavg")
+            logger.warning("Aggregator not set; defaulting to %s", default_aggr)
+            self.set_aggregator(default_aggr)
+        
         logger.info("ROUNDHANDLER: Initiating forward pass, participating clients: {}".format(clients))
 
         meta = {}
