@@ -269,7 +269,7 @@ def client_start_v2_cmd(
     if token and token != "":
         config["token"] = token
         if config["token"]:
-            click.echo(f"Input param token: {token} overrides value from file")
+            click.echo("Input param token overrides value from file")
 
     if name and name != "":
         config["name"] = name
