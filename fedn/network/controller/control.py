@@ -150,7 +150,7 @@ class Control(ControlBase, rpc.ControlServicer):
         parameters = json.loads(command_request.parameters) if command_request.parameters else {}
 
         if command_request.command == fedn.Command.START:
-            logger.info("grpc.Controller.Start session")
+            logger.info("grpc.Controller.SendCommand start command")
             try:
                 self.start_command(command_request.command_type, parameters)
             except Exception as e:
@@ -161,13 +161,13 @@ class Control(ControlBase, rpc.ControlServicer):
             response.message = "Success"
             return response
         elif command_request.command == fedn.Command.STOP:
-            logger.info("grpc.Combiner.Start: Stopping current round")
+            logger.info("grpc.Combiner.SendCommand: Stopping current round")
             self.command_runner.flow_controller.stop_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"
             return response
         elif command_request.command == fedn.Command.CONTINUE:
-            logger.info("grpc.Combiner.Start: Continuing current round")
+            logger.info("grpc.Combiner.SendCommand: Continuing current round")
             self.command_runner.flow_controller.continue_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"

@@ -17,7 +17,7 @@ __all__ = ("Network",)
 class Network:
     """FEDn network interface. This class is used to interact with the database in a consistent way accross different containers."""
 
-    def __init__(self, dbconn: DatabaseConnection, repository: Repository, load_balancer=None):
+    def __init__(self, dbconn: DatabaseConnection, repository: Repository, load_balancer=None, controller_host: str = None, controller_port: int = None):
         """ """
         self.db = dbconn
         self.repository = repository
@@ -26,6 +26,29 @@ class Network:
             self.load_balancer = LeastPacked(self)
         else:
             self.load_balancer = load_balancer
+
+        self.controller = self._init_controller_interface(controller_host, controller_port)
+
+    def _init_controller_interface(self, host, port) -> ControlInterface:
+        """Get a control instance from global config.
+
+        :return: ControlInterface instance.
+        :rtype: :class:`fedn.network.common.interfaces.ControlInterface`
+        """
+        cert = None
+        name = "CONTROL".upper()
+        # General certificate handling, same for all combiners.
+        if os.environ.get("FEDN_GRPC_CERT_PATH"):
+            with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
+                cert = f.read()
+        # Specific certificate handling for each combiner.
+        elif os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}"):
+            cert_path = os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}")
+            with open(cert_path, "rb") as f:
+                cert = f.read()
+
+        # TODO: Remove hardcoded values
+        return ControlInterface(host, port, cert)
 
     def get_combiner(self, name):
         """Get combiner by name.
@@ -93,20 +116,7 @@ class Network:
         :return: ControlInterface instance.
         :rtype: :class:`fedn.network.common.interfaces.ControlInterface`
         """
-        cert = None
-        name = "CONTROL".upper()
-        # General certificate handling, same for all combiners.
-        if os.environ.get("FEDN_GRPC_CERT_PATH"):
-            with open(os.environ.get("FEDN_GRPC_CERT_PATH"), "rb") as f:
-                cert = f.read()
-        # Specific certificate handling for each combiner.
-        elif os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}"):
-            cert_path = os.environ.get(f"FEDN_GRPC_CERT_PATH_{name}")
-            with open(cert_path, "rb") as f:
-                cert = f.read()
-
-        # TODO: Remove hardcoded values
-        return ControlInterface("controller", 12090, cert)
+        return self.controller
 
     def get_helper(self):
         """Get a helper instance from global config.

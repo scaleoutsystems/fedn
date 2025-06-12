@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, g, jsonify, request
 
-from fedn.common.config import get_api_config, get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_api_config, get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_network
@@ -493,12 +493,14 @@ def start_server_api():
         modelstorage_config = get_modelstorage_config()
         statestore_config = get_statestore_config()
 
+        controller = get_controller_config()
+
         @app.before_request
         def before_request():
             """Initialize the database connection and repository before each request."""
             g.db = DatabaseConnection(statestore_config, network_id)
             g.repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
-            g.network = Network(g.db, g.repository)
+            g.network = Network(g.db, g.repository, controller_host=controller["host"], controller_port=controller["port"])
 
         if debug:
             # Without gunicorn, we can initialize the database connection here

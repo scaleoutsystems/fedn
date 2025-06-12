@@ -1,7 +1,7 @@
 network_id: fedn-network
 
 api:
-  host: localhost
+  host: api-server
   port: 8092
 
 controller:

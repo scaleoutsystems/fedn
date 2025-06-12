@@ -4,6 +4,10 @@ api:
   port: 8092
   debug: True
 
+controller:
+  host: controller
+  port: 12090
+
 statestore:
   # Available DB types are MongoDB, PostgreSQL, SQLite
   type: MongoDB

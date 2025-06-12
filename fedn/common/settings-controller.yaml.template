@@ -4,6 +4,10 @@ api:
   port: 8092
   debug: True
 
+controller:
+  host: localhost
+  port: 12090
+
 statestore:
   type: MongoDB
   mongo_config:
