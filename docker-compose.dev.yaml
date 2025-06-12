@@ -84,7 +84,7 @@ services:
       - mongo
       - fedn_postgres
     command:
-      - api_server
+      - api-server
       - start
     ports:
       - 8092:8092

@@ -3,7 +3,7 @@ import click
 from fedn.cli.main import main
 
 
-@main.group("api_server")
+@main.group("api-server")
 @click.pass_context
 def api_server_cmd(ctx):
     """:param ctx:"""
