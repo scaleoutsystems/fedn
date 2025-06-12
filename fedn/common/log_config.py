@@ -6,10 +6,8 @@ import requests
 import urllib3
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
-from opentelemetry.exporter.otlp.proto.grpc._log_exporter import \
-    OTLPLogExporter
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import \
-    OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.grpc._log_exporter import OTLPLogExporter
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk.trace import TracerProvider as SDKTracerProvider
@@ -36,27 +34,39 @@ handler.setFormatter(formatter)
 
 
 class StudioHTTPHandler(logging.handlers.HTTPHandler):
-    def __init__(self, host, url, method="POST", token=None):
+    def __init__(self, host, url, method="POST", token=None, timeout=3):
         super().__init__(host, url, method)
         self.token = token
+        self.timeout = timeout
 
     def emit(self, record):
-        log_entry = self.mapLogRecord(record)
-
-        log_entry = {
-            "msg": log_entry["msg"],
-            "levelname": log_entry["levelname"],
-            "project": os.environ.get("PROJECT_ID"),
-            "appinstance": os.environ.get("APP_ID"),
-        }
-        headers = {
-            "Content-type": "application/json",
-        }
-        if self.token:
-            remote_token_protocol = os.environ.get("FEDN_REMOTE_LOG_TOKEN_PROTOCOL", "Token")
-            headers["Authorization"] = f"{remote_token_protocol} {self.token}"
-        if self.method.lower() == "post":
-            requests.post(self.host + self.url, json=log_entry, headers=headers)
+        try:
+            log_entry = self.mapLogRecord(record)
+            log_entry = {
+                "msg": log_entry["msg"],
+                "levelname": log_entry["levelname"],
+                "project": os.environ.get("PROJECT_ID"),
+                "appinstance": os.environ.get("APP_ID"),
+            }
+            headers = {
+                "Content-type": "application/json",
+            }
+            if self.token:
+                remote_token_protocol = os.environ.get("FEDN_REMOTE_LOG_TOKEN_PROTOCOL", "Token")
+                headers["Authorization"] = f"{remote_token_protocol} {self.token}"
+            if self.method.lower() == "post":
+                requests.post(
+                    self.host + self.url,
+                    json=log_entry,
+                    headers=headers,
+                    timeout=self.timeout,
+                )
+        except Exception as e:
+            # Avoid infinite recursion by not using the main logger here
+            try:
+                logging.getLogger("fedn.remote_log").error(f"Failed to send log to remote server: {e}")
+            except Exception:
+                pass  # Last resort: suppress all errors
 
 
 # Remote logging configuration
@@ -93,6 +103,7 @@ if os.environ.get("OTEL_SERVICE_NAME", None):
 else:
     trace.set_tracer_provider(NoOpTracerProvider())
     tracer = get_tracer(__name__)
+
 
 def set_log_level_from_string(level_str):
     """Set the log level based on a string input."""
