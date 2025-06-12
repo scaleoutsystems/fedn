@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fedn"
-version = "0.28.1"
+version = "0.29.0"
 description = "Scaleout Federated Learning"
 authors = [{ name = "Scaleout Systems AB", email = "contact@scaleoutsystems.com" }]
 readme = "README.rst"

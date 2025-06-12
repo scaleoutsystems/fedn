@@ -11,7 +11,7 @@ project = "FEDn"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.28.1"
+release = "0.29.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
