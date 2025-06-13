@@ -81,7 +81,7 @@ if os.environ.get("OTEL_SERVICE_NAME", None):
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
 
     otel_handler = LoggingHandler(logger_provider=logger_provider)
-    logger.addHandler(otel_handler)
+    #logger.addHandler(otel_handler) # for Transient Error relating to exporting logs to honeycomb
 
     # Set up trace provider and exporter
     trace_provider = SDKTracerProvider()
