@@ -114,6 +114,8 @@ services:
     command:
       - controller
       - start
+      - --init
+      - config/settings-controller.yaml.template
     ports:
       - 12090:12090
 

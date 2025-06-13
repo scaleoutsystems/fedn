@@ -22,20 +22,15 @@ def controller_cmd(ctx):
 @click.option("-in", "--init", required=False, default=None, help="Path to configuration file.")
 @click.pass_context
 def controller_cmd(ctx, host, port, secure, init):
-    config = get_controller_config()
+    config = {
+        "host": host,
+        "port": port,
+        "secure": secure,
+    }
 
     if init:
         apply_config(init, config)
         click.echo(f"\nController configuration loaded from file: {init}")
-
-    if port is not None:
-        config["port"] = port
-    if host is not None:
-        config["host"] = host
-    if secure is not None:
-        config["secure"] = secure
-
-    config["host"] = "0.0.0.0"
 
     network_id = get_network_config()
     modelstorage_config = get_modelstorage_config()
