@@ -2,7 +2,7 @@ import click
 
 from fedn.cli.main import main
 from fedn.cli.shared import apply_config
-from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.controller.control import Control
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
