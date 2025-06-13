@@ -495,9 +495,11 @@ def start_server_api():
 
         controller = get_controller_config()
 
-        @app.before_first_request
+        @app.before_request
         def before_first_request():
             """Initialize the database connection and repository before each request."""
+            app.before_request_funcs[None].remove(before_first_request)  # Hack
+
             g.db = DatabaseConnection(statestore_config, network_id)
             g.repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
             g.network = Network(g.db, g.repository, controller_host=controller["host"], controller_port=controller["port"])
