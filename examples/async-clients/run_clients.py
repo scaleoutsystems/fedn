@@ -18,10 +18,10 @@ import uuid
 from io import BytesIO
 from multiprocessing import Process
 
+import click
 import numpy as np
 from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
-import click
 
 from config import settings
 from fedn import FednClient
@@ -139,17 +139,18 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
     fl_client.set_name(name)
     fl_client.set_client_id(client_id)
 
-    if no_discovery:
-        combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
-    else:
-        controller_config = {
-            "name": fl_client.name,
-            "client_id": fl_client.client_id,
-            "package": "local",
-        }
+    # if no_discovery:
+    #     combiner_config = GrpcConnectionOptions(host=settings["COMBINER_HOST"], port=settings["COMBINER_PORT"])
+    # else:
+    #     controller_config = {
+    #         "name": fl_client.name,
+    #         "client_id": fl_client.client_id,
+    #         "package": "local",
+    #     }
 
-        url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
-        result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+    #     url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
+    #     result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+    # print(f"COMBINER_CONFIG: {combiner_config}")
 
     fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
@@ -168,7 +169,9 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
     else:
         fl_client.run()
 
+
 if __name__ == "__main__":
+
     @click.command()
     @click.option("--name", "-n", default="client", help="Base name for clients (will be appended with number)")
     @click.option("--no-discovery", is_flag=True, help="Connect to combiner without discovery service")

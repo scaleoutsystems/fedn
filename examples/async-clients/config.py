@@ -13,22 +13,22 @@ LOCAL_CONFIG = {
 }
 
 REMOTE_CONFIG = {
-    "DISCOVER_HOST": "fedn.scaleoutsystems.com/<project-slug>",
+    "DISCOVER_HOST": "fedn.scaleoutsystems.com/niclascombiner-wds-fedn-reducer",
     "DISCOVER_PORT": None,
     "IS_LOCAL": False,
     "SECURE": True,
     "VERIFY": True,
-    "CLIENT_TOKEN": None,
-    "ADMIN_TOKEN": None,
+    "CLIENT_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNDEyNzY2LCJpYXQiOjE3NDk4MjA3NjYsImp0aSI6ImJlOGY2MDM0NGIzZDRhN2RiNjMzODlmZGJjMzU1ZjVmIiwidXNlcl9pZCI6NDgsImNyZWF0b3IiOiJ2aWt0b3IiLCJyb2xlIjoiY2xpZW50IiwicHJvamVjdF9zbHVnIjoibmljbGFzY29tYmluZXItd2RzIn0.-v0uPVN74QSkQ0N8-u5fRgMGBoi3V6OoWvNp0UurDpM",
+    "ADMIN_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUyNDEyNzg4LCJpYXQiOjE3NDk4MjA3ODgsImp0aSI6IjllNjBlNzYwMTZjZjQ0NTFiNGY3NTQ0ZWM5NDgwMWMwIiwidXNlcl9pZCI6NDgsImNyZWF0b3IiOiJ2aWt0b3IiLCJyb2xlIjoiYWRtaW4iLCJwcm9qZWN0X3NsdWciOiJuaWNsYXNjb21iaW5lci13ZHMifQ.KgZqFlxsfjoWaDelkeIwjb_GPECskZcK9IkhC0xB2GE",
     "COMBINER_HOST": None,
     "COMBINER_PORT": None,
 }
 
 # Common settings that don't change between environments
 COMMON_SETTINGS = {
-    "N_CLIENTS": 10,
-    "N_EPOCHS": 10,
-    "N_ROUNDS": 50,
+    "N_CLIENTS": 1,
+    "N_EPOCHS": 1,
+    "N_ROUNDS": 5,
     "N_SESSIONS": 1,
     "N_CYCLES": 1,
     "CLIENTS_MAX_DELAY": 10,
@@ -36,7 +36,7 @@ COMMON_SETTINGS = {
 }
 
 # Choose which environment to use
-USE_LOCAL = True  # Set to False to use remote environment
+USE_LOCAL = False  # Set to False to use remote environment
 
 # Combine the selected environment config with common settings
 settings = {**COMMON_SETTINGS, **(LOCAL_CONFIG if USE_LOCAL else REMOTE_CONFIG)}
