@@ -4,9 +4,9 @@ import sys
 import time
 
 import torch
+from data import load_data
 from model import load_parameters
 
-from data import load_data
 from fedn.utils.helpers.helpers import save_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -48,10 +48,6 @@ def validate(in_model_path, out_json_path, data_path=None):
         "test_loss": test_loss.item(),
         "test_accuracy": test_accuracy.item(),
     }
-    print(report)
-    print("sleeping")
-    time.sleep(random.randint(0, 180))
-    print("Done sleeping :) sending results")
 
     # Save JSON
     save_metrics(report, out_json_path)
