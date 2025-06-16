@@ -382,7 +382,10 @@ class GrpcHandler:
             *self.metadata,
             ("checksum", file_checksum),
             ("model-id", model_id),
+            ("apa", "whatever"),
+            ("fedn-client-id", "sheesh"),
         ]
+        logger.info(f"Metadata for upload: {metadata}")
         result = self.modelStub.Upload(upload_request_generator(byte_stream), metadata=metadata)
 
         return result
