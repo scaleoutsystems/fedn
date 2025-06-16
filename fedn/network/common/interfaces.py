@@ -43,11 +43,9 @@ class Channel:
         self.certificate = certificate
 
         if self.certificate:
-            logger.info(f"Creating secure gRPC channel to {self.address}:{self.port} with certificate.")
             credentials = grpc.ssl_channel_credentials(root_certificates=copy.deepcopy(certificate))
             self.channel = grpc.secure_channel("{}:{}".format(self.address, str(self.port)), credentials)
         else:
-            logger.info(f"Creating insecure gRPC channel to {self.address}:{self.port}.")
             self.channel = grpc.insecure_channel("{}:{}".format(self.address, str(self.port)))
 
     def get_channel(self):
