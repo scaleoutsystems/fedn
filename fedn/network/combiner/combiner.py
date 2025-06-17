@@ -432,6 +432,11 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         }
 
         for client in self._list_subscribed_clients(channel):
+            meta = self.clients.get(client)
+            if meta is None:
+                logger.warning("Client is None skipping")
+                continue
+
             status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["last_seen"]
@@ -444,24 +449,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             elif status != "offline":
                 self.clients[client]["status"] = "offline"
                 clients["update_offline_clients"].append(client)
+
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
-                try: 
-                    client_to_update = self.db.client_store.get(client)
-                    client_to_update.status = "online"
-                    self.db.client_store.update(client_to_update)
-                except AttributeError:
-                    logger.warning("Skipping one online-update: statestore has no record.")
+                client_to_update = self.db.client_store.get(client)
+                client_to_update.status = "online"
+                self.db.client_store.update(client_to_update)
 
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
-                try:
-                    client_to_update = self.db.client_store.get(client)
-                    client_to_update.status = "offline"
-                    self.db.client_store.update(client_to_update)
-                except AttributeError:
-                    logger.warning("Skipping one offline-update: statestore has no record.")
+                client_to_update = self.db.client_store.get(client)
+                client_to_update.status = "offline"
+                self.db.client_store.update(client_to_update)
 
         return clients["active_clients"]
 
