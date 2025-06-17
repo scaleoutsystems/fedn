@@ -202,13 +202,20 @@ class UpdateHandler:
         """
         time_window = float(config["round_timeout"])
 
-        tt = 0.0
-        while tt < time_window:
+        
+        start_time = time.monotonic()
+        deadline   = start_time + time_window
+
+        while True:
             if self.model_updates.qsize() >= buffer_size:
                 break
+            
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            
+            time.sleep(min(polling_interval, remaining))
 
-            time.sleep(polling_interval)
-            tt += polling_interval
 
     def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
         """Wait for backward completion messages.
