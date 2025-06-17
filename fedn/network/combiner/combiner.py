@@ -430,6 +430,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "update_active_clients": [],
             "update_offline_clients": [],
         }
+
         for client in self._list_subscribed_clients(channel):
             status = self.clients[client]["status"]
             now = datetime.now()
@@ -446,14 +447,21 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
-                client_to_update = self.db.client_store.get(client)
-                client_to_update.status = "online"
-                self.db.client_store.update(client_to_update)
+                try: 
+                    client_to_update = self.db.client_store.get(client)
+                    client_to_update.status = "online"
+                    self.db.client_store.update(client_to_update)
+                except AttributeError:
+                    logger.warning("Skipping one online-update: statestore has no record.")
+
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
-                client_to_update = self.db.client_store.get(client)
-                client_to_update.status = "offline"
-                self.db.client_store.update(client_to_update)
+                try:
+                    client_to_update = self.db.client_store.get(client)
+                    client_to_update.status = "offline"
+                    self.db.client_store.update(client_to_update)
+                except AttributeError:
+                    logger.warning("Skipping one offline-update: statestore has no record.")
 
         return clients["active_clients"]
 
