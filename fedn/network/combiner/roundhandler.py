@@ -171,7 +171,7 @@ class RoundHandler:
         # Wait / block until the round termination policy has been met.
         t0 = time.perf_counter()
         self.update_handler.waitforit(config, buffer_size=buffer_size)
-        logger.info("self.update_handler.waitforit took: ", time.perf_counter() - t0)
+        logger.info("self.update_handler.waitforit took:  {:.3f} s".format(time.perf_counter() - t0))
         tic = time.time()
         model = None
         data = None
@@ -198,7 +198,8 @@ class RoundHandler:
         except Exception as e:
             logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
             raise
-        logger.info("Combine models, delete models took: ", time.perf_counter() - t0)
+        logger.info("Combine models, delete models took:  {:.3f} s".format(time.perf_counter() - t0))
+
 
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
@@ -447,7 +448,8 @@ class RoundHandler:
             clients = self._assign_round_clients(self.server.max_clients)
         t0 = time.perf_counter()
         model, meta = self._training_round(config, clients, provided_functions)
-        logger.info("self._training_round took: ", time.perf_counter() - t0)
+        logger.info("self._training_round took:   {:.3f} s".format(time.perf_counter() - t0))
+        
 
         data["data"] = meta
 
@@ -558,13 +560,13 @@ class RoundHandler:
                             tic = time.time()
                             t0 = time.perf_counter()
                             round_meta = self.execute_training_round(round_config)
-                            logger.info("execute_training round took: ", time.perf_counter() - t0)
+                            logger.info("execute_training round took:  {:.3f} s".format(time.perf_counter() - t0))
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
                             t0 = time.perf_counter()
                             active_round = self.server.db.round_store.get(round_meta["round_id"])
-                            logger.info("self.server.db.round_store.get took: ", time.perf_counter() - t0)
+                            logger.info("self.server.db.round_store.get took:  {:.3f} s".format(time.perf_counter() - t0))
                             active_round.combiners.append(round_meta)
                             t0 = time.perf_counter()
                             try:
@@ -578,7 +580,8 @@ class RoundHandler:
                             except Exception as e:
                                 logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")
-                            logger.info("self.server.db.round_store.update_one took: ", time.perf_counter() - t0)
+                            logger.info("self.server.db.round_store.update_one took:  {:.3f} s".format(time.perf_counter() - t0))
+
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]
