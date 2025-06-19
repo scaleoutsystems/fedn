@@ -1,4 +1,6 @@
 import threading
+from typing import Optional
+
 
 from flask import Blueprint, jsonify, request
 
@@ -385,7 +387,7 @@ def post():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-def _get_number_of_available_clients(client_ids: list[str]):
+def _get_number_of_available_clients(client_ids: Optional[list[str]] = None):
     control = Control.instance()
 
     result = 0
