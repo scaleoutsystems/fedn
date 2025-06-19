@@ -495,21 +495,19 @@ def start_server_api():
 
         controller = get_controller_config()
 
-        @app.before_request
-        def before_first_request():
-            """Initialize the database connection and repository before each request."""
-            app.before_request_funcs[None].remove(before_first_request)  # Hack
-
+        def init_globals():
+            """Initialize the database connection and repository"""
             g.db = DatabaseConnection(statestore_config, network_id)
             g.repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
             g.network = Network(g.db, g.repository, controller_host=controller["host"], controller_port=controller["port"])
 
         if debug:
             # Without gunicorn, we can initialize the database connection here
+            init_globals()
             app.run(debug=debug, port=port, host=host)
         else:
             workers = os.cpu_count()
-            gunicorn_app.run_gunicorn(app, host, port, workers)
+            gunicorn_app.run_gunicorn(app, host, port, workers, post_fork_func=init_globals)
 
 
 if __name__ == "__main__":

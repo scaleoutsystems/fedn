@@ -16,10 +16,12 @@ class GunicornApp(BaseApplication):
         return self.application
 
 
-def run_gunicorn(app, host, port, workers=4):
+def run_gunicorn(app, host, port, workers=4, post_fork_func=None):
     bind_address = f"{host}:{port}"
     options = {
         "bind": bind_address,  # Specify the bind address and port here
         "workers": workers,
     }
+    if post_fork_func is not None:
+        options["post_fork"] = lambda server, worker: post_fork_func()
     GunicornApp(app, options).run()
