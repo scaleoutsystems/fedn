@@ -432,11 +432,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         }
 
         for client in self._list_subscribed_clients(channel):
-            meta = self.clients.get(client)
-            if meta is None:
-                logger.warning("Client is None skipping")
-                continue
-
             status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["last_seen"]

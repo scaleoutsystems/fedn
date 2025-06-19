@@ -2,6 +2,7 @@ import copy
 import datetime
 import time
 from typing import Optional
+import math
 
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
@@ -418,23 +419,25 @@ class Control(ControlBase):
         if not combiners_are_done:
             return None, self.db.round_store.get(round_id)
         
-        # # -------------------------Updated Async------------------
+        # -------------------------Updated Async------------------
 
-        # # check how many combiners responded:
-        # start = time.time()
-        # while time.time() - start < session_config.round_timeout:
-        #     round = self.db.round_store.get(round_id)
-        #     if len(round.combiners) > 0:
-        #         break
-        #     time.sleep(1)
+        # check how many combiners responded:
+        BUFFER_FACTOR = 1.20 # to allow combiners to respond slightly after timeout.
+        max_wait = math.ceil(session_config.round_timeout * BUFFER_FACTOR)
+        start = time.time()
+        while time.time() - start < max_wait:
+            round = self.db.round_store.get(round_id)
+            if len(round.combiners) > 0:
+                break
+            time.sleep(1)
         
-        # num_reported = len(round.combiners)
-        # if num_reported == 0:
-        #     logger.warning("No combiner models after timeout. Marking round as Failed.")
-        #     self.set_round_status(round_id, "Failed")
-        #     return None, self.db.round_store.get(round_id)
+        num_reported = len(round.combiners)
+        if num_reported == 0:
+            logger.warning("No combiner models after timeout. Marking round as Failed.")
+            self.set_round_status(round_id, "Failed")
+            return None, self.db.round_store.get(round_id)
 
-        # logger.info(f"{num_reported} combiner(s) have reported. Proceeding to partial aggregator.")
+        logger.info(f"{num_reported} combiner(s) have reported. Proceeding to partial aggregator.")
 
 
         # This could cause an infinite loop over retries if if len(round.combiners) != len(participating_combiners)
@@ -442,15 +445,15 @@ class Control(ControlBase):
         # Due to the distributed nature of the computation, there might be a
         # delay before combiners have reported the round data to the db,
         # so we need some robustness here.
-        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
-        def check_combiners_done_reporting():
-            round = self.db.round_store.get(round_id)
-            if len(round.combiners) != len(participating_combiners):
-                logger.info(f"Waiting for combiners to update model... {len(round.combiners)} have reported.")
-                raise KeyError("Combiners have not yet reported.")
+        # @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
+        # def check_combiners_done_reporting():
+        #     round = self.db.round_store.get(round_id)
+        #     if len(round.combiners) != len(participating_combiners):
+        #         logger.info(f"Waiting for combiners to update model... {len(round.combiners)} have reported.")
+        #         raise KeyError("Combiners have not yet reported.")
 
-        check_combiners_done_reporting()
-        # -------------------------------
+        # check_combiners_done_reporting()
+        # # -------------------------------
 
         round = self.db.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round.to_dict())
