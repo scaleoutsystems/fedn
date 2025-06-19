@@ -49,6 +49,7 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 
 
 @click.option("-n", "--name", required=False, default=None, help="Name of new project.")
+@click.option("-n", "--nr-of-combiners", required=False, default=1, help="Number of combiners for the project (admin feature).")
 @click.option("-p", "--protocol", required=False, default=STUDIO_DEFAULTS["protocol"], help="Communication protocol of studio (api)")
 @click.option("-H", "--host", required=False, default=STUDIO_DEFAULTS["host"], help="Hostname of studio (api)")
 @click.option("--branch", required=False, default=None, help="Studio branch (default main). Requires admin in Studio")
@@ -61,6 +62,7 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 def create_project(
     ctx,
     name: str = None,
+    nr_of_combiners: int = 1,
     protocol: str = None,
     host: str = None,
     no_interactive: bool = False,
@@ -90,7 +92,11 @@ def create_project(
     else:
         # Call the authentication API
         try:
-            response = requests.post(url, data={"name": name, "studio_branch": branch, "fedn_image": image, "fedn_repo": repository}, headers=headers)
+            response = requests.post(
+                url,
+                data={"name": name, "nr_of_combiners": nr_of_combiners, "studio_branch": branch, "fedn_image": image, "fedn_repo": repository},
+                headers=headers,
+            )
             response_message = response.json().get("message")
             if response.status_code == 201:
                 click.secho(f"Project with name '{name}' created.", fg="green")
@@ -263,7 +269,7 @@ def no_project_exists(response) -> bool:
 
 
 @click.option("-id", "--id", required=True, help="Slug of the project to add the combiner to.")
-@click.option("-tag", "--tag", required=True, help="Tag for the newly created combiner.")
+@click.option("-nr_of_combiners", "--nr_of_combiners", required=True, help="Total number of combiners to deploy.")
 @click.option("--branch", required=False, default=None, help="Studio branch (optional)")
 @click.option("--image", required=False, default=None, help="FEDn image (optional)")
 @click.option("--repository", required=False, default=None, help="FEDn repo URL (optional)")
@@ -274,7 +280,7 @@ def no_project_exists(response) -> bool:
 def add_combiner_to_project(
     ctx,
     id: str,
-    tag: str,
+    nr_of_combiners: str,
     branch: str = None,
     image: str = None,
     repository: str = None,
@@ -289,11 +295,11 @@ def add_combiner_to_project(
     if _token:
         headers["Authorization"] = _token
 
-    url = get_api_url(protocol=protocol, host=host, port=None, endpoint="v1/projects/add_combiner", usr_api=studio_api)
+    url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/add_combiner", usr_api=studio_api)
 
     payload = {
         "project_slug": id,
-        "tag": tag,
+        "nr_of_combiners": nr_of_combiners,
     }
     if branch:
         payload["studio_branch"] = branch
