@@ -672,13 +672,19 @@ class FileChunk(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     DATA_FIELD_NUMBER: builtins.int
+    CORRELATION_ID_FIELD_NUMBER: builtins.int
+    CHECKSUM_FIELD_NUMBER: builtins.int
     data: builtins.bytes
+    correlation_id: builtins.str
+    checksum: builtins.str
     def __init__(
         self,
         *,
         data: builtins.bytes = ...,
+        correlation_id: builtins.str = ...,
+        checksum: builtins.str = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["checksum", b"checksum", "correlation_id", b"correlation_id", "data", b"data"]) -> None: ...
 
 global___FileChunk = FileChunk
 

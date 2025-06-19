@@ -1,3 +1,5 @@
+import sys
+
 import click
 import requests
 
@@ -74,15 +76,29 @@ def set_active_model(ctx, protocol: str, host: str, port: str, token: str, file:
     try:
         # Set the active helper
         url = get_api_url(protocol, host, port, "helpers/active", usr_api=False)
-        response = requests.put(url, json={"helper": helper}, headers=headers, verify=False)
-        response.raise_for_status()
+        response_helper = requests.put(url, json={"helper": helper}, headers=headers, verify=False)
+        response_helper.raise_for_status()
+        if response_helper.status_code >= 200 and response_helper.status_code <= 204:
+            click.secho(f"Active helper set to: {helper}", fg="green")
+        else:
+            click.secho(f"Failed to set active helper: {response_helper.text}", fg="red")
+            sys.exit(1)
 
         # Upload the model file
         url = get_api_url(protocol, host, port, "models/", usr_api=False)
         with open(file, "rb") as model_file:
-            response = requests.post(url, files={"file": model_file}, data={"helper": helper}, headers=headers, verify=False)
-            response.raise_for_status()
+            click.secho(f"Uploading model file: {file} with helper: {helper} to {url}", fg="yellow")
+            response_model = requests.post(url, files={"file": model_file}, data={"helper": helper}, headers=headers, verify=False)
+            response_model.raise_for_status()
 
-        click.secho("Model set as active and uploaded successfully.", fg="green")
+        if response_model.status_code >= 200 and response_model.status_code <= 204:
+            click.secho("Model uploaded successfully.", fg="green")
+        else:
+            click.secho(f"Failed to upload model: {response_model.text}", fg="red")
+            sys.exit(1)
+    except requests.exceptions.ConnectionError as e:
+        click.secho(f"Could not connect to the controller at {host}:{port}. Is it running? Error: {e}", fg="red")
+        sys.exit(1)
     except requests.exceptions.RequestException as e:
         click.secho(f"Failed to set active model: {e}", fg="red")
+        sys.exit(1)

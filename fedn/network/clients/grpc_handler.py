@@ -378,13 +378,8 @@ class GrpcHandler:
         byte_stream.seek(0, 0)
 
         logger.info("Uploading model to combiner.")
-        metadata = [
-            *self.metadata,
-            ("checksum", file_checksum),
-            ("model-id", model_id),
-        ]
-        logger.info(f"Metadata for upload: {metadata}")
-        result = self.modelStub.Upload(upload_request_generator(byte_stream), metadata=metadata)
+        logger.debug(f"Model ID: {model_id}, Checksum: {file_checksum}")
+        result = self.modelStub.Upload(upload_request_generator(byte_stream, model_id, file_checksum), metadata=self.metadata)
 
         return result
 
