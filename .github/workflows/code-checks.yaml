@@ -26,6 +26,7 @@ jobs:
           --exclude-dir='flower-client'
           --exclude='tests.py'
           --exclude='controller_cmd.py'
+          --exclude='api_server_cmd.py'
           --exclude='fedn_pb2_grpc.py'
           --exclude='fedn_pb2.pyi'
           --exclude='combiner_cmd.py'
