@@ -392,18 +392,15 @@ def _get_number_of_available_clients(client_ids: list[str]):
     active_clients = None
     for combiner in control.network.get_combiners():
         try:
-            if active_clients is None:
-                active_clients = combiner.list_active_clients()
-            else:
-                active_clients += combiner.list_active_clients()
+            active_clients = combiner.list_active_clients()
+            if active_clients is not None:
+                if client_ids is not None:
+                    filtered = [item for item in active_clients if item.client_id in client_ids]
+                    result += len(filtered)
+                else:
+                    result += len(active_clients)
         except CombinerUnavailableError:
             return 0
-
-    if client_ids is not None:
-        filtered = [item for item in active_clients if item.client_id in client_ids]
-        result = len(filtered)
-    else:
-        result = len(active_clients)
 
     return result
 
