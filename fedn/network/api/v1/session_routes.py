@@ -385,17 +385,25 @@ def post():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-def _get_number_of_available_clients():
+def _get_number_of_available_clients(client_ids: list[str]):
     control = Control.instance()
+
     result = 0
+    active_clients = None
     for combiner in control.network.get_combiners():
         try:
-            nr_active_clients = len(combiner.list_active_clients())
-            result = result + int(nr_active_clients)
+            active_clients = combiner.list_active_clients()
+            if active_clients is not None:
+                if client_ids is not None:
+                    filtered = [item for item in active_clients if item.client_id in client_ids]
+                    result += len(filtered)
+                else:
+                    result += len(active_clients)
         except CombinerUnavailableError:
             return 0
 
     return result
+
 
 
 @bp.route("/start", methods=["POST"])
