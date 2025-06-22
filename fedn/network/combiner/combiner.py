@@ -432,23 +432,19 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         }
 
         for client in self._list_subscribed_clients(channel):
-            meta = self.clients.get(client)
-            if meta is None:
-                logger.warning("Client is None skipping")
-                continue
-            else:
-                status = self.clients[client]["status"]
-                now = datetime.now()
-                then = self.clients[client]["last_seen"]
-                if (now - then) < timedelta(seconds=10):
-                    clients["active_clients"].append(client)
-                    # If client has changed status, update client queue
-                    if status != "online":
-                        self.clients[client]["status"] = "online"
-                        clients["update_active_clients"].append(client)
-                elif status != "offline":
-                    self.clients[client]["status"] = "offline"
-                    clients["update_offline_clients"].append(client)
+
+            status = self.clients[client]["status"]
+            now = datetime.now()
+            then = self.clients[client]["last_seen"]
+            if (now - then) < timedelta(seconds=10):
+                clients["active_clients"].append(client)
+                # If client has changed status, update client queue
+                if status != "online":
+                    self.clients[client]["status"] = "online"
+                    clients["update_active_clients"].append(client)
+            elif status != "offline":
+                self.clients[client]["status"] = "offline"
+                clients["update_offline_clients"].append(client)
 
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
