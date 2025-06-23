@@ -71,7 +71,9 @@ def get_project_url(protocol: str, host: str, port: str, endpoint: str) -> str:
 
 
 def get_token(token: str, usr_token: bool) -> str:
-    _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
+    _token = None
+    if token and isinstance(token, str) and len(token) > 0:
+        _token = token
 
     if _token is None:
         context_path = os.path.join(HOME_DIR, ".fedn")
@@ -82,7 +84,11 @@ def get_token(token: str, usr_token: bool) -> str:
             else:
                 _token = context_data.get("Active project tokens").get("access")
         except Exception as e:
+            _token = None
             click.secho(f"Encountered error {e}. Make sure you are logged in and have activated a project.", fg="red")
+
+    if _token is None:
+        _token = token or os.environ.get("FEDN_AUTH_TOKEN", None)
 
     scheme = os.environ.get("FEDN_AUTH_SCHEME", "Bearer")
 
