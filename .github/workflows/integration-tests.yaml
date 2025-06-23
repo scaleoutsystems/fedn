@@ -50,6 +50,10 @@ jobs:
       - name: print logs combiner
         if: failure()
         run: .ci/tests/examples/print_logs.sh combiner ${{ matrix.to_test }}
+
+      - name: print logs controller
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh controller ${{ matrix.to_test }}
       
       - name: print logs client
         if: failure()
