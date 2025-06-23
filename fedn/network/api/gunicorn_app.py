@@ -23,5 +23,5 @@ def run_gunicorn(app, host, port, workers=4, post_fork_func=None):
         "workers": workers,
     }
     if post_fork_func is not None:
-        options["post_fork"] = lambda server, worker: post_fork_func()
+        options["post_fork"] = post_fork_func
     GunicornApp(app, options).run()

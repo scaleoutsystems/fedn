@@ -3,7 +3,6 @@
 import os
 from typing import Tuple
 
-from flask import g
 from werkzeug.security import safe_join
 
 from fedn.network.common.network import Network
@@ -12,25 +11,36 @@ from fedn.network.storage.s3.repository import Repository
 from fedn.utils.checksum import sha
 
 
+class ApplicationState:
+    """Global state to hold shared objects for the network API."""
+
+    _instance = None
+
+    def _prepare(self):
+        self.db = None
+        self.repository = None
+        self.network = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(ApplicationState, cls).__new__(cls)
+            cls._instance._prepare()
+        return cls._instance
+
+
 def get_db() -> DatabaseConnection:
     """Get the database connection."""
-    if "db" not in g:
-        raise RuntimeError("Database connection not initialized. Call start_server_api() first.")
-    return g.db
+    return ApplicationState().db
 
 
 def get_repository() -> Repository:
     """Get the repository."""
-    if "repository" not in g:
-        raise RuntimeError("Repository not initialized. Call start_server_api() first.")
-    return g.repository
+    return ApplicationState().repository
 
 
 def get_network() -> Network:
     """Get the network interface."""
-    if "network" not in g:
-        raise RuntimeError("Network not initialized. Call start_server_api() first.")
-    return g.network
+    return ApplicationState().network
 
 
 def get_checksum(name: str = None) -> Tuple[bool, str, str]:
