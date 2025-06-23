@@ -50,7 +50,7 @@ def get_checksum(name: str = None) -> Tuple[bool, str, str]:
     success = False
 
     if name is None:
-        db = get_db().db
+        db = get_db()
         active_package = db.package_store.get_active()
         if active_package is None:
             message = "No compute package uploaded"
