@@ -12,6 +12,7 @@ updates:
     reviewers:
       - "Wrede"
       - "stefanhellander"
+      - "niklastheman"
     # To ignore a dependency, uncomment the next two lines and replace "example-package" with the name of the dependency
     #ignore:
     #  - dependency-name: "example-package"
