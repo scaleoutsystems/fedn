@@ -12,7 +12,7 @@ from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctionsBase
 from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO
 
 
-def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: List[np.ndarray], client_metadata: Dict, rounds=5, num_clients=20):
+def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: List[np.ndarray], client_metadata: Dict, rounds, num_clients):
     """Test if your functionalities are working on your server functions implementation.
     :param server_functions: An implementation of ServerFunctionsBase.
     :type server_functions: ServerFunctionsBase
@@ -22,7 +22,7 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
     function_service = FunctionServiceServicer()
     function_code = inspect.getsource(server_functions)
     for i in range(rounds):
-        print(f"Simulating server round: {i+1}")
+        print(f"Simulating server round: {i + 1}")
         # see output from provided functions call
         request = fedn.ProvidedFunctionsRequest(function_code=function_code)
         _ = function_service.HandleProvidedFunctions(request, "")
@@ -57,4 +57,4 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
         response_generator = function_service.HandleAggregation(request, "")
         for response in response_generator:
             pass
-        print(f"Server round {i+1} completed")
+        print(f"Server round {i + 1} completed")

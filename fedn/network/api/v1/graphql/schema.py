@@ -1,6 +1,6 @@
 import graphene
 
-from fedn.network.controller.control import Control
+from fedn.network.api.shared import get_db
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
@@ -49,7 +49,7 @@ class ModelType(graphene.ObjectType):
     validations = graphene.List(ValidationType)
 
     def resolve_validations(self, info):
-        db = Control.instance().db
+        db = get_db()
         kwargs = {"modelId": self["model"]}
         result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
@@ -83,7 +83,7 @@ class SessionType(graphene.ObjectType):
         return self["session_config"]
 
     def resolve_models(self, info):
-        db = Control.instance().db
+        db = get_db()
         kwargs = {"session_id": self["session_id"]}
         all_models = db.model_store.list(**kwargs)
         result = [model.to_dict() for model in all_models]
@@ -91,7 +91,7 @@ class SessionType(graphene.ObjectType):
         return result
 
     def resolve_validations(self, info):
-        db = Control.instance().db
+        db = get_db()
         kwargs = {"sessionId": self["session_id"]}
         result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [validation.to_dict() for validation in result]
@@ -99,7 +99,7 @@ class SessionType(graphene.ObjectType):
         return result
 
     def resolve_statuses(self, info):
-        db = Control.instance().db
+        db = get_db()
         kwargs = {"sessionId": self["session_id"]}
         result = db.status_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
         result = [status.to_dict() for status in result]
@@ -148,13 +148,13 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_session(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.session_store.get(id)
 
         return result.to_dict()
 
     def resolve_sessions(root, info, name: str = None):
-        db = Control.instance().db
+        db = get_db()
         if name:
             kwargs = {"name": name}
         else:
@@ -164,13 +164,13 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_model(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.model_store.get(id).to_dict()
 
         return result
 
     def resolve_models(root, info, session_id: str = None):
-        db = Control.instance().db
+        db = get_db()
         if session_id:
             kwargs = {"session_id": session_id}
         else:
@@ -180,13 +180,13 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_validation(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.validation_store.get(id).to_dict()
 
         return result
 
     def resolve_validations(root, info, session_id: str = None):
-        db = Control.instance().db
+        db = get_db()
         if session_id:
             kwargs = {"session_id": session_id}
             result = db.validation_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)
@@ -196,13 +196,13 @@ class Query(graphene.ObjectType):
         return [validation.to_dict() for validation in result]
 
     def resolve_status(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.status_store.get(id).to_dict()
 
         return result
 
     def resolve_statuses(root, info, session_id: str = None):
-        db = Control.instance().db
+        db = get_db()
         if session_id:
             kwargs = {"sessionId": session_id}
             result = db.status_store.list(0, 0, None, sort_order=SortOrder.DESCENDING, **kwargs)

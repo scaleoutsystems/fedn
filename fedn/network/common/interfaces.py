@@ -7,6 +7,8 @@ import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
+from fedn.common.log_config import logger
+from fedn.network.common.state import ControllerState
 
 
 class CombinerUnavailableError(Exception):
@@ -291,3 +293,58 @@ class CombinerInterface:
             else:
                 raise
         return response.client
+
+
+class ControlInterface:
+    def __init__(self, address, port, certificate=None):
+        """Initialize the control interface."""
+        self.address = address
+        self.port = port
+        self.certificate = certificate
+
+    def send_command(self, command: fedn.Command, command_type: str, parameters: Dict = None) -> fedn.ControlRequest:
+        """Send a command to the control interface.
+
+        :param command_type: The type of command to send.
+        :type command_type: str
+        :param parameters: The parameters for the command.
+        :type parameters: dict
+        :return: The response from the control interface.
+        :rtype: dict
+        """
+        logger.info(f"Sending command {command} of type {command_type} to controller")
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+
+        request = fedn.CommandRequest()
+        request.command = command
+        request.command_type = command_type
+
+        if parameters:
+            request.parameters = json.dumps(parameters)
+
+        try:
+            response = control.SendCommand(request)
+            return response
+        except grpc.RpcError as e:
+            raise CombinerUnavailableError(f"Control interface unavailable: {e}")
+
+    def get_state(self) -> ControllerState:
+        """Get the current state of the control interface.
+
+        :return: The current state.
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlState`
+        """
+        logger.info(f"Getting control state from {self.address}:{self.port}")
+        channel = Channel(self.address, self.port, self.certificate).get_channel()
+        control = rpc.ControlStub(channel)
+
+        request = fedn.ControlRequest()
+
+        try:
+            response = control.GetState(request)
+            logger.info(f"Control state response: {response.state}")
+            return ControllerState[response.state]
+
+        except grpc.RpcError as e:
+            raise CombinerUnavailableError(f"Control interface unavailable: {e}")

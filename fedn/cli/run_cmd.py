@@ -219,7 +219,7 @@ def combiner_cmd(ctx, discoverhost, discoverport, token, name, host, port, fqdn,
         click.echo(f"\nCombiner configuration loaded from file: {init}")
         click.echo("Values set in file override defaults and command line arguments...\n")
 
-    from fedn.network.combiner.combiner import Combiner
+    from fedn.network.combiner.combiner import Combiner  # noqa: PLC0415
 
     modelstorage_config = get_modelstorage_config()
     statestore_config = get_statestore_config()
