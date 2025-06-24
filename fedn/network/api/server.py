@@ -482,7 +482,7 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/delete_model_trail", view_func=delete_model_trail, methods=["GET", "POST"])
 
 
-def start_server_api():
+def start_api_server():
     config = get_api_config()
     port = config["port"]
     host = "0.0.0.0"
@@ -515,4 +515,4 @@ def start_server_api():
 
 
 if __name__ == "__main__":
-    start_server_api()
+    start_api_server()

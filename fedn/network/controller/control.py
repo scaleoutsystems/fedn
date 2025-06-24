@@ -15,7 +15,7 @@ from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.common.command import CommandType
 from fedn.network.common.interfaces import CombinerUnavailableError
-from fedn.network.common.state import ReducerState
+from fedn.network.common.state import ControllerState
 from fedn.network.controller.command_runner import CommandRunner
 from fedn.network.controller.controlbase import ControlBase
 from fedn.network.grpc.server import Server
@@ -161,13 +161,13 @@ class Control(ControlBase, rpc.ControlServicer):
             response.message = "Success"
             return response
         elif command_request.command == fedn.Command.STOP:
-            logger.info("grpc.Combiner.SendCommand: Stopping current round")
+            logger.info("grpc.Controller.SendCommand: Stopping current round")
             self.command_runner.flow_controller.stop_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"
             return response
         elif command_request.command == fedn.Command.CONTINUE:
-            logger.info("grpc.Combiner.SendCommand: Continuing current round")
+            logger.info("grpc.Controller.SendCommand: Continuing current round")
             self.command_runner.flow_controller.continue_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"
@@ -737,17 +737,17 @@ class Control(ControlBase, rpc.ControlServicer):
         # TODO: DEAD CODE?
 
         # Check/set instucting state
-        if self.__state == ReducerState.instructing:
+        if self.__state == ControllerState.instructing:
             logger.info("Already set in INSTRUCTING state")
             return
-        self.__state = ReducerState.instructing
+        self.__state = ControllerState.instructing
 
         # Check for a model chain
         if not self.statestore.latest_model():
             logger.warning("No model in model chain, please set seed model.")
 
         # Set reducer in monitoring state
-        self.__state = ReducerState.monitoring
+        self.__state = ControllerState.monitoring
 
         # Start prediction round
         try:
@@ -756,7 +756,7 @@ class Control(ControlBase, rpc.ControlServicer):
             logger.error("Round failed.")
 
         # Set reducer in idle state
-        self.__state = ReducerState.idle
+        self.__state = ControllerState.idle
 
     def prediction_round(self, config):
         """Execute a prediction round.

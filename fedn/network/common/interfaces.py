@@ -8,7 +8,7 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.common.state import ReducerState
+from fedn.network.common.state import ControllerState
 
 
 class CombinerUnavailableError(Exception):
@@ -329,7 +329,7 @@ class ControlInterface:
         except grpc.RpcError as e:
             raise CombinerUnavailableError(f"Control interface unavailable: {e}")
 
-    def get_state(self) -> ReducerState:
+    def get_state(self) -> ControllerState:
         """Get the current state of the control interface.
 
         :return: The current state.
@@ -344,7 +344,7 @@ class ControlInterface:
         try:
             response = control.GetState(request)
             logger.info(f"Control state response: {response.state}")
-            return ReducerState[response.state]
+            return ControllerState[response.state]
 
         except grpc.RpcError as e:
             raise CombinerUnavailableError(f"Control interface unavailable: {e}")

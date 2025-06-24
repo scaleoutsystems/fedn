@@ -7,7 +7,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_db, get_network
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.common.command import CommandType
-from fedn.network.common.state import ReducerState
+from fedn.network.common.state import ControllerState
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
 
@@ -431,7 +431,7 @@ def start_session():
         model_id = session_config.model_id
         min_clients = session_config.clients_required
 
-        if control.get_state() != ReducerState.idle:
+        if control.get_state() != ControllerState.idle:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
@@ -489,7 +489,7 @@ def start_splitlearning_session():
         session_config = session.session_config
         min_clients = session_config.clients_required
 
-        if control.get_state() != ReducerState.idle:
+        if control.get_state() != ControllerState.idle:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):

@@ -13,6 +13,6 @@ def api_server_cmd(ctx):
 @api_server_cmd.command("start")
 @click.pass_context
 def api_server_cmd(ctx):
-    from fedn.network.api.server import start_server_api  # noqa: PLC0415
+    from fedn.network.api.server import start_api_server  # noqa: PLC0415
 
-    start_server_api()
+    start_api_server()
