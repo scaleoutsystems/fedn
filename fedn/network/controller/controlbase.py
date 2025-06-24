@@ -10,9 +10,6 @@ from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
 
-# Maximum number of tries to connect to statestore and retrieve storage configuration
-MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
-
 
 class ControlBase(ABC):
     """Base class and interface for a global controller.
