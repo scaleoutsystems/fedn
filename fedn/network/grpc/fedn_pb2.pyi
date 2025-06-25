@@ -944,19 +944,22 @@ class CommandRequest(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
     COMMAND_FIELD_NUMBER: builtins.int
+    CORRELATION_ID_FIELD_NUMBER: builtins.int
     COMMAND_TYPE_FIELD_NUMBER: builtins.int
     PARAMETERS_FIELD_NUMBER: builtins.int
     command: global___Command.ValueType
+    correlation_id: builtins.str
     command_type: builtins.str
     parameters: builtins.str
     def __init__(
         self,
         *,
         command: global___Command.ValueType = ...,
+        correlation_id: builtins.str = ...,
         command_type: builtins.str = ...,
         parameters: builtins.str = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["command", b"command", "command_type", b"command_type", "parameters", b"parameters"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["command", b"command", "command_type", b"command_type", "correlation_id", b"correlation_id", "parameters", b"parameters"]) -> None: ...
 
 global___CommandRequest = CommandRequest
 

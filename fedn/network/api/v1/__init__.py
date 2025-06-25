@@ -1,6 +1,7 @@
 from fedn.network.api.v1.attribute_routes import bp as attribute_bp
 from fedn.network.api.v1.client_routes import bp as client_bp
 from fedn.network.api.v1.combiner_routes import bp as combiner_bp
+from fedn.network.api.v1.control_routes import bp as control_bp
 from fedn.network.api.v1.helper_routes import bp as helper_bp
 from fedn.network.api.v1.metric_routes import bp as metric_bp
 from fedn.network.api.v1.model_routes import bp as model_bp
@@ -28,4 +29,5 @@ _routes = [
     run_bp,
     telemetry_bp,
     attribute_bp,
+    control_bp,
 ]
