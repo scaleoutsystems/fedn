@@ -422,14 +422,14 @@ class Control(ControlBase, rpc.ControlServicer):
         _ = self.request_model_updates(participating_combiners)
         # TODO: Check response
 
-        def check_round_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
                 return False
             return True
 
-        reason = self.command_runner.flow_controller.wait_until_true(check_round_done, session_config.round_timeout, polling_rate=2.0)
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, session_config.round_timeout, polling_rate=2.0)
         if reason == FlowController.Reason.TIMEOUT:
             logger.warning("Round timed out!")
         elif reason == FlowController.Reason.STOP:
@@ -448,7 +448,7 @@ class Control(ControlBase, rpc.ControlServicer):
         # controller as the timeout
 
         # Update method with new print
-        def check_round_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
                 logger.info("Waiting for combiners to finish aggregation...")
@@ -456,7 +456,7 @@ class Control(ControlBase, rpc.ControlServicer):
             return True
 
         # Infite loop until all combiners have reported back
-        reason = self.command_runner.flow_controller.wait_until_true(check_round_done, polling_rate=2.0)
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, polling_rate=2.0)
 
         if reason == FlowController.Reason.STOP:
             self.set_session_status(session_id, "Terminated")
@@ -568,14 +568,14 @@ class Control(ControlBase, rpc.ControlServicer):
 
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
-        def check_round_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
                 return False
             return True
 
-        reason = self.command_runner.flow_controller.wait_until_true(check_round_done, session_config.round_timeout, polling_rate=2.0)
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, session_config.round_timeout, polling_rate=2.0)
         if reason == FlowController.Reason.TIMEOUT:
             logger.warning("Round timed out!")
         elif reason == FlowController.Reason.STOP:
@@ -590,15 +590,15 @@ class Control(ControlBase, rpc.ControlServicer):
                 combiner.submit(fedn.Command.CONTINUE)
 
         # Update method with new print
-        def check_round_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
-                logger.info("Waiting for combiner to finish aggreation...")
+                logger.info("Waiting for combiner to finish aggregation...")
                 return False
             return True
 
         # Infite loop until all combiners have reported back
-        reason = self.command_runner.flow_controller.wait_until_true(check_round_done, polling_rate=2.0)
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, polling_rate=2.0)
 
         if reason == FlowController.Reason.STOP:
             self.set_session_status(session_id, "Terminated")
