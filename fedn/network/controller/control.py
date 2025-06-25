@@ -6,7 +6,6 @@ import time
 from typing import Dict, Optional
 
 import grpc
-from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
