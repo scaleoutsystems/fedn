@@ -451,7 +451,7 @@ class Control(ControlBase, rpc.ControlServicer):
         def check_round_done():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
-                logger.info("Waiting for combiners to finish aggreation...")
+                logger.info("Waiting for combiners to finish aggregation...")
                 return False
             return True
 
