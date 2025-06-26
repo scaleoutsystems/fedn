@@ -1,19 +1,20 @@
 network_id: fedn-network
 api:
-  host: localhost
+  host: api-server
   port: 8092
   debug: True
 
 controller:
-  host: localhost
+  host: controller
   port: 12090
 
 statestore:
+  # Available DB types are MongoDB, PostgreSQL, SQLite
   type: MongoDB
   mongo_config:
     username: fedn_admin
     password: password
-    host: localhost
+    host: mongo
     port: 6534
   postgres_config:
     username: fedn_admin

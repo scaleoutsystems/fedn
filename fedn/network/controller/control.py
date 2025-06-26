@@ -1,16 +1,24 @@
 import copy
 import datetime
+import json
+import signal
 import time
-from typing import Optional
+from typing import Dict, Optional
 
+import grpc
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
+import fedn.network.grpc.fedn_pb2 as fedn
+import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.interfaces import CombinerUnavailableError
 from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
+from fedn.network.common.command import CommandType
+from fedn.network.common.interfaces import CombinerUnavailableError
+from fedn.network.common.state import ControllerState
+from fedn.network.controller.command_runner import CommandRunner
 from fedn.network.controller.controlbase import ControlBase
-from fedn.network.state import ReducerState
+from fedn.network.grpc.server import Server
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto.run import RunDTO
@@ -86,17 +94,16 @@ class SessionTerminatedException(Exception):
         super().__init__(self.message)
 
 
-class Control(ControlBase):
+class Control(ControlBase, rpc.ControlServicer):
     """Controller, implementing the overall global training, validation and prediction logic.
 
     :param statestore: A StateStorage instance.
     :type statestore: class: `fedn.network.statestorebase.StateStorageBase`
     """
 
-    _instance: "Control"
-
     def __init__(
         self,
+        config: Dict,
         network_id: str,
         repository: Repository,
         db: DatabaseConnection,
@@ -104,29 +111,9 @@ class Control(ControlBase):
         """Constructor method."""
         super().__init__(network_id, repository, db)
         self.name = "DefaultControl"
+        self.server = Server(self, None, config)
 
-    @classmethod
-    def instance(cls) -> "Control":
-        """Get the singleton instance of the Control class."""
-        if Control._instance is None:
-            raise Exception("Control instance not initialized")
-        return Control._instance
-
-    @classmethod
-    def create_instance(cls, network_id: str, repository: Repository, db: DatabaseConnection) -> "Control":
-        """Create a singleton instance of the Control class.
-
-        :param network_id: The network ID.
-        :type network_id: str
-        :param repository: The repository instance.
-        :type repository: Repository
-        :param db: The database connection instance.
-        :type db: DatabaseConnection
-        :return: The Control instance.
-        :rtype: Control
-        """
-        cls._instance = cls(network_id, repository, db)
-        return cls._instance
+        self.command_runner = CommandRunner(self)
 
     def _get_active_model_id(self, session_id: str) -> Optional[str]:
         """Get the active model for a session.
@@ -147,23 +134,80 @@ class Control(ControlBase):
 
         return None
 
+    def run(self) -> None:
+        # Start the gRPC server
+        self.server.start()
+        try:
+            while True:
+                signal.pause()
+        except (KeyboardInterrupt, SystemExit):
+            pass
+        finally:
+            logger.info("Shutting Controller...")
+            self.server.stop()
+
+    def SendCommand(self, command_request: fedn.CommandRequest, context: grpc.ServicerContext) -> fedn.ControlResponse:
+        parameters = json.loads(command_request.parameters) if command_request.parameters else {}
+
+        if command_request.command == fedn.Command.START:
+            logger.info("grpc.Controller.SendCommand start command")
+            try:
+                self.start_command(command_request.command_type, parameters)
+            except Exception as e:
+                logger.error(f"Failed to start command: {e}")
+                context.abort(grpc.StatusCode.UNKNOWN, f"Failed to start command: {e}")
+
+            response = fedn.ControlResponse()
+            response.message = "Success"
+            return response
+        elif command_request.command == fedn.Command.STOP:
+            logger.info("grpc.Controller.SendCommand: Stopping current round")
+            self.command_runner.flow_controller.stop_event.set()
+            response = fedn.ControlResponse()
+            response.message = "Success"
+            return response
+        elif command_request.command == fedn.Command.CONTINUE:
+            logger.info("grpc.Controller.SendCommand: Continuing current round")
+            self.command_runner.flow_controller.continue_event.set()
+            response = fedn.ControlResponse()
+            response.message = "Success"
+            return response
+
+    def GetState(self, request: fedn.ControlRequest, context: grpc.ServicerContext) -> fedn.ControlStateResponse:
+        """Get the current state of the control.
+
+        :param context: The gRPC context.
+        :type context: grpc.ServicerContext
+        :return: The current state of the control.
+        :rtype: fedn.ControlStateResponse
+        """
+        logger.info("grpc.Control.GetState: Getting current state of the control")
+        response = fedn.ControlStateResponse()
+        response.state = self.command_runner.state.name
+        return response
+
+    def start_command(self, command_type: str, parameters: Dict) -> None:
+        if command_type == CommandType.StandardSession.value:
+            self.command_runner.start_command(self.start_session, parameters)
+        elif command_type == CommandType.PredictionSession.value:
+            self.command_runner.start_command(self.prediction_session, parameters)
+        elif command_type == CommandType.SplitLearningSession.value:
+            self.command_runner.start_command(self.splitlearning_session, parameters)
+        else:
+            # TODO: Handle custom commands
+            raise RuntimeError(f"Unsupported command type: {command_type}")
+
     def start_session(
         self, session_id: str, rounds: int, round_timeout: int, model_name_prefix: Optional[str] = None, client_ids: Optional[list[str]] = None
     ) -> None:
-        if self._state == ReducerState.instructing:
-            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
-            return
-
         try:
             active_model_id = self._get_active_model_id(session_id)
             if not active_model_id or active_model_id in ["", " "]:
                 logger.warning("No model in model chain, please provide a seed model!")
                 return
-        except Exception:
-            logger.error("Failed to get latest model of session and model chain.")
+        except Exception as e:
+            logger.error("Failed to get latest model of session and model chain with error: {}".format(e))
             return
-
-        self._state = ReducerState.instructing
 
         session = self.db.session_store.get(session_id)
 
@@ -179,8 +223,6 @@ class Control(ControlBase):
 
         if round_timeout is not None:
             session_config.round_timeout = round_timeout
-
-        self._state = ReducerState.monitoring
 
         last_round = self.get_latest_round_id()
 
@@ -240,7 +282,6 @@ class Control(ControlBase):
             training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
             self.db.run_store.update(training_run_obj)
             logger.info("Session finished.")
-        self._state = ReducerState.idle
 
         self.set_session_config(session_id, session_config.to_dict())
 
@@ -251,10 +292,6 @@ class Control(ControlBase):
         :type config: PredictionConfig
         :return: None
         """
-        if self._state == ReducerState.instructing:
-            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
-            return
-
         if len(self.network.get_combiners()) < 1:
             logger.warning("Prediction round cannot start, no combiners connected!")
             return
@@ -275,7 +312,7 @@ class Control(ControlBase):
         if round_start:
             logger.info("Prediction round start policy met, {} participating combiners.".format(len(participating_combiners)))
             for combiner, _ in participating_combiners:
-                combiner.submit(config)
+                combiner.submit(fedn.Command.START, config)
                 logger.info("Prediction round submitted to combiner {}".format(combiner))
 
     def splitlearning_session(self, session_id: str, rounds: int, round_timeout: int) -> None:
@@ -289,12 +326,6 @@ class Control(ControlBase):
         :type round_timeout: int
         """
         logger.info("Starting split learning session.")
-
-        if self._state == ReducerState.instructing:
-            logger.info("Controller already in INSTRUCTING state. A session is in progress.")
-            return
-
-        self._state = ReducerState.instructing
 
         session = self.db.session_store.get(session_id)
 
@@ -310,8 +341,6 @@ class Control(ControlBase):
 
         if round_timeout is not None:
             session_config.round_timeout = round_timeout
-
-        self._state = ReducerState.monitoring
 
         last_round = self.get_latest_round_id()
 
@@ -343,7 +372,6 @@ class Control(ControlBase):
 
         if self.get_session_status(session_config.session_id) == "Started":
             self.set_session_status(session_config.session_id, "Finished")
-        self._state = ReducerState.idle
 
         self.set_session_config(session_id, session_config.to_dict())
 
@@ -424,6 +452,8 @@ class Control(ControlBase):
 
         combiners_are_done = combiners_done()
         if not combiners_are_done:
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
             return None, self.db.round_store.get(round_id)
 
         # Due to the distributed nature of the computation, there might be a
@@ -432,10 +462,18 @@ class Control(ControlBase):
         @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
         def check_combiners_done_reporting():
             round = self.db.round_store.get(round_id)
+            session_status = self.get_session_status(session_id)
+            if session_status == "Terminated":
+                self.set_round_status(round_id, "Terminated")
+                return False
             if len(round.combiners) != len(participating_combiners):
                 raise KeyError("Combiners have not yet reported.")
+            return True
 
-        check_combiners_done_reporting()
+        if not check_combiners_done_reporting():
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
+            return None, self.db.round_store.get(round_id)
 
         round = self.db.round_store.get(round_id)
         round_valid = self.evaluate_round_validity_policy(round.to_dict())
@@ -462,7 +500,7 @@ class Control(ControlBase):
         if model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
-            model_id = self.commit(model=model, session_id=session_id, name=model_name)
+            model_id = self.network.commit_model(model=model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
@@ -495,7 +533,7 @@ class Control(ControlBase):
             for combiner, combiner_config in validating_combiners:
                 try:
                     logger.info("Submitting validation round to combiner {}".format(combiner))
-                    combiner.submit(combiner_config)
+                    combiner.submit(fedn.Command.START, combiner_config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
@@ -514,7 +552,6 @@ class Control(ControlBase):
         :param session_id: The session id
         :type session_id: str
         """
-        # session_id = session_config.session_id
         self.create_round({"round_id": round_id, "status": "Pending"})
 
         if len(self.network.get_combiners()) < 1:
@@ -636,14 +673,14 @@ class Control(ControlBase):
             for combiner, config in validating_combiners:
                 try:
                     logger.info("Submitting validation for split learning to combiner {}".format(combiner))
-                    combiner.submit(config)
+                    combiner.submit(fedn.Command.START, config)
                 except CombinerUnavailableError:
                     self._handle_unavailable_combiner(combiner)
                     pass
             logger.info("Controller: Split Learning Validation completed")
 
-        self.set_round_status(round_id, "Finished")
-        return None, self.db.round_store.get(round_id)
+        self.set_round_status(round_id, "Success")
+        return model_id, self.db.round_store.get(round_id)
 
     def reduce(self, combiners):
         """Combine updated models from Combiner nodes into one global model.
@@ -676,7 +713,7 @@ class Control(ControlBase):
             if data is not None:
                 try:
                     tic = time.time()
-                    helper = self.get_helper()
+                    helper = self.network.get_helper()
                     model_next = load_model_from_bytes(data, helper)
                     meta["time_load_model"] += time.time() - tic
                     tic = time.time()
@@ -700,17 +737,17 @@ class Control(ControlBase):
         # TODO: DEAD CODE?
 
         # Check/set instucting state
-        if self.__state == ReducerState.instructing:
+        if self.__state == ControllerState.instructing:
             logger.info("Already set in INSTRUCTING state")
             return
-        self.__state = ReducerState.instructing
+        self.__state = ControllerState.instructing
 
         # Check for a model chain
         if not self.statestore.latest_model():
             logger.warning("No model in model chain, please set seed model.")
 
         # Set reducer in monitoring state
-        self.__state = ReducerState.monitoring
+        self.__state = ControllerState.monitoring
 
         # Start prediction round
         try:
@@ -719,7 +756,7 @@ class Control(ControlBase):
             logger.error("Round failed.")
 
         # Set reducer in idle state
-        self.__state = ReducerState.idle
+        self.__state = ControllerState.idle
 
     def prediction_round(self, config):
         """Execute a prediction round.
@@ -755,7 +792,7 @@ class Control(ControlBase):
         # Synch combiners with latest model and trigger prediction
         for combiner, combiner_config in validating_combiners:
             try:
-                combiner.submit(combiner_config)
+                combiner.submit(fedn.Command.START, combiner_config)
             except CombinerUnavailableError:
                 # It is OK if prediction fails for a combiner
                 self._handle_unavailable_combiner(combiner)

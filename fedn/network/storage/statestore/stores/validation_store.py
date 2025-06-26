@@ -77,9 +77,9 @@ class SQLValidationStore(ValidationStore, SQLStore[ValidationDTO, ValidationMode
         sender_role = orm_dict.pop("sender_role")
         if sender_name is not None and sender_role is not None:
             orm_dict["sender"] = {"name": sender_name, "role": sender_role}
-        reciever_name = orm_dict.pop("receiver_name")
+        receiver_name = orm_dict.pop("receiver_name")
         receiver_role = orm_dict.pop("receiver_role")
-        if reciever_name is not None and receiver_role is not None:
-            orm_dict["receiver"] = {"name": reciever_name, "role": receiver_role}
+        if receiver_name is not None and receiver_role is not None:
+            orm_dict["receiver"] = {"name": receiver_name, "role": receiver_role}
 
         return ValidationDTO().populate_with(orm_dict)

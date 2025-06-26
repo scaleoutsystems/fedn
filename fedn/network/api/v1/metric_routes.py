@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 
 bp = Blueprint("metric", __name__, url_prefix=f"/api/{api_version}/metrics")
 
@@ -118,7 +118,7 @@ def get_metrics():
               type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -220,7 +220,7 @@ def list_metrics():
             type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -269,7 +269,7 @@ def get_metric(id: str):
               type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         response = db.metric_store.get(id)
         if response is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -354,7 +354,7 @@ def get_metrics_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.metric_store.count(**kwargs)
         response = count
@@ -446,7 +446,7 @@ def metrics_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.metric_store.count(**kwargs)
         response = count

@@ -108,6 +108,25 @@ def get_network_config(file=None):
     return settings["network_id"]
 
 
+def get_api_config(file=None):
+    """Get the api configuration from file.
+
+    :param file: The api configuration file (yaml) path (optional).
+    :type file: str
+    :return: The api configuration as a dict.
+    :rtype: dict
+    """
+    if file is None:
+        get_environment_config()
+        file = STATESTORE_CONFIG
+    with open(file, "r") as config_file:
+        try:
+            settings = dict(yaml.safe_load(config_file))
+        except yaml.YAMLError as e:
+            raise (e)
+    return settings["api"]
+
+
 def get_controller_config(file=None):
     """Get the controller configuration from file.
 
