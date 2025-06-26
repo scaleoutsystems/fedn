@@ -32,7 +32,7 @@ fi
 fedn studio login -u $STUDIO_USER -P $STUDIO_PASSWORD -H $STUDIO_HOST
 TAG=sha-$(git rev-parse HEAD | cut -c1-7)
 PROJECT_NAME=citest_$TAG
-fedn project create -n $PROJECT_NAME -H $STUDIO_HOST --branch main --repository ghcr.io/scaleoutsystems/fedn --image fedn:$TAG --no-interactive
+fedn project create -n $PROJECT_NAME -H $STUDIO_HOST --branch $STUDIO_BRANCH --repository ghcr.io/scaleoutsystems/fedn --image fedn:$TAG --no-interactive
 for i in {1..10}; do echo "Attempt $i of 10"; if ! fedn project list -H $STUDIO_HOST | awk -F'|' -v project="$PROJECT_NAME" '$1 ~ project {gsub(/^[ \t]+|[ \t]+$/, "", $4); if ($4 == "active") {exit 1} else {exit 0}}'; then echo "Status is active, exiting"; break; else echo "Status is not active, sleeping..."; sleep 5; fi; done
 FEDN_PROJECT=$(fedn project list -H $STUDIO_HOST | awk -F'|' -v project="$PROJECT_NAME" '$1 ~ project {gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2}')
 fedn project set-context -id $FEDN_PROJECT -H $STUDIO_HOST
