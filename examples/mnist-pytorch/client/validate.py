@@ -2,9 +2,9 @@ import os
 import sys
 
 import torch
+from data import load_data
 from model import load_parameters
 
-from data import load_data
 from fedn.utils.helpers.helpers import save_metrics
 
 dir_path = os.path.dirname(os.path.realpath(__file__))

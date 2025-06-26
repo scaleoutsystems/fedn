@@ -18,10 +18,10 @@ import uuid
 from io import BytesIO
 from multiprocessing import Process
 
+import click
 import numpy as np
 from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
-import click
 
 from config import settings
 from fedn import FednClient
@@ -168,7 +168,9 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
     else:
         fl_client.run()
 
+
 if __name__ == "__main__":
+
     @click.command()
     @click.option("--name", "-n", default="client", help="Base name for clients (will be appended with number)")
     @click.option("--no-discovery", is_flag=True, help="Connect to combiner without discovery service")

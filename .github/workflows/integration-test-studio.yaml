@@ -41,10 +41,10 @@ on:
         description: 'Array Size Factor, used in load-test, 1 = 144MB'
         required: false
         default: '1'
-      FEDN_CLIENT_TIMEOUT:
-        description: 'Client Connection Timeout (OBS - not related to round timeout)'
+      STUDIO_BRANCH:
+        description: 'Branch to test fedn chart'
         required: false
-        default: '420'
+        default: 'main'
 
 jobs:
   integration-test:
@@ -84,8 +84,9 @@ jobs:
         echo "FEDN_NR_EXPECTED_AGG=${{ github.event.inputs.FEDN_NR_EXPECTED_AGG || '2' }}" >> .ci/tests/studio/.env
         echo "FEDN_SESSION_TIMEOUT=${{ github.event.inputs.FEDN_SESSION_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
         echo "FEDN_ARRAY_SIZE_FACTOR=${{ github.event.inputs.FEDN_ARRAY_SIZE_FACTOR || '1' }}" >> .ci/tests/studio/.env
-        echo "FEDN_CLIENT_TIMEOUT=${{ github.event.inputs.FEDN_CLIENT_TIMEOUT || '420' }}" >> .ci/tests/studio/.env
+        echo "FEDN_CLIENT_TIMEOUT=420" >> .ci/tests/studio/.env
         echo "FEDN_PACKAGE_EXTRACT_DIR=client" >> .ci/tests/studio/.env
+        echo "STUDIO_BRANCH=${{ github.event.inputs.STUDIO_BRANCH || 'main' }}" >> .ci/tests/studio/.env
         
     - name: Run integration tests
       env:

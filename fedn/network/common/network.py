@@ -192,22 +192,17 @@ class Network:
 
     def get_number_of_available_clients(self, client_ids: list[str]):
         result = 0
-        active_clients = None
         for combiner in self.get_combiners():
             try:
-                if active_clients is None:
-                    active_clients = combiner.list_active_clients()
-                else:
-                    active_clients += combiner.list_active_clients()
+                active_clients = combiner.list_active_clients()
+                if active_clients is not None:
+                    if client_ids is not None:
+                        filtered = [item for item in active_clients if item.client_id in client_ids]
+                        result += len(filtered)
+                    else:
+                        result += len(active_clients)
             except CombinerUnavailableError:
                 return 0
-
-        if client_ids is not None:
-            filtered = [item for item in active_clients if item.client_id in client_ids]
-            result = len(filtered)
-        else:
-            result = len(active_clients)
-
         return result
 
     def get_compute_package(self, compute_package=""):
