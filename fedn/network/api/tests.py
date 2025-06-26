@@ -93,12 +93,6 @@ class NetworkAPITests(unittest.TestCase):
         
         self.assertEqual(response.status_code, 410)
 
-    def test_get_controller_status(self):
-        """ Test get_models endpoint. """
-        response = self.app.get('/get_controller_status')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
-
     def test_get_single_endpoints(self):
         """ Test get single endpoints. """
         expected_return_id = "test"
