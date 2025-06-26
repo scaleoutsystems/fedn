@@ -1,9 +1,8 @@
-import ast
 import inspect
 import queue
 import random
 import time
-import uuid
+import traceback
 from typing import TYPE_CHECKING, TypedDict
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -117,7 +116,7 @@ class RoundHandler:
     def set_server_functions(self, server_functions: str):
         self.server_functions = server_functions
 
-    def push_round_config(self, round_config: RoundConfig) -> str:
+    def push_round_config(self, round_config: RoundConfig):
         """Add a round_config (job description) to the inbox.
 
         :param round_config: A dict containing the round configuration (from global controller).
@@ -126,12 +125,10 @@ class RoundHandler:
         :rtype: str
         """
         try:
-            round_config["_job_id"] = str(uuid.uuid4())
             self.round_configs.put(round_config)
         except Exception:
             logger.error("Failed to push round config.")
             raise
-        return round_config["_job_id"]
 
     def _training_round(self, config: dict, clients: list, provided_functions: dict):
         """Send model update requests to clients and aggregate results.
@@ -192,7 +189,8 @@ class RoundHandler:
                     delete_models = False
 
                 if "aggregator_kwargs" in config.keys():
-                    dict_parameters = ast.literal_eval(config["aggregator_kwargs"])
+                    logger.info("Using aggregator kwargs from config: {}".format(config["aggregator_kwargs"]))
+                    dict_parameters = config["aggregator_kwargs"]
                     parameters = Parameters(dict_parameters)
                 else:
                     parameters = None
@@ -203,7 +201,10 @@ class RoundHandler:
                     model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
             except Exception as e:
                 logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
-                raise
+                model = None
+                data = None
+        else:
+            logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
         return model, meta
@@ -554,6 +555,10 @@ class RoundHandler:
             while True:
                 try:
                     round_config = self.round_configs.get(block=False)
+                except queue.Empty:
+                    time.sleep(polling_interval)
+                    continue
+                try:
                     self.flow_controller.stop_event.clear()
                     # Check that the minimum allowed number of clients are connected
                     ready = self._check_nr_round_clients(round_config)
@@ -629,8 +634,14 @@ class RoundHandler:
                         logger.warning("{0}".format(round_meta["reason"]))
 
                     self.round_configs.task_done()
-                except queue.Empty:
-                    time.sleep(polling_interval)
+                except Exception as e:
+                    tb = traceback.format_exc()
+                    logger.error("Uncought exception: {}".format(e))
+                    logger.error("Traceback: {}".format(tb))
+                    round_meta = {}
+                    round_meta["status"] = "Failed"
+                    round_meta["reason"] = str(e)
+                    self.round_configs.task_done()
 
         except (KeyboardInterrupt, SystemExit):
             pass

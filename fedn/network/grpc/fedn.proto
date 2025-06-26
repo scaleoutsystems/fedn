@@ -280,8 +280,9 @@ message ControlRequest {
 
 message CommandRequest{
   Command command = 1;
-  string command_type = 2;
-  string parameters = 3;
+  string correlation_id = 2;
+  string command_type = 3;
+  string parameters = 4;
 }
 
 message ControlResponse {

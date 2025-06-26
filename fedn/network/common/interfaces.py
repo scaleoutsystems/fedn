@@ -81,8 +81,9 @@ class CombinerInterface:
     :type config: dict
     """
 
-    def __init__(self, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
+    def __init__(self, combiner_id, parent, name, address, fqdn, port, certificate=None, key=None, ip=None, config=None):
         """Initialize the combiner interface."""
+        self.combiner_id = combiner_id
         self.parent = parent
         self.name = name
         self.address = address
@@ -96,44 +97,6 @@ class CombinerInterface:
             self.config = {"max_clients": 8}
         else:
             self.config = config
-
-    @classmethod
-    def from_json(combiner_config):
-        """Initialize the combiner config from a json document.
-
-        :parameter combiner_config: The combiner configuration.
-        :type combiner_config: dict
-        :return: An instance of the combiner interface.
-        :rtype: :class:`fedn.network.combiner.interfaces.CombinerInterface`
-        """
-        return CombinerInterface(**combiner_config)
-
-    def to_dict(self):
-        """Export combiner configuration to a dictionary.
-
-        :return: A dictionary with the combiner configuration.
-        :rtype: dict
-        """
-        data = {
-            "parent": self.parent,
-            "name": self.name,
-            "address": self.address,
-            "fqdn": self.fqdn,
-            "port": self.port,
-            "ip": self.ip,
-            "certificate": None,
-            "key": None,
-            "config": self.config,
-        }
-        return data
-
-    def to_json(self):
-        """Export combiner configuration to json.
-
-        :return: A json document with the combiner configuration.
-        :rtype: str
-        """
-        return json.dumps(self.to_dict())
 
     def get_certificate(self):
         """Get combiner certificate.
@@ -218,33 +181,34 @@ class CombinerInterface:
             else:
                 raise
 
-    def submit(self, command: fedn.Command, config: Dict = None):
-        """Submit a compute plan to the combiner.
+    def submit(self, command: fedn.Command, parameters: Dict = None) -> fedn.ControlResponse:
+        """Send a command to the combiner.
 
-        :param config: The job configuration.
-        :type config: dict
-        :return: Server ControlResponse object.
+        :param command: The command to send.
+        :type command: :class:`fedn.network.grpc.fedn_pb2.Command`
+        :param parameters: The parameters for the command (optional).
+        :type parameters: dict
+        :return: The response from the combiner.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ControlStub(channel)
-        request = fedn.ControlRequest()
+
+        request = fedn.CommandRequest()
+
         request.command = command
-        if config:
-            for k, v in config.items():
-                p = request.parameter.add()
-                p.key = str(k)
-                p.value = str(v)
+
+        if parameters:
+            request.parameters = json.dumps(parameters)
 
         try:
-            response = control.Start(request)
+            response = control.SendCommand(request)
+            return response
         except grpc.RpcError as e:
             if e.code() == grpc.StatusCode.UNAVAILABLE:
-                raise CombinerUnavailableError
+                raise CombinerUnavailableError(f"Combiner {self.name} unavailable: {e}")
             else:
                 raise
-
-        return response
 
     def allowing_clients(self):
         """Check if the combiner is allowing additional client connections.
@@ -302,7 +266,7 @@ class ControlInterface:
         self.port = port
         self.certificate = certificate
 
-    def send_command(self, command: fedn.Command, command_type: str, parameters: Dict = None) -> fedn.ControlRequest:
+    def send_command(self, command: fedn.Command, command_type: str = None, parameters: Dict = None) -> fedn.ControlRequest:
         """Send a command to the control interface.
 
         :param command_type: The type of command to send.
@@ -318,7 +282,9 @@ class ControlInterface:
 
         request = fedn.CommandRequest()
         request.command = command
-        request.command_type = command_type
+
+        if command_type:
+            request.command_type = command_type
 
         if parameters:
             request.parameters = json.dumps(parameters)
