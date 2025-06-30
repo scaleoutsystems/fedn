@@ -6,7 +6,6 @@ import time
 from typing import Dict, Optional
 
 import grpc
-from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_random
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
@@ -14,6 +13,7 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.common.command import CommandType
+from fedn.network.common.flow_controller import FlowController
 from fedn.network.common.interfaces import CombinerUnavailableError
 from fedn.network.common.state import ControllerState
 from fedn.network.controller.command_runner import CommandRunner
@@ -422,57 +422,47 @@ class Control(ControlBase, rpc.ControlServicer):
         _ = self.request_model_updates(participating_combiners)
         # TODO: Check response
 
-        # Wait until participating combiners have produced an updated global model,
-        # or round times out.
-        def do_if_round_times_out(result):
-            logger.warning("Round timed out!")
-            return True
-
-        @retry(
-            wait=wait_random(min=1.0, max=2.0),
-            stop=stop_after_delay(session_config.round_timeout),
-            retry_error_callback=do_if_round_times_out,
-            retry=retry_if_exception_type(CombinersNotDoneException),
-        )
-        def combiners_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
-            session_status = self.get_session_status(session_id)
-            if session_status == "Terminated":
-                self.set_round_status(round_id, "Terminated")
-                return False
-            if len(round.combiners) < 1:
-                logger.info("Waiting for combiners to update model...")
-                raise CombinersNotDoneException("Combiners have not yet reported.")
-
             if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
-                raise CombinersNotDoneException("All combiners have not yet reported.")
-
-            return True
-
-        combiners_are_done = combiners_done()
-        if not combiners_are_done:
-            for combiner, _ in participating_combiners:
-                combiner.submit(fedn.Command.STOP)
-            return None, self.db.round_store.get(round_id)
-
-        # Due to the distributed nature of the computation, there might be a
-        # delay before combiners have reported the round data to the db,
-        # so we need some robustness here.
-        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
-        def check_combiners_done_reporting():
-            round = self.db.round_store.get(round_id)
-            session_status = self.get_session_status(session_id)
-            if session_status == "Terminated":
-                self.set_round_status(round_id, "Terminated")
                 return False
-            if len(round.combiners) != len(participating_combiners):
-                raise KeyError("Combiners have not yet reported.")
             return True
 
-        if not check_combiners_done_reporting():
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, session_config.round_timeout, polling_rate=2.0)
+        if reason == FlowController.Reason.TIMEOUT:
+            logger.warning("Round timed out!")
+        elif reason == FlowController.Reason.STOP:
+            self.set_session_status(session_id, "Terminated")
             for combiner, _ in participating_combiners:
                 combiner.submit(fedn.Command.STOP)
+                self.set_round_status(round_id, "Terminated")
+            return None, self.db.round_store.get(round_id)
+        elif reason == FlowController.Reason.CONTINUE:
+            logger.info("Sending continue signal to combiners.")
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.CONTINUE)
+
+        # Wait for the combiners to finish aggreation. The timeout might just been reached and
+        # the combiners need time to finish aggregate the model updates and report back to the
+        # controller as the timeout
+
+        # Update method with new print
+        def check_round_reported():
+            round = self.db.round_store.get(round_id)
+            if len(round.combiners) != len(participating_combiners):
+                logger.info("Waiting for combiners to finish aggregation...")
+                return False
+            return True
+
+        # Infite loop until all combiners have reported back
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, polling_rate=2.0)
+
+        if reason == FlowController.Reason.STOP:
+            self.set_session_status(session_id, "Terminated")
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
+            self.set_round_status(round_id, "Terminated")
             return None, self.db.round_store.get(round_id)
 
         round = self.db.round_store.get(round_id)
@@ -578,46 +568,44 @@ class Control(ControlBase, rpc.ControlServicer):
 
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
-        def do_if_round_times_out(result):
-            logger.warning("Round timed out!")
-            return True
-
-        @retry(
-            wait=wait_random(min=1.0, max=2.0),
-            stop=stop_after_delay(session_config.round_timeout),
-            retry_error_callback=do_if_round_times_out,
-            retry=retry_if_exception_type(CombinersNotDoneException),
-        )
-        def combiners_done():
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
-            session_status = self.get_session_status(session_id)
-            if session_status == "Terminated":
-                self.set_round_status(round_id, "Terminated")
-                return False
-            if len(round.combiners) < 1:
-                logger.info("Waiting for combiners to update model...")
-                raise CombinersNotDoneException("Combiners have not yet reported.")
-
             if len(round.combiners) < len(participating_combiners):
                 logger.info("Waiting for combiners to update model...")
-                raise CombinersNotDoneException("All combiners have not yet reported.")
-
+                return False
             return True
 
-        combiners_are_done = combiners_done()
-        if not combiners_are_done:
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, session_config.round_timeout, polling_rate=2.0)
+        if reason == FlowController.Reason.TIMEOUT:
+            logger.warning("Round timed out!")
+        elif reason == FlowController.Reason.STOP:
+            self.set_session_status(session_id, "Terminated")
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
+                self.set_round_status(round_id, "Terminated")
             return None, self.db.round_store.get(round_id)
+        elif reason == FlowController.Reason.CONTINUE:
+            logger.info("Sending continue signal to combiners.")
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.CONTINUE)
 
-        # Due to the distributed nature of the computation, there might be a
-        # delay before combiners have reported the round data to the db,
-        # so we need some robustness here.
-        @retry(wait=wait_random(min=0.1, max=1.0), retry=retry_if_exception_type(KeyError))
-        def check_combiners_done_reporting():
+        # Update method with new print
+        def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) != len(participating_combiners):
-                raise KeyError("Combiners have not yet reported.")
+                logger.info("Waiting for combiner to finish aggregation...")
+                return False
+            return True
 
-        check_combiners_done_reporting()
+        # Infite loop until all combiners have reported back
+        reason = self.command_runner.flow_controller.wait_until_true(check_round_reported, polling_rate=2.0)
+
+        if reason == FlowController.Reason.STOP:
+            self.set_session_status(session_id, "Terminated")
+            for combiner, _ in participating_combiners:
+                combiner.submit(fedn.Command.STOP)
+            self.set_round_status(round_id, "Terminated")
+            return None, self.db.round_store.get(round_id)
 
         logger.info("CONTROLLER: Forward pass completed.")
 

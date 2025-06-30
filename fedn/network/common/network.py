@@ -86,7 +86,9 @@ class Network:
             else:
                 cert = None
             combiners.append(
-                CombinerInterface(combiner.parent, combiner.name, combiner.address, combiner.fqdn, combiner.port, certificate=cert, ip=combiner.ip)
+                CombinerInterface(
+                    combiner.combiner_id, combiner.parent, combiner.name, combiner.address, combiner.fqdn, combiner.port, certificate=cert, ip=combiner.ip
+                )
             )
 
         return combiners

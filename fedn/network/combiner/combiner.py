@@ -174,25 +174,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Start the gRPC server
         self.server.start()
 
-    @classmethod
-    def create_instance(cls, config: CombinerConfig, repository: Repository, db: DatabaseConnection):
-        """Create a new singleton instance of the combiner.
-
-        :param config: configuration for the combiner
-        :type config: dict
-        :return: the instance of the combiner
-        :rtype: :class:`fedn.network.combiner.server.Combiner`
-        """
-        cls._instance = cls(config, repository, db)
-        return cls._instance
-
-    @classmethod
-    def instance(cls):
-        """Get the singleton instance of the combiner."""
-        if cls._instance is None:
-            raise Exception("Combiner instance not created yet.")
-        return cls._instance
-
     def __whoami(self, client, instance):
         """Set the client id and role in a proto message.
 
@@ -505,41 +486,42 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     #####################################################################################################################
 
     # Controller Service
+    def SendCommand(self, request: fedn.CommandRequest, context):
+        """Send a command to the combiner.
 
-    def Start(self, control: fedn.ControlRequest, context):
-        """Start a round of federated learning"
-
-        :param control: the control request
-        :type control: :class:`fedn.network.grpc.fedn_pb2.ControlRequest`
+        :param request: the command request
+        :type request: :class:`fedn.network.grpc.fedn_pb2.CommandRequest`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
-        :return: the control response
-        :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
+        :return: the response
+        :rtype: :class:`fedn.network.grpc.fedn_pb2.CommandResponse`
         """
-        if control.command == fedn.Command.START:
-            logger.info("grpc.Combiner.Start: Starting round")
+        if request.command == fedn.Command.START:
+            logger.info("grpc.Combiner.SendCommand: Starting round")
+            parameters = json.loads(request.parameters) if request.parameters else {}
 
+            logger.info("grpc.Combiner.SendCommand: Received parameters: {}".format(parameters))
+
+            parameters["_job_id"] = request.correlation_id or str(uuid.uuid4())
             config = RoundConfig()
-            for parameter in control.parameter:
-                config.update({parameter.key: parameter.value})
-            logger.debug("grpc.Combiner.Start: Round config {}".format(config))
+            config.update(parameters)
 
-            job_id = self.round_handler.push_round_config(config)
-            logger.info("grcp.Combiner.Start: Pushed round config (job_id): {}".format(job_id))
+            logger.info("grpc.Combiner.SendCommand: Round config {}".format(config))
+            self.round_handler.push_round_config(config)
 
             response = fedn.ControlResponse()
             p = response.parameter.add()
             p.key = "job_id"
-            p.value = job_id
+            p.value = config["_job_id"]
             return response
-        elif control.command == fedn.Command.STOP:
-            logger.info("grpc.Combiner.Start: Stopping current round")
+        elif request.command == fedn.Command.STOP:
+            logger.info("grpc.Combiner.SendCommand: Stopping current round")
             self.round_handler.flow_controller.stop_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"
             return response
-        elif control.command == fedn.Command.CONTINUE:
-            logger.info("grpc.Combiner.Start: Continuing current round")
+        elif request.command == fedn.Command.CONTINUE:
+            logger.info("grpc.Combiner.SendCommand: Continuing current round")
             self.round_handler.flow_controller.continue_event.set()
             response = fedn.ControlResponse()
             response.message = "Success"
