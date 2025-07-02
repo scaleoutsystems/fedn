@@ -185,7 +185,7 @@ class ModelService(rpc.ModelServiceServicer):
         logger.debug("grpc.ModelService.Upload: Called")
 
         metadata = dict(context.invocation_metadata())
-        model_id = metadata.get("model_id")
+        model_id = metadata.get("model-id")
         checksum = metadata.get("checksum")
 
         if not model_id:
