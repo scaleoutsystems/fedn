@@ -2,13 +2,14 @@ import os
 
 from flask import Flask, jsonify, request
 
-from fedn.common.config import get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
+from fedn.common.config import get_api_config, get_controller_config, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.network.api import gunicorn_app
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import ApplicationState, get_network
 from fedn.network.api.v1 import _routes
 from fedn.network.api.v1.graphql.schema import schema
-from fedn.network.controller.control import Control
-from fedn.network.state import ReducerStateToString
+from fedn.network.common.network import Network
+from fedn.network.common.state import ReducerStateToString
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 
@@ -62,7 +63,7 @@ def get_controller_status():
     return: The status as a json object.
     rtype: json
     """
-    return jsonify({"state": ReducerStateToString(Control.instance().state())}), 200
+    return jsonify({"state": ReducerStateToString(get_network().get_control_state())}), 200
 
 
 if custom_url_prefix:
@@ -481,8 +482,8 @@ if custom_url_prefix:
     app.add_url_rule(f"{custom_url_prefix}/delete_model_trail", view_func=delete_model_trail, methods=["GET", "POST"])
 
 
-def start_server_api():
-    config = get_controller_config()
+def start_api_server():
+    config = get_api_config()
     port = config["port"]
     host = "0.0.0.0"
     debug = config["debug"]
@@ -491,19 +492,27 @@ def start_server_api():
     modelstorage_config = get_modelstorage_config()
     statestore_config = get_statestore_config()
 
-    # TODO: Initialize database with config instead of reading it under the hood
-    db = DatabaseConnection(statestore_config, network_id, connect=False)
-    repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
-    Control.create_instance(network_id, repository, db)
+    controller = get_controller_config()
+
+    def init_globals():
+        """Initialize the database connection and repository"""
+        state = ApplicationState()
+        state.db = DatabaseConnection(statestore_config, network_id)
+        state.repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"])
+        state.network = Network(state.db, state.repository, controller_host=controller["host"], controller_port=controller["port"])
 
     if debug:
         # Without gunicorn, we can initialize the database connection here
-        db.initialize_connection()
+        init_globals()
         app.run(debug=debug, port=port, host=host)
     else:
+
+        def post_fork(server, worker):
+            init_globals()
+
         workers = os.cpu_count()
-        gunicorn_app.run_gunicorn(app, host, port, workers)
+        gunicorn_app.run_gunicorn(app, host, port, workers, post_fork_func=post_fork)
 
 
 if __name__ == "__main__":
-    start_server_api()
+    start_api_server()

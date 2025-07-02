@@ -1,11 +1,12 @@
-import threading
-
 from flask import Blueprint, jsonify, request
+from grpc import RpcError
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db, get_network
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
+from fedn.network.common.command import CommandType
 
 bp = Blueprint("prediction", __name__, url_prefix=f"/api/{api_version}/predictions")
 
@@ -20,8 +21,8 @@ def start_session():
     type: rounds: int
     """
     try:
-        db = Control.instance().db
-        control = Control.instance()
+        db = get_db()
+        control = get_network().get_control()
 
         data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
         prediction_id: str = data.get("prediction_id")
@@ -42,7 +43,11 @@ def start_session():
                 return jsonify({"message": f"Model {model_id} not found"}), 404
             session_config["model_id"] = model_id
 
-        threading.Thread(target=control.prediction_session, kwargs={"config": session_config}).start()
+        try:
+            control.send_command(fedn.Command.START, CommandType.PredictionSession.value, session_config)
+        except RpcError as e:
+            logger.error(f"Failed to start prediction session: {e}")
+            return jsonify({"message": "Failed to start prediction session"}), 500
 
         return jsonify({"message": "Prediction session started"}), 200
     except Exception as e:
@@ -169,7 +174,7 @@ def get_predictions():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -267,7 +272,7 @@ def list_predictions():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -311,7 +316,7 @@ def get_predictions_count():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.prediction_store.count(**kwargs)
         response = count
@@ -380,7 +385,7 @@ def predictions_count():
             type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.prediction_store.count(**kwargs)
         response = count
@@ -427,7 +432,7 @@ def get_prediction(id: str):
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
 
         prediction = db.prediction_store.get(id)
         if prediction is None:

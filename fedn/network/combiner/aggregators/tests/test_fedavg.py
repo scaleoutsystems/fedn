@@ -26,7 +26,7 @@ class TestFedAvg(unittest.TestCase):
         data['time_model_aggregation'] = 0.0
         data['nr_aggregated_models'] = 0
 
-        self.assertEqual(aggregator.combine_models(), (None, data))
+        self.assertEqual(aggregator.combine_models(""), (None, data))
 
 
 if __name__ == '__main__':

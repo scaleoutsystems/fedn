@@ -8,12 +8,10 @@ from fedn.common.config import FEDN_COMPUTE_PACKAGE_DIR
 from fedn.common.log_config import logger, tracer
 from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_checksum as _get_checksum
-from fedn.network.api.v1.shared import (api_version, get_post_data_to_kwargs,
-                                        get_typed_list_headers)
-from fedn.network.controller.control import Control
+from fedn.network.api.shared import get_db, get_network, get_repository
+from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
 from fedn.network.storage.statestore.stores.dto.package import PackageDTO
-from fedn.network.storage.statestore.stores.shared import (MissingFieldError,
-                                                           ValidationError)
+from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
 bp = Blueprint("package", __name__, url_prefix=f"/api/{api_version}/packages")
 
@@ -123,7 +121,7 @@ def get_packages():
 
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -211,7 +209,7 @@ def list_packages():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -278,7 +276,7 @@ def get_packages_count():
 
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.package_store.count(**kwargs)
         response = count
@@ -342,7 +340,7 @@ def packages_count():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.package_store.count(**kwargs)
         response = count
@@ -387,7 +385,7 @@ def get_package(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         response = db.package_store.get(id)
         if response is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -427,7 +425,7 @@ def get_active_package():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         response = db.package_store.get_active()
         if response is None:
             return jsonify({"message": "Entity not found"}), 404
@@ -463,7 +461,7 @@ def set_active_package():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         data = request.json
         package_id = data["id"]
         response = db.package_store.set_active(package_id)
@@ -509,7 +507,7 @@ def delete_active_package():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         result = db.package_store.delete_active()
         if result is False:
             return jsonify({"message": "Entity not found"}), 404
@@ -567,8 +565,8 @@ def upload_package():
               type: string
     """
     try:
-        db = Control.instance().db
-        repository = Control.instance().repository
+        db = get_db()
+        repository = get_repository()
 
         data = request.form.to_dict()
         file = request.files["file"]
@@ -648,8 +646,8 @@ def download_package():
                     message:
                         type: string
     """
-    db = Control.instance().db
-    control = Control.instance()
+    db = get_db()
+    network = get_network()
 
     name = request.args.get("name", None)
     if name is None:
@@ -665,7 +663,7 @@ def download_package():
         return send_from_directory(FEDN_COMPUTE_PACKAGE_DIR, name, as_attachment=True)
     except Exception:
         try:
-            data = control.get_compute_package(name)
+            data = network.get_compute_package(name)
             # TODO: make configurable, perhaps in config.py or package.py
             file_path = safe_join(FEDN_COMPUTE_PACKAGE_DIR, name)
             with open(file_path, "wb") as fh:

@@ -8,7 +8,7 @@ from run_cmd import check_helper_config_file
 from run_cmd import run_cmd,check_yaml_exists,logger
 import click
 from main import main
-from fedn.network.api.server import start_server_api
+from fedn.network.api.server import start_api_server
 from controller_cmd import main, controller_cmd
 import tarfile
 from package_cmd import create_tar_with_ignore, create_cmd, package_cmd

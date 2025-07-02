@@ -1,33 +1,13 @@
-import os
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple
 
-import fedn.utils.helpers.helpers
-from fedn.common.log_config import logger
-from fedn.network.api.network import Network
-from fedn.network.combiner.interfaces import CombinerInterface, CombinerUnavailableError
+import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.network.combiner.roundhandler import RoundConfig
-from fedn.network.state import ReducerState
+from fedn.network.common.interfaces import CombinerInterface, CombinerUnavailableError
+from fedn.network.common.network import Network
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.network.storage.statestore.stores.dto import ModelDTO
 from fedn.network.storage.statestore.stores.dto.round import RoundDTO
-from fedn.network.storage.statestore.stores.shared import SortOrder
-
-# Maximum number of tries to connect to statestore and retrieve storage configuration
-MAX_TRIES_BACKEND = os.getenv("MAX_TRIES_BACKEND", 10)
-
-
-class UnsupportedStorageBackend(Exception):
-    pass
-
-
-class MisconfiguredStorageBackend(Exception):
-    pass
-
-
-class MisconfiguredHelper(Exception):
-    pass
 
 
 class ControlBase(ABC):
@@ -48,15 +28,10 @@ class ControlBase(ABC):
         db: DatabaseConnection,
     ):
         """Constructor."""
-        self._state = ReducerState.setup
-
-        self.network = Network(self, network_id, db)
+        self.network = Network(db, repository)
 
         self.repository = repository
-
         self.db = db
-
-        self._state = ReducerState.idle
 
     @abstractmethod
     def round(self, config, round_number):
@@ -66,74 +41,12 @@ class ControlBase(ABC):
     def reduce(self, combiners):
         pass
 
-    def get_helper(self):
-        """Get a helper instance from global config.
-
-        :return: Helper instance.
-        :rtype: :class:`fedn.utils.plugins.helperbase.HelperBase`
-        """
-        helper_type: str = None
-
-        try:
-            active_package = self.db.package_store.get_active()
-            helper_type = active_package.helper
-        except Exception:
-            logger.error("Failed to get active helper")
-
-        helper = fedn.utils.helpers.helpers.get_helper(helper_type)
-        if not helper:
-            raise MisconfiguredHelper("Unsupported helper type {}, please configure compute_package.helper !".format(helper_type))
-        return helper
-
-    def get_state(self):
-        """Get the current state of the controller.
-
-        :return: The current state.
-        :rtype: :class:`fedn.network.state.ReducerState`
-        """
-        return self._state
-
-    def idle(self):
-        """Check if the controller is idle.
-
-        :return: True if idle, False otherwise.
-        :rtype: bool
-        """
-        if self._state == ReducerState.idle:
-            return True
-        else:
-            return False
-
     def get_latest_round_id(self) -> int:
         return self.db.round_store.get_latest_round_id()
-
-    def get_compute_package_name(self):
-        """:return:"""
-        definition = self.db.package_store.get_active()
-        if definition:
-            try:
-                package_name = definition.storage_file_name
-                return package_name
-            except (IndexError, KeyError):
-                logger.error("No context filename set for compute context definition")
-                return None
-        else:
-            return None
 
     def set_compute_package(self, filename, path):
         """Persist the configuration for the compute package."""
         self.repository.set_compute_package(filename, path)
-
-    def get_compute_package(self, compute_package=""):
-        """:param compute_package:
-        :return:
-        """
-        if compute_package == "":
-            compute_package = self.get_compute_package_name()
-        if compute_package:
-            return self.repository.get_compute_package(compute_package)
-        else:
-            return None
 
     def set_session_status(self, session_id: str, status: str) -> Tuple[bool, Any]:
         """Set the round round stats.
@@ -212,7 +125,7 @@ class ControlBase(ABC):
         round.round_config = round_config
         self.db.round_store.update(round)
 
-    def request_model_updates(self, combiners):
+    def request_model_updates(self, combiners: List[Tuple[CombinerInterface, Dict]]):
         """Ask Combiner server to produce a model update.
 
         :param combiners: A list of combiners
@@ -220,54 +133,9 @@ class ControlBase(ABC):
         """
         cl = []
         for combiner, combiner_round_config in combiners:
-            response = combiner.submit(combiner_round_config)
+            response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
             cl.append((combiner, response))
         return cl
-
-    def commit(self, model: dict = None, session_id: str = None, name: str = None) -> str:
-        """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
-
-        :param model_id: Unique identifier for the model to commit.
-        :type model_id: str (uuid)
-        :param model: The model object to commit
-        :type model: BytesIO
-        :param session_id: Unique identifier for the session
-        :type session_id: str
-        """
-        helper = self.get_helper()
-        if model is not None:
-            outfile_name = helper.save(model)
-            logger.info("Saving model file temporarily to {}".format(outfile_name))
-            logger.info("CONTROL: Uploading model to object store...")
-            model_id = self.repository.set_model(outfile_name, is_file=True)
-
-            logger.info("CONTROL: Deleting temporary model file...")
-            os.unlink(outfile_name)
-
-        logger.info("Committing model {} to global model trail in statestore...".format(model_id))
-
-        parent_model = None
-        if session_id:
-            last_model_of_session = self.db.model_store.list(1, 0, "committed_at", SortOrder.DESCENDING, session_id=session_id)
-            if len(last_model_of_session) == 1:
-                parent_model = last_model_of_session[0].model_id
-            else:
-                session = self.db.session_store.get(session_id)
-                parent_model = session.seed_model_id
-
-        new_model = ModelDTO()
-        new_model.model_id = model_id
-        new_model.parent_model = parent_model
-        new_model.session_id = session_id
-        new_model.name = name
-
-        try:
-            self.db.model_store.add(new_model)
-        except Exception as e:
-            logger.error("Failed to commit model to global model trail: {}".format(e))
-            raise Exception("Failed to commit model to global model trail")
-
-        return model_id
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():
@@ -341,11 +209,3 @@ class ControlBase(ABC):
             return False
 
         return True
-
-    def state(self):
-        """Get the current state of the controller.
-
-        :return: The state
-        :rype: str
-        """
-        return self._state

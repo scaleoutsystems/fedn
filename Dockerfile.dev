@@ -12,7 +12,8 @@ COPY . /app
 COPY config/settings-client.yaml.template /app/config/settings-client.yaml
 COPY config/settings-combiner.yaml.template /app/config/settings-combiner.yaml
 COPY config/settings-hooks.yaml.template /app/config/settings-hooks.yaml
-COPY config/settings-reducer.yaml.template /app/config/settings-reducer.yaml
+COPY config/settings-api-server.yaml.template /app/config/settings-api-server.yaml
+COPY config/settings-controller.yaml.template /app/config/settings-controller.yaml
 COPY $REQUIREMENTS /app/config/requirements.txt
 
 # Install developer tools (needed for psutil)

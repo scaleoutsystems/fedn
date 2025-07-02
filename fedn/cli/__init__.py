@@ -1,3 +1,4 @@
+from .api_server_cmd import api_server_cmd  # noqa: F401
 from .client_cmd import client_cmd  # noqa: F401
 from .combiner_cmd import combiner_cmd  # noqa: F401
 from .config_cmd import config_cmd  # noqa: F401

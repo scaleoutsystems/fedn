@@ -175,8 +175,8 @@ config/settings-combiner.yaml
 config/extra-hosts-client.yaml
 config/extra-hosts-reducer.yaml
 config/settings-client.yaml
-config/settings-reducer.yaml
-config/settings-combiner.yaml
+config/settings-api-server.yaml
+config/settings-controller.yaml
 config/settings-hooks.yaml
 
 ./tmp/*

@@ -1,4 +1,5 @@
 import math
+import queue
 import time
 import traceback
 from typing import Any, Dict, Optional, Tuple
@@ -38,7 +39,7 @@ class Aggregator(AggregatorBase):
         self.m = None
 
     def combine_models(
-        self, helper: Optional[HelperBase] = None, delete_models: bool = True, parameters: Optional[Parameters] = None
+        self, session_id, helper: Optional[HelperBase] = None, delete_models: bool = True, parameters: Optional[Parameters] = None
     ) -> Tuple[Optional[Any], Dict[str, float]]:
         """Compute pseudo gradients using model updates in the queue.
 
@@ -71,10 +72,13 @@ class Aggregator(AggregatorBase):
         pseudo_gradient, model_old = None, None
         nr_aggregated_models, total_examples = 0, 0
 
-        while not self.update_handler.model_updates.empty():
+        while True:
             try:
-                logger.info(f"Aggregator {self.name}: Fetching next model update.")
-                model_update = self.update_handler.next_model_update()
+                try:
+                    model_update = self.update_handler.next_model_update(session_id)
+                    logger.info(f"Aggregator {self.name}: Fetching next model update.")
+                except queue.Empty:
+                    break
 
                 tic = time.time()
                 model_next, metadata = self.update_handler.load_model_update(model_update, helper)
