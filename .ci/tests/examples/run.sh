@@ -28,7 +28,7 @@ else
     docker compose \
         -f ../../docker-compose.yaml \
         -f docker-compose.override.yaml \
-        up -d --build combiner controller api-server mongo minio client1   
+        up -d --build combiner controller api-server hooks mongo minio client1   
 fi
 
 # add server functions to python path to import server functions code
