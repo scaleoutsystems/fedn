@@ -21,7 +21,7 @@ from fedn.network.combiner.modelservice import upload_request_generator
 # Keepalive settings: these help keep the connection open for long-lived clients
 KEEPALIVE_TIME_MS = 60 * 1000  # Updated, using Benjamins code, send keepalive ping every 60 seconds
 # wait 20 seconds for keepalive ping ack before considering connection dead
-KEEPALIVE_TIMEOUT_MS = 20 * 1000 # Updated: Match server's timeout
+KEEPALIVE_TIMEOUT_MS = 30 * 1000 # Updated: Match server's timeout
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 
