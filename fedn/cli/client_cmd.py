@@ -10,7 +10,7 @@ from fedn.cli.main import main
 from fedn.cli.shared import CONTROLLER_DEFAULTS, STUDIO_DEFAULTS, apply_config, get_context, get_response, print_response
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import set_log_level_from_string
-from fedn.network.clients.client_v2 import ClientOptions, DispatcherClient
+from fedn.network.clients.dispatcher_client import ClientOptions, DispatcherClient
 
 home_dir = os.path.expanduser("~")
 

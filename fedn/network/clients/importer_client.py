@@ -8,10 +8,11 @@ import uuid
 from io import BytesIO
 from typing import Dict, Optional, Tuple
 
-from fedn.common.config import FEDN_CLIENTCACHE_DIR, FEDN_CUSTOM_URL_PREFIX, FEDN_PACKAGE_EXTRACT_DIR
+from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.network.clients.dispatcher_package_runtime import DispatcherPackageRuntime
 from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
+from fedn.network.clients.importer_package_runtime import ImporterPackageRuntime, get_compute_package_dir_path
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper, save_metadata
 
@@ -74,12 +75,13 @@ class DispatcherClient:
         self.package_checksum = package_checksum
         self.helper_type = helper_type
 
-        path = get_compute_package_dir_path()
-        self._package_runtime = DispatcherPackageRuntime(path)
+        package_path, archive_path = get_compute_package_dir_path()
+        self._package_runtime = ImporterPackageRuntime(package_path, archive_path)
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
         self.fedn_client: FednClient = FednClient()
         self.helper = None
+        self.startup_path = startup_path
 
     def _connect_to_api(self) -> Tuple[bool, Optional[dict]]:
         """Connect to the API and handle retries."""
