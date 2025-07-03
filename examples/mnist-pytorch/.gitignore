@@ -3,4 +3,4 @@ data
 *.tgz
 *.tar.gz
 .mnist-pytorch
-client.yaml
+client*.yaml
