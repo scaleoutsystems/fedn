@@ -297,7 +297,7 @@ class GrpcHandler:
         return True
 
     @grpc_retry(max_retries=-1, retry_interval=5)
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
+    def get_model_from_combiner(self, model_id: str, client_id: str, timeout: int = 20) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
         Downloads the model update object via a gRPC streaming channel.
@@ -313,7 +313,7 @@ class GrpcHandler:
         """
         data = BytesIO()
         time_start = time.time()
-        request = fedn.ModelRequest(id=id)
+        request = fedn.ModelRequest(id=model_id)
         request.sender.client_id = client_id
         request.sender.role = fedn.CLIENT
 
@@ -335,7 +335,7 @@ class GrpcHandler:
         return data
 
     @grpc_retry(max_retries=-1, retry_interval=5)
-    def send_model_to_combiner(self, model: BytesIO, id: str) -> Optional[BytesIO]:
+    def send_model_to_combiner(self, model: BytesIO, model_id: str) -> Optional[BytesIO]:
         """Send a model update to the assigned combiner.
 
         Uploads the model updated object via a gRPC streaming channel, Upload.
@@ -358,7 +358,7 @@ class GrpcHandler:
         bt.seek(0, 0)
 
         logger.info("Uploading model to combiner.")
-        result = self.modelStub.Upload(upload_request_generator(bt, id), metadata=self.metadata)
+        result = self.modelStub.Upload(upload_request_generator(bt, model_id), metadata=self.metadata)
         return result
 
     def create_update_message(
@@ -517,3 +517,30 @@ class GrpcHandler:
         self._init_channel(self.host, self.port, self.token)
         self._init_stubs()
         logger.debug("GRPC channel reconnected.")
+
+
+class GrpcConnectionOptions:
+    """Options for configuring the GRPC connection."""
+
+    def __init__(self, host: str, port: int, status: str = "", fqdn: str = "", package: str = "", ip: str = "", helper_type: str = "") -> None:
+        """Initialize GrpcConnectionOptions."""
+        self.status = status
+        self.host = host
+        self.fqdn = fqdn
+        self.package = package
+        self.ip = ip
+        self.port = port
+        self.helper_type = helper_type
+
+    @classmethod
+    def from_dict(cls, config: dict) -> "GrpcConnectionOptions":
+        """Create a GrpcConnectionOptions instance from a JSON string."""
+        return cls(
+            status=config.get("status", ""),
+            host=config.get("host", ""),
+            fqdn=config.get("fqdn", ""),
+            package=config.get("package", ""),
+            ip=config.get("ip", ""),
+            port=config.get("port", 0),
+            helper_type=config.get("helper_type", ""),
+        )

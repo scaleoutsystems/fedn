@@ -2,7 +2,6 @@
 
 import enum
 import json
-import os
 import threading
 import time
 import uuid
@@ -14,49 +13,20 @@ import psutil
 import requests
 
 import fedn.network.grpc.fedn_pb2 as fedn
-from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_PACKAGE_EXTRACT_DIR
+from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE
 from fedn.common.log_config import logger
-from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
-from fedn.network.clients.package_runtime import PackageRuntime
-from fedn.utils.dispatcher import Dispatcher
-
-# Constants for HTTP status codes
-HTTP_STATUS_OK = 200
-HTTP_STATUS_NO_CONTENT = 204
-HTTP_STATUS_BAD_REQUEST = 400
-HTTP_STATUS_UNAUTHORIZED = 401
-HTTP_STATUS_NOT_FOUND = 404
-HTTP_STATUS_PACKAGE_MISSING = 203
+from fedn.network.clients.grpc_handler import GrpcConnectionOptions, GrpcHandler, RetryException
+from fedn.network.clients.http_status_codes import (
+    HTTP_STATUS_BAD_REQUEST,
+    HTTP_STATUS_NOT_FOUND,
+    HTTP_STATUS_OK,
+    HTTP_STATUS_PACKAGE_MISSING,
+    HTTP_STATUS_UNAUTHORIZED,
+)
+from fedn.network.clients.logging_context import LoggingContext
 
 # Default timeout for requests
 REQUEST_TIMEOUT = 10  # seconds
-
-
-class GrpcConnectionOptions:
-    """Options for configuring the GRPC connection."""
-
-    def __init__(self, host: str, port: int, status: str = "", fqdn: str = "", package: str = "", ip: str = "", helper_type: str = "") -> None:
-        """Initialize GrpcConnectionOptions."""
-        self.status = status
-        self.host = host
-        self.fqdn = fqdn
-        self.package = package
-        self.ip = ip
-        self.port = port
-        self.helper_type = helper_type
-
-    @classmethod
-    def from_dict(cls, config: dict) -> "GrpcConnectionOptions":
-        """Create a GrpcConnectionOptions instance from a JSON string."""
-        return cls(
-            status=config.get("status", ""),
-            host=config.get("host", ""),
-            fqdn=config.get("fqdn", ""),
-            package=config.get("package", ""),
-            ip=config.get("ip", ""),
-            port=config.get("port", 0),
-            helper_type=config.get("helper_type", ""),
-        )
 
 
 class ConnectToApiResult(enum.Enum):
@@ -70,43 +40,6 @@ class ConnectToApiResult(enum.Enum):
     UnknownError = 5
 
 
-def get_compute_package_dir_path() -> str:
-    """Get the directory path for the compute package."""
-    if FEDN_PACKAGE_EXTRACT_DIR:
-        result = os.path.join(os.getcwd(), FEDN_PACKAGE_EXTRACT_DIR)
-    else:
-        dirname = "compute-package-" + time.strftime("%Y%m%d-%H%M%S")
-        result = os.path.join(os.getcwd(), dirname)
-
-    if not os.path.exists(result):
-        os.mkdir(result)
-
-    return result
-
-
-class LoggingContext:
-    """Context for keeping track of the session, model and round IDs during a dispatched call from a request."""
-
-    def __init__(
-        self, *, step: int = 0, model_id: str = None, round_id: str = None, session_id: str = None, request: Optional[fedn.TaskRequest] = None
-    ) -> None:
-        if request is not None:
-            if model_id is None:
-                model_id = request.model_id
-            if round_id is None:
-                if request.type == fedn.StatusType.MODEL_UPDATE:
-                    config = json.loads(request.data)
-                    round_id = config["round_id"]
-            if session_id is None:
-                session_id = request.session_id
-
-        self.model_id = model_id
-        self.round_id = round_id
-        self.session_id = session_id
-        self.request = request
-        self.step = step
-
-
 class FednClient:
     """Client for interacting with the FEDn network."""
 
@@ -117,14 +50,12 @@ class FednClient:
         self.train_callback = train_callback
         self.validate_callback = validate_callback
         self.predict_callback = predict_callback
+        self.forward_callback: Optional[callable] = None
+        self.backward_callback: Optional[callable] = None
 
-        path = get_compute_package_dir_path()
-        self._package_runtime = PackageRuntime(path)
-
-        self.dispatcher: Optional[Dispatcher] = None
         self.grpc_handler: Optional[GrpcHandler] = None
 
-        self._current_context: Optional[LoggingContext] = None
+        self._current_logging_context: Optional[LoggingContext] = None
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -190,55 +121,6 @@ class FednClient:
             logger.warning(f"Connect to FEDn Api - Error occurred: {str(e)}")
             return ConnectToApiResult.UnknownError, str(e)
 
-    def download_compute_package(self, url: str, token: str, name: Optional[str] = None) -> bool:
-        """Download compute package from controller."""
-        return self._package_runtime.download_compute_package(url, token, name)
-
-    def set_compute_package_checksum(self, url: str, token: str, name: Optional[str] = None) -> bool:
-        """Get checksum of compute package from controller."""
-        return self._package_runtime.set_checksum(url, token, name)
-
-    def unpack_compute_package(self) -> Tuple[bool, str]:
-        """Unpack the compute package."""
-        result, path = self._package_runtime.unpack_compute_package()
-        if result:
-            logger.info(f"Compute package unpacked to: {path}")
-        else:
-            logger.error("Error: Could not unpack compute package")
-
-        return result, path
-
-    def validate_compute_package(self, checksum: str) -> bool:
-        """Validate the compute package."""
-        return self._package_runtime.validate(checksum)
-
-    def set_dispatcher(self, path: str) -> bool:
-        """Set the dispatcher."""
-        result = self._package_runtime.get_dispatcher(path)
-        if result:
-            self.dispatcher = result
-            return True
-
-        logger.error("Error: Could not set dispatcher")
-        return False
-
-    def get_or_set_environment(self) -> bool:
-        """Get or set the environment."""
-        try:
-            logger.info("Initiating Dispatcher with entrypoint set to: startup")
-            activate_cmd = self.dispatcher._get_or_create_python_env()
-            self.dispatcher.run_cmd("startup")
-        except KeyError:
-            logger.info("No startup command found in package. Continuing.")
-        except Exception as e:
-            logger.error(f"Caught exception: {type(e).__name__}")
-            return False
-
-        if activate_cmd:
-            logger.info(f"To activate the virtual environment, run: {activate_cmd}")
-
-        return True
-
     def init_grpchandler(self, config: GrpcConnectionOptions, client_name: str, token: str) -> bool:
         """Initialize the GRPC handler."""
         try:
@@ -258,11 +140,11 @@ class FednClient:
             logger.error(f"Could not initialize GRPC connection: {e}")
             return False
 
-    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
+    def _send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
         """Send heartbeats to the server."""
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
-    def listen_to_task_stream(self, client_name: str, client_id: str) -> None:
+    def _listen_to_task_stream(self, client_name: str, client_id: str) -> None:
         """Listen to the task stream."""
         self.grpc_handler.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
 
@@ -284,12 +166,12 @@ class FednClient:
     @contextmanager
     def logging_context(self, context: LoggingContext):
         """Set the logging context."""
-        prev_context = self._current_context
-        self._current_context = context
+        prev_context = self._current_logging_context
+        self._current_logging_context = context
         try:
             yield
         finally:
-            self._current_context = prev_context
+            self._current_logging_context = prev_context
 
     def _task_stream_callback(self, request: fedn.TaskRequest) -> None:
         """Handle task stream callbacks."""
@@ -311,7 +193,7 @@ class FednClient:
             model_update_id = str(uuid.uuid4())
 
             tic = time.time()
-            in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
+            in_model = self.get_model_from_combiner(model_id=model_id, client_id=self.client_id)
 
             if in_model is None:
                 logger.error("Could not retrieve model from combiner. Aborting training request.")
@@ -339,16 +221,23 @@ class FednClient:
             meta["processing_time"] = time.time() - tic
 
             tic = time.time()
-            self.send_model_to_combiner(model=out_model, id=model_update_id)
+            self.send_model_to_combiner(model=out_model, model_id=model_update_id)
             meta["upload_model"] = time.time() - tic
             logger.info("UPLOAD_MODEL: {0}".format(meta["upload_model"]))
 
             meta["fetch_model"] = fetch_model_time
             meta["config"] = request.data
 
-            update = self.create_update_message(model_id=model_id, model_update_id=model_update_id, meta=meta, request=request)
+            update = self.grpc_handler.create_update_message(
+                sender_name=self.name,
+                model_id=model_id,
+                model_update_id=model_update_id,
+                receiver_name=request.sender.name,
+                receiver_role=request.sender.role,
+                meta=meta,
+            )
 
-            self.send_model_update(update)
+            self.grpc_handler.send_model_update(update)
 
             self.send_status(
                 "Model update completed.",
@@ -372,7 +261,7 @@ class FednClient:
                 type=fedn.StatusType.MODEL_VALIDATION,
             )
 
-            in_model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
+            in_model = self.get_model_from_combiner(model_id=model_id, client_id=self.client_id)
 
             if in_model is None:
                 logger.error("Could not retrieve model from combiner. Aborting validation request.")
@@ -387,9 +276,19 @@ class FednClient:
 
             if metrics is not None:
                 # Send validation
-                validation = self.create_validation_message(metrics=metrics, request=request)
 
-                result: bool = self.send_model_validation(validation)
+                validation = self.grpc_handler.create_validation_message(
+                    sender_name=self.name,
+                    sender_client_id=self.client_id,
+                    receiver_name=request.sender.name,
+                    receiver_role=request.sender.role,
+                    model_id=request.model_id,
+                    metrics=json.dumps(metrics),
+                    correlation_id=request.correlation_id,
+                    session_id=request.session_id,
+                )
+
+                result: bool = self.grpc_handler.send_model_validation(validation)
 
                 if result:
                     self.send_status(
@@ -413,7 +312,7 @@ class FednClient:
         """Predict using the global model."""
         with self.logging_context(LoggingContext(request=request)):
             model_id = request.model_id
-            model = self.get_model_from_combiner(id=model_id, client_id=self.client_id)
+            model = self.get_model_from_combiner(model_id=model_id, client_id=self.client_id)
 
             if model is None:
                 logger.error("Could not retrieve model from combiner. Aborting prediction request.")
@@ -426,9 +325,17 @@ class FednClient:
             logger.info(f"Running predict callback with model ID: {model_id}")
             prediction = self.predict_callback(model)
 
-            prediction_message = self.create_prediction_message(prediction=prediction, request=request)
+            prediction_message = self.grpc_handler.create_prediction_message(
+                sender_name=self.name,
+                receiver_name=request.sender.name,
+                receiver_role=request.sender.role,
+                model_id=request.model_id,
+                prediction_output=json.dumps(prediction),
+                correlation_id=request.correlation_id,
+                session_id=request.session_id,
+            )
 
-            self.send_model_prediction(prediction_message)
+            self.grpc_handler.send_model_prediction(prediction_message)
 
     def log_metric(self, metrics: dict, step: int = None, commit: bool = True) -> bool:
         """Log the metrics to the server.
@@ -444,7 +351,7 @@ class FednClient:
             bool: True if the metrics were logged successfully, False otherwise.
 
         """
-        context = self._current_context
+        context = self._current_logging_context
 
         if context is None:
             logger.error("Missing context for logging metric.")
@@ -489,14 +396,21 @@ class FednClient:
         meta["processing_time"] = time.time() - tic
 
         tic = time.time()
-        self.send_model_to_combiner(model=out_embeddings, id=embedding_update_id)
+        self.send_model_to_combiner(model=out_embeddings, model_id=embedding_update_id)
         meta["upload_model"] = time.time() - tic
 
         meta["config"] = request.data
 
-        update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
+        update = self.grpc_handler.create_update_message(
+            sender_name=self.name,
+            model_id=model_id,
+            model_update_id=embedding_update_id,
+            receiver_name=request.sender.name,
+            receiver_role=request.sender.role,
+            meta=meta,
+        )
 
-        self.send_model_update(update)
+        self.grpc_handler.send_model_update(update)
 
         self.send_status(
             "Forward pass completed.",
@@ -513,7 +427,7 @@ class FednClient:
 
         try:
             tic = time.time()
-            in_gradients = self.get_model_from_combiner(id=model_id, client_id=self.client_id)  # gets gradients
+            in_gradients = self.get_model_from_combiner(model_id=model_id, client_id=self.client_id)  # gets gradients
 
             if in_gradients is None:
                 logger.error("Could not retrieve gradients from combiner. Aborting backward request.")
@@ -537,7 +451,16 @@ class FednClient:
             meta["status"] = "success"
 
             logger.info("Creating and sending backward completion to combiner.")
-            completion = self.create_backward_completion_message(gradient_id=model_id, meta=meta, request=request)
+
+            completion = self.grpc_handler.create_backward_completion_message(
+                sender_name=self.name,
+                receiver_name=request.sender.name,
+                receiver_role=request.sender.role,
+                gradient_id=model_id,
+                session_id=request.session_id,
+                meta=meta,
+            )
+
             self.grpc_handler.send_backward_completion(completion)
 
             self.send_status(
@@ -549,17 +472,6 @@ class FednClient:
             )
         except Exception as e:
             logger.error(f"Error in backward pass: {str(e)}")
-
-    def create_backward_completion_message(self, gradient_id: str, meta: dict, request: fedn.TaskRequest):
-        """Create a backward completion message."""
-        return self.grpc_handler.create_backward_completion_message(
-            sender_name=self.name,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            gradient_id=gradient_id,
-            session_id=request.session_id,
-            meta=meta,
-        )
 
     def log_attributes(self, attributes: dict) -> bool:
         """Log the attributes to the server.
@@ -603,42 +515,6 @@ class FednClient:
 
         return self.grpc_handler.send_telemetry(message)
 
-    def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> fedn.ModelUpdate:
-        """Create an update message."""
-        return self.grpc_handler.create_update_message(
-            sender_name=self.name,
-            model_id=model_id,
-            model_update_id=model_update_id,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            meta=meta,
-        )
-
-    def create_validation_message(self, metrics: dict, request: fedn.TaskRequest) -> fedn.ModelValidation:
-        """Create a validation message."""
-        return self.grpc_handler.create_validation_message(
-            sender_name=self.name,
-            sender_client_id=self.client_id,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            model_id=request.model_id,
-            metrics=json.dumps(metrics),
-            correlation_id=request.correlation_id,
-            session_id=request.session_id,
-        )
-
-    def create_prediction_message(self, prediction: dict, request: fedn.TaskRequest) -> fedn.ModelPrediction:
-        """Create a prediction message."""
-        return self.grpc_handler.create_prediction_message(
-            sender_name=self.name,
-            receiver_name=request.sender.name,
-            receiver_role=request.sender.role,
-            model_id=request.model_id,
-            prediction_output=json.dumps(prediction),
-            correlation_id=request.correlation_id,
-            session_id=request.session_id,
-        )
-
     def set_name(self, name: str) -> None:
         """Set the client name."""
         logger.info(f"Setting client name to: {name}")
@@ -652,21 +528,21 @@ class FednClient:
     def run(self, with_telemetry=True, with_heartbeat=True) -> None:
         """Run the client."""
         if with_heartbeat:
-            threading.Thread(target=self.send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
+            threading.Thread(target=self._send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
         if with_telemetry:
             threading.Thread(target=self.default_telemetry_loop, daemon=True).start()
         try:
-            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+            self._listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+    def get_model_from_combiner(self, model_id: str, client_id: str, timeout: int = 20) -> BytesIO:
         """Get the model from the combiner."""
-        return self.grpc_handler.get_model_from_combiner(id=id, client_id=client_id, timeout=timeout)
+        return self.grpc_handler.get_model_from_combiner(model_id=model_id, client_id=client_id, timeout=timeout)
 
-    def send_model_to_combiner(self, model: BytesIO, id: str) -> None:
+    def send_model_to_combiner(self, model: BytesIO, model_id: str) -> None:
         """Send the model to the combiner."""
-        self.grpc_handler.send_model_to_combiner(model, id)
+        self.grpc_handler.send_model_to_combiner(model, model_id)
 
     def send_status(
         self,
@@ -679,67 +555,3 @@ class FednClient:
     ) -> None:
         """Send the status."""
         self.grpc_handler.send_status(msg, log_level, type, request, session_id, sender_name)
-
-    def send_model_update(self, update: fedn.ModelUpdate) -> bool:
-        """Send the model update."""
-        return self.grpc_handler.send_model_update(update)
-
-    def send_model_validation(self, validation: fedn.ModelValidation) -> bool:
-        """Send the model validation."""
-        return self.grpc_handler.send_model_validation(validation)
-
-    def send_model_prediction(self, prediction: fedn.ModelPrediction) -> bool:
-        """Send the model prediction."""
-        return self.grpc_handler.send_model_prediction(prediction)
-
-    def init_remote_compute_package(self, url: str, token: str, package_checksum: Optional[str] = None) -> bool:
-        """Initialize the remote compute package."""
-        result = self.download_compute_package(url, token)
-        if not result:
-            logger.error("Could not download compute package")
-            return False
-        result = self.set_compute_package_checksum(url, token)
-        if not result:
-            logger.error("Could not set checksum")
-            return False
-
-        if package_checksum:
-            result = self.validate_compute_package(package_checksum)
-            if not result:
-                logger.error("Could not validate compute package")
-                return False
-
-        result, path = self.unpack_compute_package()
-
-        if not result:
-            logger.error("Could not unpack compute package")
-            return False
-
-        logger.info(f"Compute package unpacked to: {path}")
-
-        result = self.set_dispatcher(path)
-
-        if not result:
-            logger.error("Could not set dispatcher")
-            return False
-
-        logger.info("Dispatcher set")
-
-        result = self.get_or_set_environment()
-
-        return True
-
-    def init_local_compute_package(self) -> bool:
-        """Initialize the local compute package."""
-        path = os.path.join(os.getcwd(), "client")
-        result = self.set_dispatcher(path)
-
-        if not result:
-            logger.error("Could not set dispatcher")
-            return False
-
-        result = self.get_or_set_environment()
-
-        logger.info("Dispatcher set")
-
-        return True

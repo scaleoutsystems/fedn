@@ -59,8 +59,7 @@ def _install_python(version, pyenv_root=None, capture_output=False):
 
 
 def _is_virtualenv_available():
-    """Returns True if virtualenv is available, otherwise False.
-    """
+    """Returns True if virtualenv is available, otherwise False."""
     return shutil.which("virtualenv") is not None
 
 
@@ -69,7 +68,7 @@ def _validate_virtualenv_is_available():
     on how to install virtualenv.
     """
     if not _is_virtualenv_available():
-        raise Exception("Could not find the virtualenv binary. Run `pip install virtualenv` to install " "virtualenv.")
+        raise Exception("Could not find the virtualenv binary. Run `pip install virtualenv` to install virtualenv.")
 
 
 def _get_virtualenv_extra_env_vars(env_root_dir=None):
@@ -82,8 +81,7 @@ def _get_virtualenv_extra_env_vars(env_root_dir=None):
 
 
 def _get_python_env(python_env_file):
-    """Parses a python environment file and returns a dictionary with the parsed content.
-    """
+    """Parses a python environment file and returns a dictionary with the parsed content."""
     if os.path.exists(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)
 
@@ -101,7 +99,7 @@ def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, cap
     with remove_on_error(
         env_dir,
         onerror=lambda e: logger.warning(
-            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, " "removing the environment directory...",
+            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, removing the environment directory...",
             repr(e),
             env_dir,
         ),
@@ -151,7 +149,7 @@ class Dispatcher:
         self.activate_cmd = ""
         self.python_env_path = ""
 
-    def _get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
+    def get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
         python_env = self.config.get("python_env", "")
         if not python_env:
             logger.info("No python_env specified in the configuration, using the system Python.")
@@ -159,7 +157,7 @@ class Dispatcher:
         else:
             python_env_path = os.path.join(self.project_dir, python_env)
             if not os.path.exists(python_env_path):
-                raise Exception("Compute package specified python_env file %s, but no such " "file was found." % python_env_path)
+                raise Exception("Compute package specified python_env file %s, but no such file was found." % python_env_path)
             python_env = _get_python_env(python_env_path)
 
         extra_env = _get_virtualenv_extra_env_vars()
@@ -183,7 +181,7 @@ class Dispatcher:
             )
             # Install additional dependencies specified by `requirements_override`
             if pip_requirements_override:
-                logger.info("Installing additional dependencies specified by " f"pip_requirements_override: {pip_requirements_override}")
+                logger.info(f"Installing additional dependencies specified by pip_requirements_override: {pip_requirements_override}")
                 cmd = _join_commands(
                     activate_cmd,
                     f"python -m pip install --quiet -U {' '.join(pip_requirements_override)}",
