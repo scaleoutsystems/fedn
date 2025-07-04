@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple
+import time
 
 import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.network.combiner.roundhandler import RoundConfig
@@ -144,23 +145,50 @@ class ControlBase(ABC):
         return None
 
     def get_participating_combiners(self, combiner_round_config) -> List[Tuple[CombinerInterface, Dict]]:
-        """Assemble a list of combiners able to participate in a round as
-        descibed by combiner_round_config.
+        """Assemble a list of combiners able to participate in a round
+           according to combiner_round_config.
         """
         combiners = []
         for combiner in self.network.get_combiners():
-            try:
-                # Current gRPC endpoint only returns active clients (both trainers and validators)
-                nr_active_clients = len(combiner.list_active_clients())
-            except CombinerUnavailableError:
-                self._handle_unavailable_combiner(combiner)
+            nr_active_clients = self._get_nr_active_clients_throttled(combiner)
+            if nr_active_clients is None:
+                logger.warning(f"Combiner {combiner.name} returned nr_active_clients: None.")
                 continue
 
             clients_required = int(combiner_round_config["clients_required"])
             is_participating = self.evaluate_round_participation_policy(clients_required, nr_active_clients)
             if is_participating:
                 combiners.append((combiner, combiner_round_config))
+
         return combiners
+    
+    def _get_nr_active_clients_throttled(self, combiner: CombinerInterface) -> int:
+        """Return the number of active clients for a combiner, but avoid
+           calling `list_active_clients()` if we recently did so.
+        """
+        now = time.time()
+        cache_entry = self._active_clients_cache.get(combiner.name)
+
+        # if we have a cache entry and the time between last call is less than COMBINER_CACHE_COOLDOWN, reuse it.
+        if cache_entry:
+            last_timestamp, nr_active = cache_entry
+            if (now - last_timestamp) < self.COMBINER_CACHE_COOLDOWN:
+                return nr_active
+
+        # otherwise, do a fresh call
+        try:
+            nr_active_clients = len(combiner.list_active_clients())
+        except CombinerUnavailableError:
+            logger.warning(f"Combiner {combiner.name} is unavailable.")
+            return None
+
+        # update the cache
+        self._active_clients_cache[combiner.name] = (time.time(), nr_active_clients)
+        return nr_active_clients
+    
+
+    def _handle_unavailable_combiner(self, combiner):
+        logger.warning(f"Ignoring unavailable combiner {combiner.name}.")
 
     def evaluate_round_participation_policy(self, clients_required: int, nr_active_clients: int) -> bool:
         """Evaluate policy for combiner round-participation.

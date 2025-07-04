@@ -23,6 +23,10 @@ enum StatusType {
   FORWARD = 8;
   BACKWARD_REQUEST = 9;
   BACKWARD = 10;
+  FORWARD_REQUEST = 7;
+  FORWARD = 8;
+  BACKWARD_REQUEST = 9;
+  BACKWARD = 10;
 }
 
 enum LogLevel {
@@ -102,6 +106,16 @@ message ModelPrediction {
   google.protobuf.Timestamp timestamp = 6;
   string meta = 7;
   string prediction_id = 8;
+}
+
+message BackwardCompletion {
+  Client sender = 1;
+  Client receiver = 2;
+  string gradient_id = 3;
+  string correlation_id = 4;
+  string session_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string meta = 7;
 }
 
 message BackwardCompletion {

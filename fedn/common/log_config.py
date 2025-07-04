@@ -70,6 +70,7 @@ class StudioHTTPHandler(logging.handlers.HTTPHandler):
 
 
 # Remote logging configuration
+# Remote logging configuration
 REMOTE_LOG_SERVER = os.environ.get("FEDN_REMOTE_LOG_SERVER", False)
 REMOTE_LOG_PATH = os.environ.get("FEDN_REMOTE_LOG_PATH", False)
 REMOTE_LOG_LEVEL = os.environ.get("FEDN_REMOTE_LOG_LEVEL", "INFO")
@@ -80,7 +81,7 @@ if REMOTE_LOG_SERVER:
 
     http_handler = StudioHTTPHandler(host=REMOTE_LOG_SERVER, url=REMOTE_LOG_PATH, method="POST", token=remote_token)
     http_handler.setLevel(rloglevel)
-    logger.addHandler(http_handler)
+    #logger.addHandler(http_handler)
 
 
 if os.environ.get("OTEL_SERVICE_NAME", None):
@@ -91,7 +92,7 @@ if os.environ.get("OTEL_SERVICE_NAME", None):
     logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
 
     otel_handler = LoggingHandler(logger_provider=logger_provider)
-    logger.addHandler(otel_handler)
+    #logger.addHandler(otel_handler)
 
     # Set up trace provider and exporter
     trace_provider = SDKTracerProvider()

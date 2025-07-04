@@ -294,6 +294,8 @@ class APIClient:
             model = self.get_active_model()
             if "model_id" in model:
                 id = model["model_id"]
+            if "model_id" in model:
+                id = model["model_id"]
             else:
                 return model
 

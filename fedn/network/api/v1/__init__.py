@@ -9,6 +9,7 @@ from fedn.network.api.v1.package_routes import bp as package_bp
 from fedn.network.api.v1.prediction_routes import bp as prediction_bp
 from fedn.network.api.v1.round_routes import bp as round_bp
 from fedn.network.api.v1.run_routes import bp as run_bp
+from fedn.network.api.v1.run_routes import bp as run_bp
 from fedn.network.api.v1.session_routes import bp as session_bp
 from fedn.network.api.v1.status_routes import bp as status_bp
 from fedn.network.api.v1.telemetry_routes import bp as telemetry_bp

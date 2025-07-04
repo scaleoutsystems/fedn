@@ -11,6 +11,7 @@ from io import BytesIO
 from typing import Any, Optional, Tuple, Union
 
 import psutil
+import psutil
 import requests
 
 import fedn.network.grpc.fedn_pb2 as fedn
@@ -30,7 +31,7 @@ HTTP_STATUS_NOT_FOUND = 404
 HTTP_STATUS_PACKAGE_MISSING = 203
 
 # Default timeout for requests
-REQUEST_TIMEOUT = 10  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 
 
 class GrpcConnectionOptions:
@@ -138,6 +139,12 @@ class FednClient:
     def set_predict_callback(self, callback: callable) -> None:
         """Set the predict callback."""
         self.predict_callback = callback
+
+    def set_forward_callback(self, callback: callable):
+        self.forward_callback = callback
+
+    def set_backward_callback(self, callback: callable):
+        self.backward_callback = callback
 
     def set_forward_callback(self, callback: callable):
         self.forward_callback = callback
@@ -259,13 +266,28 @@ class FednClient:
             logger.error(f"Could not initialize GRPC connection: {e}")
             return False
 
-    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
+    def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 20.0) -> None: # Updated update frequency to 20 seconds
         """Send heartbeats to the server."""
         self.grpc_handler.send_heartbeats(client_name=client_name, client_id=client_id, update_frequency=update_frequency)
 
     def listen_to_task_stream(self, client_name: str, client_id: str) -> None:
         """Listen to the task stream."""
         self.grpc_handler.listen_to_task_stream(client_name=client_name, client_id=client_id, callback=self._task_stream_callback)
+
+    def default_telemetry_loop(self, update_frequency: float = 5.0) -> None:
+        """Send default telemetry data."""
+        send_telemetry = True
+        while send_telemetry:
+            memory_usage = psutil.virtual_memory().percent
+            cpu_usage = psutil.cpu_percent()
+            try:
+                success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
+            except RetryException as e:
+                logger.error(f"Sending telemetry failed: {e}")
+            if not success:
+                logger.error("Telemetry failed.")
+                send_telemetry = False
+            time.sleep(update_frequency)
 
     def default_telemetry_loop(self, update_frequency: float = 5.0) -> None:
         """Send default telemetry data."""
@@ -342,6 +364,7 @@ class FednClient:
             self.send_status(
                 f"\t Starting processing of training request for model_id {model_id}",
                 session_id=request.session_id,
+                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_UPDATE,
@@ -397,6 +420,7 @@ class FednClient:
                 logger.error("No validate callback set")
                 return
 
+            logger.debug(f"Running validate callback with model ID: {model_id}")
             logger.debug(f"Running validate callback with model ID: {model_id}")
             metrics = self.validate_callback(in_model)
 
@@ -596,6 +620,27 @@ class FednClient:
             message.attributes.add(key=key, value=value)
 
         return self.grpc_handler.send_attributes(message)
+
+    def log_telemetry(self, telemetry: dict) -> bool:
+        """Log the telemetry data to the server.
+
+        Args:
+            telemetry (dict): The telemetry data to log.
+
+        Returns:
+            bool: True if the telemetry data was logged successfully, False otherwise.
+
+        """
+        message = fedn.TelemetryMessage()
+        message.sender.name = self.name
+        message.sender.client_id = self.client_id
+        message.sender.role = fedn.Role.CLIENT
+        message.timestamp.GetCurrentTime()
+
+        for key, value in telemetry.items():
+            message.telemetries.add(key=key, value=value)
+
+        return self.grpc_handler.send_telemetry(message)
 
     def log_telemetry(self, telemetry: dict) -> bool:
         """Log the telemetry data to the server.

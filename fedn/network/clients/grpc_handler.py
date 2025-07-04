@@ -3,8 +3,10 @@
 import json
 import os
 import random
+import random
 import time
 from datetime import datetime, timezone
+from functools import wraps
 from functools import wraps
 from io import BytesIO
 from typing import Any, Callable, Optional, Union
@@ -19,10 +21,9 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
 
 # Keepalive settings: these help keep the connection open for long-lived clients
-
-KEEPALIVE_TIME_MS = 5 * 1000  # send keepalive ping every 5 second
-# wait 30 seconds for keepalive ping ack before considering connection dead
-KEEPALIVE_TIMEOUT_MS = 30 * 1000
+KEEPALIVE_TIME_MS = 60 * 1000  # Updated, using Benjamins code, send keepalive ping every 60 seconds
+# wait 20 seconds for keepalive ping ack before considering connection dead
+KEEPALIVE_TIMEOUT_MS = 30 * 1000 # Updated: Match server's timeout
 # allow keepalive pings even when there are no RPCs
 KEEPALIVE_PERMIT_WITHOUT_CALLS = True
 
@@ -30,7 +31,13 @@ GRPC_OPTIONS = [
     ("grpc.keepalive_time_ms", KEEPALIVE_TIME_MS),
     ("grpc.keepalive_timeout_ms", KEEPALIVE_TIMEOUT_MS),
     ("grpc.keepalive_permit_without_calls", KEEPALIVE_PERMIT_WITHOUT_CALLS),
-]
+    ("grpc.http2.max_pings_without_data", 5),  # Updated: limit pings without data to 5
+    # ("grpc.max_connection_idle_ms", MAX_CONNECTION_IDLE_MS),
+    # ("grpc.max_connection_age_grace_ms", MAX_CONNECTION_AGE_GRACE_MS),
+    # ("grpc.client_idle_timeout_ms", CLIENT_IDLE_TIMEOUT_MS),
+    ("grpc.http2.min_time_between_pings_ms", 10000),  # Added line: minimum 10 seconds between pings
+    ("grpc.http2.min_ping_interval_without_data_ms", 15000),  # Added line: minimum 15 seconds between pings when idle
+ ]
 
 GRPC_SECURE_PORT = 443
 
@@ -182,6 +189,11 @@ class GrpcHandler:
                 credentials,
                 options=GRPC_OPTIONS,
             )
+            self.channel = grpc.secure_channel(
+                f"{host}:{port}",
+                credentials,
+                options=GRPC_OPTIONS,
+            )
             return
 
         credentials = grpc.ssl_channel_credentials()
@@ -202,22 +214,29 @@ class GrpcHandler:
         )
 
     def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
+    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
+        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
+
+        response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
 
         response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
 
         return response
 
     @grpc_retry(max_retries=-1, retry_interval=5)
+    @grpc_retry(max_retries=-1, retry_interval=5)
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
         """Send heartbeats to the combiner at regular intervals."""
         send_heartbeat = True
         while send_heartbeat:
+            response = self.heartbeat(client_name, client_id)
+            time.sleep(update_frequency)
             response = self.heartbeat(client_name, client_id)
             time.sleep(update_frequency)
             if isinstance(response, fedn.Response):
@@ -226,6 +245,7 @@ class GrpcHandler:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
 
+    @grpc_retry(max_retries=-1, retry_interval=5)
     @grpc_retry(max_retries=-1, retry_interval=5)
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
         """Subscribe to the model update request stream."""
@@ -245,7 +265,20 @@ class GrpcHandler:
                     session_id=request.session_id,
                     sender_name=client_name,
                 )
+        logger.info("Listening to task stream.")
+        for request in self.combinerStub.TaskStream(r, metadata=self.metadata):
+            if request.sender.role == fedn.COMBINER:
+                self.send_status(
+                    "Received request from combiner.",
+                    log_level=fedn.LogLevel.AUDIT,
+                    type=request.type,
+                    request=request,
+                    session_id=request.session_id,
+                    sender_name=client_name,
+                )
 
+                logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
+                callback(request)
                 logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
                 callback(request)
 
@@ -260,6 +293,7 @@ class GrpcHandler:
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
+        session_id: Optional[str] = None,
         session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
@@ -281,6 +315,7 @@ class GrpcHandler:
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = session_id
+        status.session_id = session_id
 
         if type is not None:
             status.type = type
@@ -290,17 +325,32 @@ class GrpcHandler:
 
         logger.info("Sending status message to combiner.")
         _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
+        logger.info("Sending status message to combiner.")
+        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
+    @grpc_retry(max_retries=5, retry_interval=5)
     @grpc_retry(max_retries=5, retry_interval=5)
     def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
         """Send a model metric to the combiner."""
         logger.info("Sending model metric to combiner.")
         _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
+        logger.info("Sending model metric to combiner.")
+        _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
         return True
 
     @grpc_retry(max_retries=5, retry_interval=5)
+    @grpc_retry(max_retries=5, retry_interval=5)
     def send_attributes(self, attribute: fedn.AttributeMessage) -> bool:
         """Send a attribute message to the combiner."""
+        logger.debug("Sending attributes to combiner.")
+        _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
+        return True
+
+    @grpc_retry(max_retries=5, retry_interval=5)
+    def send_telemetry(self, telemetry: fedn.TelemetryMessage) -> bool:
+        """Send a telemetry message to the combiner."""
+        logger.debug("Sending telemetry to combiner.")
+        _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
         logger.debug("Sending attributes to combiner.")
         _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
         return True

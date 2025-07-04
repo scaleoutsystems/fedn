@@ -1,6 +1,10 @@
 __pycache__
+<<<<<<< HEAD
 .splitlearning
 data
 *.tgz
 *.tar.gz
 *.zip
+=======
+data
+>>>>>>> feature/SK-1575

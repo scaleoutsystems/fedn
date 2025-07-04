@@ -381,6 +381,7 @@ def post():
         return jsonify({"message": "Invalid object"}), 400
     except Exception as e:
         logger.error("error when creating a session")
+        logger.error("error when creating a session")
         logger.error(f"An unexpected error occurred: {e}")
         return jsonify({"message": "An unexpected error occurred"}), 500
 

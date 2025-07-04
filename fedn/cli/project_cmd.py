@@ -5,6 +5,7 @@ import requests
 
 from .main import main
 from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, pretty_print_projects, print_response, set_context
+from .shared import HOME_DIR, STUDIO_DEFAULTS, get_api_url, get_context, get_response, get_token, pretty_print_projects, print_response, set_context
 
 
 @main.group("project")
@@ -55,6 +56,8 @@ def delete_project(ctx, id: str = None, protocol: str = None, host: str = None, 
 @click.option("--branch", required=False, default=None, help="Studio branch (default main). Requires admin in Studio")
 @click.option("--image", required=False, default=None, help="Container image. Requires admin in Studio")
 @click.option("--repository", required=False, default=None, help="Container image repository. Requires admin in Studio")
+@click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
+@click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @click.option("--no-interactive", is_flag=True, help="Run in non-interactive mode.")
 @click.option("--no-header", is_flag=True, help="Run in non-header mode.")
 @project_cmd.command("create")
@@ -124,6 +127,7 @@ def list_projects(ctx, protocol: str = None, host: str = None, no_header: bool =
     if response.status_code == 200:
         response_json = response.json()
         if len(response_json) > 0:
+            pretty_print_projects(response_json, no_header)
             pretty_print_projects(response_json, no_header)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")

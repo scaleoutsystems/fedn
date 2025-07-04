@@ -28,6 +28,7 @@ from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 from fedn.network.storage.statestore.stores.dto.prediction import PredictionDTO
 from fedn.network.storage.statestore.stores.dto.status import StatusDTO
 from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
+from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
 from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
@@ -278,6 +279,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         if len(clients) == 0:
             if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
+            if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 clients = self.get_active_trainers()
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
@@ -304,6 +306,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
+            elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
             elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 request.data = json.dumps(config)
                 request.round_id = config.get("round_id", None)
@@ -405,7 +408,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             "update_active_clients": [],
             "update_offline_clients": [],
         }
+
         for client in self._list_subscribed_clients(channel):
+
             status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["last_seen"]
@@ -418,6 +423,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             elif status != "offline":
                 self.clients[client]["status"] = "offline"
                 clients["update_offline_clients"].append(client)
+
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
@@ -425,6 +431,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
                 self.db.client_store.update(client_to_update)
+
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 client_to_update = self.db.client_store.get(client)
@@ -643,6 +650,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         nr_active_clients = len(active_clients)
         if nr_active_clients < 20:
             logger.info("grpc.Combiner.ListActiveClients:  Active clients: {}".format(active_clients))
+            logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
         else:
             logger.info("grpc.Combiner.ListActiveClients: Number active clients: {}".format(nr_active_clients))
 

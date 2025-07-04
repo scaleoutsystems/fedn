@@ -25,7 +25,7 @@ HTTP_STATUS_BAD_REQUEST = 400
 HTTP_STATUS_UNAUTHORIZED = 401
 
 # Default timeout for requests
-REQUEST_TIMEOUT = 10  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 
 
 class Status(enum.Enum):

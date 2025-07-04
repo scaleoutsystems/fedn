@@ -2,6 +2,7 @@ import base64
 import copy
 import json
 from typing import Dict
+import time 
 
 import grpc
 
@@ -236,14 +237,17 @@ class CombinerInterface:
 
         return False
 
-    def list_active_clients(self, queue=1):
-        """List active clients.
+    def list_active_clients(self, queue=1, max_retries=3, retry_delay=1.0):
+        """List active clients with retry logic.
 
         :param queue: The channel (queue) to use (optional). Default is 1 = MODEL_UPDATE_REQUESTS channel.
-            see :class:`fedn.network.grpc.fedn_pb2.Channel`
-        :type channel: int
+        :type queue: int
+        :param max_retries: How many times to retry if gRPC returns UNAVAILABLE.
+        :type max_retries: int
+        :param retry_delay: Seconds to wait before retrying.
+        :type retry_delay: float
         :return: A list of active clients.
-        :rtype: json
+        :rtype: list
         """
         channel = Channel(self.address, self.port, self.certificate).get_channel()
         control = rpc.ConnectorStub(channel)

@@ -22,6 +22,7 @@ import click
 import numpy as np
 from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
+import click
 
 from config import settings
 from fedn import FednClient
@@ -58,16 +59,15 @@ def load_model(model_bytes_io: BytesIO):
 
     return model
 
+def callback_train(client_id, client_name):
+    def on_train(in_model, client_settings):
+        print("Running training callback...")
+        model = load_model(in_model)
 
-def on_train(in_model, client_settings):
-    print("Running training callback...")
-    epochs = settings["N_EPOCHS"]
-
-    # model = load_model(in_model)
-
-    # X_train, y_train, _, _ = make_data()
-    # for i in range(epochs):
-    #     model.partial_fit(X_train, y_train)
+        X_train, y_train, _, _ = make_data()
+        epochs = settings["N_EPOCHS"]
+        for i in range(epochs):
+            model.partial_fit(X_train, y_train)
 
     # # Prepare updated model parameters
     # updated_parameters = model.coefs_ + model.intercepts_
@@ -87,9 +87,13 @@ def on_train(in_model, client_settings):
         },
     }
 
-    metadata = {"training_metadata": training_metadata}
+        metadata = {"training_metadata": training_metadata}
+        metadata = {"training_metadata": training_metadata}
 
-    return out_model, metadata
+        return out_model, metadata
+    return on_train
+        return out_model, metadata
+    return on_train
 
 
 def on_validate(in_model):
@@ -150,8 +154,10 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
 
         url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
         result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
+        #combiner_config.host = "100.84.229.36"
+        fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
-    fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
+        fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
     if intermittent:
         for i in range(settings["N_CYCLES"]):
@@ -167,7 +173,6 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
             time.sleep(delay)
     else:
         fl_client.run()
-
 
 if __name__ == "__main__":
 

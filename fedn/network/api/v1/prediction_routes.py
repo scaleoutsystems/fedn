@@ -25,6 +25,7 @@ def start_session():
         control = get_network().get_control()
 
         data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
+        data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
         prediction_id: str = data.get("prediction_id")
 
         if not prediction_id or prediction_id == "":

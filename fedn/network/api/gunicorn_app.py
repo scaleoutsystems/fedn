@@ -9,6 +9,7 @@ class GunicornApp(BaseApplication):
 
     def load_config(self):
         config = {key: value for key, value in self.options.items() if key in self.cfg.settings and value is not None}
+        config = {key: value for key, value in self.options.items() if key in self.cfg.settings and value is not None}
         for key, value in config.items():
             self.cfg.set(key.lower(), value)
 
@@ -21,6 +22,10 @@ def run_gunicorn(app, host, port, workers=4, post_fork_func=None):
     options = {
         "bind": bind_address,  # Specify the bind address and port here
         "workers": workers,
+        # After forking, initialize the database connection
+        "post_fork": post_fork,
+        "timeout": 120,
+        "post_fork": post_fork,
     }
     if post_fork_func is not None:
         options["post_fork"] = post_fork_func

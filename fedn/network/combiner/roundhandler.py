@@ -4,6 +4,7 @@ import random
 import time
 import traceback
 from typing import TYPE_CHECKING, TypedDict
+from pymongo import ReturnDocument 
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
@@ -139,7 +140,14 @@ class RoundHandler:
         :type clients: list
         :return: an aggregated model and associated metadata
         :rtype: model, dict
+
         """
+        # Ensure an aggregator is configured
+        if not hasattr(self, "aggregator"):
+            default_aggr = config.get("aggregator", "fedavg")
+            logger.warning("Aggregator not set; defaulting to %s", default_aggr)
+            self.set_aggregator(default_aggr)
+        
         logger.info("ROUNDHANDLER: Initiating training round, participating clients: {}".format(clients))
 
         meta = {}
@@ -168,19 +176,23 @@ class RoundHandler:
             logger.info("Sent model update request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed
+        # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
             buffer_size = len(clients)
         else:
             buffer_size = int(config["buffer_size"])
 
         # Wait / block until the round termination policy has been met.
+        t0 = time.perf_counter()
         reason = self.flow_controller.wait_until_true(lambda: session_queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
 
+        logger.info("self.update_handler.waitforit took:  {:.3f} s".format(time.perf_counter() - t0))
         tic = time.time()
         model = None
         data = None
         if reason != FlowController.Reason.STOP:
-            try:
+            t0 = time.perf_counter()
+        try:
                 helper = get_helper(config["helper_type"])
                 logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
                 if config["delete_models_storage"] == "True":
@@ -454,11 +466,23 @@ class RoundHandler:
                     logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
                     time.sleep(15)
 
+            selected = 0
+            while not selected:
+                clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+                selected = len(clients)
+                if not selected:
+                    logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
+                    time.sleep(15)
+
         else:
             selected_clients = config["selected_clients"] if "selected_clients" in config and len(config["selected_clients"]) > 0 else None
 
             clients = self._assign_round_clients(n=self.server.max_clients, type="trainers", selected_clients=selected_clients)
+        t0 = time.perf_counter()
         model, meta = self._training_round(config, clients, provided_functions)
+        logger.info("self._training_round took:   {:.3f} s".format(time.perf_counter() - t0))
+        
+
         data["data"] = meta
 
         if model is None:
@@ -569,18 +593,30 @@ class RoundHandler:
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]
                             tic = time.time()
+                            t0 = time.perf_counter()
                             round_meta = self.execute_training_round(round_config)
+                            logger.info("execute_training round took:  {:.3f} s".format(time.perf_counter() - t0))
                             round_meta["time_exec_training"] = time.time() - tic
                             round_meta["status"] = "Success"
                             round_meta["name"] = self.server.id
+                            t0 = time.perf_counter()
                             active_round = self.server.db.round_store.get(round_meta["round_id"])
-
+                            logger.info("self.server.db.round_store.get took:  {:.3f} s".format(time.perf_counter() - t0))
                             active_round.combiners.append(round_meta)
+                            t0 = time.perf_counter()
                             try:
-                                self.server.db.round_store.update(active_round)
+                                # self.server.db.round_store.update(active_round)
+                                # for multiple combiners, we need to make sure that we don't overwrite any existing entries.
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Failed to update round data in round store. {}".format(e))
                                 raise Exception("Failed to update round data in round store.")
+                            logger.info("self.server.db.round_store.update_one took:  {:.3f} s".format(time.perf_counter() - t0))
+
                         elif round_config["task"] == "validation":
                             session_id = round_config["session_id"]
                             model_id = round_config["model_id"]

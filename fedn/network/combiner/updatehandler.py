@@ -71,8 +71,6 @@ class UpdateHandler:
         :type model_id: str
         """
         try:
-            logger.info("UPDATE HANDLER: callback received model update {}".format(model_update.model_update_id))
-
             # Validate the update and metadata
             valid_update = self._validate_model_update(model_update)
             if valid_update:
@@ -138,6 +136,8 @@ class UpdateHandler:
         training_metadata = metadata["training_metadata"]
         if "round_id" in config:
             training_metadata["round_id"] = config["round_id"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
 
         return model, training_metadata
 
@@ -163,6 +163,8 @@ class UpdateHandler:
             # Used in C++ client
             config = json.loads(model_update.config)
         training_metadata = metadata["training_metadata"]
+        if "round_id" in config:
+            training_metadata["round_id"] = config["round_id"]
         if "round_id" in config:
             training_metadata["round_id"] = config["round_id"]
 
@@ -213,6 +215,29 @@ class BackwardHandler:
 
     def __init__(self) -> None:
         self.backward_completions = queue.Queue()
+
+    def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
+        """Wait for backward completion messages.
+
+        :param config: The round config object
+        :param required_backward_completions: Number of required backward completions
+        """
+        time_window = float(config["round_timeout"])
+
+        
+        start_time = time.monotonic()
+        deadline   = start_time + time_window
+
+        while True:
+            if self.model_updates.qsize() >= buffer_size:
+                break
+            
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            
+            time.sleep(min(polling_interval, remaining))
+
 
     def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
         """Wait for backward completion messages.

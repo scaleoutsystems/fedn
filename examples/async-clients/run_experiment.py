@@ -28,6 +28,7 @@ if __name__ == "__main__":
     # Run six sessions, each with 100 rounds.
     for s in range(settings["N_SESSIONS"]):
         active_model = client.get_active_model()
+        print(active_model)
         session_config = {
             "helper": "numpyhelper",
             "name": f"async-test-{s+1}-{str(uuid.uuid4())[:4]}",

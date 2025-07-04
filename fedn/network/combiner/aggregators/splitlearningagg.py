@@ -1,5 +1,8 @@
 import os
+<<<<<<< HEAD
 import queue
+=======
+>>>>>>> feature/SK-1575
 import traceback
 
 import torch
@@ -54,7 +57,11 @@ class Aggregator(AggregatorBase):
         self.model = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+<<<<<<< HEAD
     def combine_models(self, session_id, helper=None, delete_models=True, is_sl_inference=False):
+=======
+    def combine_models(self, helper=None, delete_models=True, is_sl_inference=False):
+>>>>>>> feature/SK-1575
         """Concatenates client embeddings in the queue by aggregating them.
 
         After all embeddings are received, the embeddings need to be sorted
@@ -78,6 +85,7 @@ class Aggregator(AggregatorBase):
 
         logger.info("AGGREGATOR({}): Aggregating client embeddings... ".format(self.name))
 
+<<<<<<< HEAD
         while True:
             try:
                 try:
@@ -85,6 +93,12 @@ class Aggregator(AggregatorBase):
                     logger.info("AGGREGATOR({}): Getting next embedding from queue.".format(self.name))
                 except queue.Empty:
                     break
+=======
+        while not self.update_handler.model_updates.empty():
+            try:
+                logger.info("AGGREGATOR({}): Getting next embedding from queue.".format(self.name))
+                new_embedding = self.update_handler.next_model_update()  # returns in format {client_id: embedding}
+>>>>>>> feature/SK-1575
 
                 # Load model parameters and metadata
                 logger.info("AGGREGATOR({}): Loading embedding metadata.".format(self.name))

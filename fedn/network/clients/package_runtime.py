@@ -17,7 +17,7 @@ HTTP_STATUS_OK = 200
 HTTP_STATUS_NO_CONTENT = 204
 
 # Default timeout for requests
-REQUEST_TIMEOUT = 10  # seconds
+REQUEST_TIMEOUT = 60  # seconds
 
 
 class PackageRuntime:
