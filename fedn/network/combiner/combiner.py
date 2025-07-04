@@ -279,7 +279,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         """
         if len(clients) == 0:
             if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
-            if request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 clients = self.get_active_trainers()
             elif request_type == fedn.StatusType.MODEL_VALIDATION:
                 clients = self.get_active_validators()
@@ -306,7 +305,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 presigned_url = self.repository.presigned_put_url(self.repository.prediction_bucket, f"{client}/{session_id}")
                 # TODO: in prediction, request.data should also contain user-defined data/parameters
                 request.data = json.dumps({"presigned_url": presigned_url})
-            elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
             elif request_type in [fedn.StatusType.MODEL_UPDATE, fedn.StatusType.FORWARD, fedn.StatusType.BACKWARD]:
                 request.data = json.dumps(config)
                 request.round_id = config.get("round_id", None)

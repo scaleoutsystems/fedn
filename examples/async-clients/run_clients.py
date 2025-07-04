@@ -59,15 +59,14 @@ def load_model(model_bytes_io: BytesIO):
 
     return model
 
-def callback_train(client_id, client_name):
-    def on_train(in_model, client_settings):
-        print("Running training callback...")
-        model = load_model(in_model)
+def on_train(in_model, client_settings):
+    print("Running training callback...")
+    model = load_model(in_model)
 
-        X_train, y_train, _, _ = make_data()
-        epochs = settings["N_EPOCHS"]
-        for i in range(epochs):
-            model.partial_fit(X_train, y_train)
+    X_train, y_train, _, _ = make_data()
+    epochs = settings["N_EPOCHS"]
+    for i in range(epochs):
+        model.partial_fit(X_train, y_train)
 
     # # Prepare updated model parameters
     # updated_parameters = model.coefs_ + model.intercepts_
@@ -87,13 +86,9 @@ def callback_train(client_id, client_name):
         },
     }
 
-        metadata = {"training_metadata": training_metadata}
-        metadata = {"training_metadata": training_metadata}
+    metadata = {"training_metadata": training_metadata}
 
-        return out_model, metadata
-    return on_train
-        return out_model, metadata
-    return on_train
+    return out_model, metadata
 
 
 def on_validate(in_model):

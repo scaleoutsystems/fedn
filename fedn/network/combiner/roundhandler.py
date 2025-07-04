@@ -193,28 +193,28 @@ class RoundHandler:
         if reason != FlowController.Reason.STOP:
             t0 = time.perf_counter()
         try:
-                helper = get_helper(config["helper_type"])
-                logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
-                if config["delete_models_storage"] == "True":
-                    delete_models = True
-                else:
-                    delete_models = False
+            helper = get_helper(config["helper_type"])
+            logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
+            if config["delete_models_storage"] == "True":
+                delete_models = True
+            else:
+                delete_models = False
 
-                if "aggregator_kwargs" in config.keys():
-                    logger.info("Using aggregator kwargs from config: {}".format(config["aggregator_kwargs"]))
-                    dict_parameters = config["aggregator_kwargs"]
-                    parameters = Parameters(dict_parameters)
-                else:
-                    parameters = None
-                if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
-                    previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                    model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
-                else:
-                    model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
-            except Exception as e:
-                logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
-                model = None
-                data = None
+            if "aggregator_kwargs" in config.keys():
+                logger.info("Using aggregator kwargs from config: {}".format(config["aggregator_kwargs"]))
+                dict_parameters = config["aggregator_kwargs"]
+                parameters = Parameters(dict_parameters)
+            else:
+                parameters = None
+            if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
+                previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+                model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+            else:
+                model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+        except Exception as e:
+            logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
+            model = None
+            data = None
         else:
             logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
         meta["time_combination"] = time.time() - tic
