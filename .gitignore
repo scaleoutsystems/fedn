@@ -2,6 +2,11 @@
 *.pem
 *.cer
 
+# async
+/Users/sigvard/Desktop/FEDN_real/fedn/examples/async-clients/config copy.py
+/Users/sigvard/Desktop/FEDN_real/fedn/async
+/Users/sigvard/Desktop/FEDN_real/fedn/async_env
+
 # Byte-compiled / optimized / DLL files
 
 tmp/

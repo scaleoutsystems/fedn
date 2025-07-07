@@ -186,35 +186,35 @@ class RoundHandler:
         t0 = time.perf_counter()
         reason = self.flow_controller.wait_until_true(lambda: session_queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
 
-        logger.info("self.update_handler.waitforit took:  {:.3f} s".format(time.perf_counter() - t0))
+        logger.info("self.flow_controller.wait_until_true took:  {:.3f} s".format(time.perf_counter() - t0))
         tic = time.time()
         model = None
         data = None
         if reason != FlowController.Reason.STOP:
             t0 = time.perf_counter()
-        try:
-            helper = get_helper(config["helper_type"])
-            logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
-            if config["delete_models_storage"] == "True":
-                delete_models = True
-            else:
-                delete_models = False
+            try:
+                helper = get_helper(config["helper_type"])
+                logger.info("Config delete_models_storage: {}".format(config["delete_models_storage"]))
+                if config["delete_models_storage"] == "True":
+                    delete_models = True
+                else:
+                    delete_models = False
 
-            if "aggregator_kwargs" in config.keys():
-                logger.info("Using aggregator kwargs from config: {}".format(config["aggregator_kwargs"]))
-                dict_parameters = config["aggregator_kwargs"]
-                parameters = Parameters(dict_parameters)
-            else:
-                parameters = None
-            if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
-                previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
-            else:
-                model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
-        except Exception as e:
-            logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
-            model = None
-            data = None
+                if "aggregator_kwargs" in config.keys():
+                    logger.info("Using aggregator kwargs from config: {}".format(config["aggregator_kwargs"]))
+                    dict_parameters = config["aggregator_kwargs"]
+                    parameters = Parameters(dict_parameters)
+                else:
+                    parameters = None
+                if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
+                    previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+                    model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                else:
+                    model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+            except Exception as e:
+                logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
+                model = None
+                data = None
         else:
             logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
         meta["time_combination"] = time.time() - tic
@@ -642,7 +642,11 @@ class RoundHandler:
 
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.db.round_store.update(active_round)
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Forward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Forward passFailed to update round data in round store.")
@@ -657,12 +661,16 @@ class RoundHandler:
                             # updated = self.server.round_store.update(active_round["id"], active_round)
                             active_round.combiners.append(round_meta)
                             try:
-                                self.server.db.round_store.update(active_round)
+                                self.server.db.round_store.update_one(
+                                        {"round_id": round_meta["round_id"]},
+                                        {"$push": {"combiners": round_meta}},
+                                        upsert=True 
+                                )
                             except Exception as e:
                                 logger.error("Backward pass: Failed to update round data in round store. {}".format(e))
                                 raise Exception("Backward pass: Failed to update round data in round store.")
                         else:
-                            logger.warning("config contains unkown task type.")
+                            logger.warning("config contains unknown task type.")
                     else:
                         round_meta = {}
                         round_meta["status"] = "Failed"
