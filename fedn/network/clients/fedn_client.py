@@ -364,7 +364,6 @@ class FednClient:
             self.send_status(
                 f"\t Starting processing of training request for model_id {model_id}",
                 session_id=request.session_id,
-                session_id=request.session_id,
                 sender_name=self.name,
                 log_level=fedn.LogLevel.INFO,
                 type=fedn.StatusType.MODEL_UPDATE,
@@ -420,7 +419,6 @@ class FednClient:
                 logger.error("No validate callback set")
                 return
 
-            logger.debug(f"Running validate callback with model ID: {model_id}")
             logger.debug(f"Running validate callback with model ID: {model_id}")
             metrics = self.validate_callback(in_model)
 
