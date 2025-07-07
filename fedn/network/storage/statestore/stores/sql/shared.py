@@ -32,7 +32,6 @@ class MyAbstractBase(Base):
     id: Mapped[str] = mapped_column(primary_key=True, default=lambda: str(uuid.uuid4()))
     committed_at: Mapped[datetime] = mapped_column(default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
-    updated_at: Mapped[datetime] = mapped_column(default=datetime.now, onupdate=datetime.now)
 
 
 class SessionConfigModel(MyAbstractBase):
@@ -291,19 +290,6 @@ class RunModel(MyAbstractBase):
     round_timeout: Mapped[int]
     rounds: Mapped[Optional[int]]
     completed_at: Mapped[Optional[datetime]]
-
-
-class TelemetryModel(MyAbstractBase):
-    __tablename__ = "telemetry"
-
-    key: Mapped[str] = mapped_column(String(255))
-    value: Mapped[float]
-
-    timestamp: Mapped[Optional[datetime]]
-
-    sender_name: Mapped[str]
-    sender_role: Mapped[str]
-    sender_client_id: Mapped[Optional[str]]
 
 
 class TelemetryModel(MyAbstractBase):

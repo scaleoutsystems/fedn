@@ -3,10 +3,8 @@
 import json
 import os
 import random
-import random
 import time
 from datetime import datetime, timezone
-from functools import wraps
 from functools import wraps
 from io import BytesIO
 from typing import Any, Callable, Optional, Union
@@ -214,13 +212,11 @@ class GrpcHandler:
         )
 
     def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
-    def heartbeat(self, client_name: str, client_id: str, memory_utilisation: float = None, cpu_utilisation: float = None) -> fedn.Response:
         """Send a heartbeat to the combiner.
 
         :return: Response from the combiner.
         :rtype: fedn.Response
         """
-        heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
         heartbeat = fedn.Heartbeat(sender=fedn.Client(name=client_name, role=fedn.CLIENT, client_id=client_id))
 
         response = self.connectorStub.SendHeartbeat(heartbeat, metadata=self.metadata)
@@ -229,7 +225,6 @@ class GrpcHandler:
 
         return response
 
-    @grpc_retry(max_retries=-1, retry_interval=5)
     @grpc_retry(max_retries=-1, retry_interval=5)
     def send_heartbeats(self, client_name: str, client_id: str, update_frequency: float = 2.0) -> None:
         """Send heartbeats to the combiner at regular intervals."""
@@ -245,7 +240,6 @@ class GrpcHandler:
                 logger.error("Heartbeat failed.")
                 send_heartbeat = False
 
-    @grpc_retry(max_retries=-1, retry_interval=5)
     @grpc_retry(max_retries=-1, retry_interval=5)
     def listen_to_task_stream(self, client_name: str, client_id: str, callback: Callable[[Any], None]) -> None:
         """Subscribe to the model update request stream."""
@@ -279,8 +273,6 @@ class GrpcHandler:
 
                 logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
                 callback(request)
-                logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
-                callback(request)
 
     @grpc_retry(max_retries=-1, retry_interval=5)
     def PollAndReport(self, report: fedn.ActivityReport) -> fedn.TaskRequest:
@@ -293,7 +285,6 @@ class GrpcHandler:
         log_level: fedn.LogLevel = fedn.LogLevel.INFO,
         type: Optional[str] = None,
         request: Optional[Union[fedn.ModelUpdate, fedn.ModelValidation, fedn.TaskRequest]] = None,
-        session_id: Optional[str] = None,
         session_id: Optional[str] = None,
         sender_name: Optional[str] = None,
     ) -> None:
@@ -315,7 +306,6 @@ class GrpcHandler:
         status.log_level = log_level
         status.status = str(msg)
         status.session_id = session_id
-        status.session_id = session_id
 
         if type is not None:
             status.type = type
@@ -325,20 +315,14 @@ class GrpcHandler:
 
         logger.info("Sending status message to combiner.")
         _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
-        logger.info("Sending status message to combiner.")
-        _ = self.connectorStub.SendStatus(status, metadata=self.metadata)
 
-    @grpc_retry(max_retries=5, retry_interval=5)
     @grpc_retry(max_retries=5, retry_interval=5)
     def send_model_metric(self, metric: fedn.ModelMetric) -> bool:
         """Send a model metric to the combiner."""
         logger.info("Sending model metric to combiner.")
         _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
-        logger.info("Sending model metric to combiner.")
-        _ = self.combinerStub.SendModelMetric(metric, metadata=self.metadata)
         return True
 
-    @grpc_retry(max_retries=5, retry_interval=5)
     @grpc_retry(max_retries=5, retry_interval=5)
     def send_attributes(self, attribute: fedn.AttributeMessage) -> bool:
         """Send a attribute message to the combiner."""
@@ -351,8 +335,6 @@ class GrpcHandler:
         """Send a telemetry message to the combiner."""
         logger.debug("Sending telemetry to combiner.")
         _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
-        logger.debug("Sending attributes to combiner.")
-        _ = self.combinerStub.SendAttributeMessage(attribute, metadata=self.metadata)
         return True
 
     @grpc_retry(max_retries=5, retry_interval=5)
