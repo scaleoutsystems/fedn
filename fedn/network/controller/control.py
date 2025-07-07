@@ -242,7 +242,6 @@ class Control(ControlBase, rpc.ControlServicer):
         training_run_obj.rounds = rounds
 
         training_run_obj = self.db.run_store.add(training_run_obj)
-        training_run_obj = self.db.run_store.add(training_run_obj)
 
         count_models_of_session = 0
 
@@ -281,7 +280,6 @@ class Control(ControlBase, rpc.ControlServicer):
             self.set_session_status(session_id, "Finished")
             training_run_obj.completed_at = datetime.datetime.now()
             training_run_obj.completed_at_model_id = self._get_active_model_id(session_id)
-            self.db.run_store.update(training_run_obj)
             self.db.run_store.update(training_run_obj)
             logger.info("Session finished.")
 

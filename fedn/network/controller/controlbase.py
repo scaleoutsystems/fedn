@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple
 import time
 
+from fedn.common.log_config import logger
 import fedn.network.grpc.fedn_pb2 as fedn_proto
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.common.interfaces import CombinerInterface, CombinerUnavailableError

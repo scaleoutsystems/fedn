@@ -223,29 +223,6 @@ class BackwardHandler:
         :param required_backward_completions: Number of required backward completions
         """
         time_window = float(config["round_timeout"])
-
-        
-        start_time = time.monotonic()
-        deadline   = start_time + time_window
-
-        while True:
-            if self.model_updates.qsize() >= buffer_size:
-                break
-            
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                break
-            
-            time.sleep(min(polling_interval, remaining))
-
-
-    def waitforbackwardcompletion(self, config, required_backward_completions=-1, polling_interval=0.1):
-        """Wait for backward completion messages.
-
-        :param config: The round config object
-        :param required_backward_completions: Number of required backward completions
-        """
-        time_window = float(config["round_timeout"])
         tt = 0.0
 
         while tt < time_window:
