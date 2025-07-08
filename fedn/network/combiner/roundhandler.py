@@ -317,7 +317,7 @@ class RoundHandler:
 
         return meta
 
-    def stage_model(self, model_id, timeout_retry=3, retry=2):
+    def stage_model(self, model_id, timeout_retry=0.5, retry=1):
         """Download a model from persistent storage and set in modelservice.
 
         :param model_id: ID of the model update object to stage.
