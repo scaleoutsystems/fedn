@@ -53,7 +53,13 @@ class Aggregator(AggregatorBase):
                 logger.info("AGGREGATOR({}): Loading model metadata {}.".format(self.name, model_update.model_update_id))
 
                 tic = time.time()
-                model_next, metadata = self.update_handler.load_model_update(model_update, helper)
+                t0 = time.monotonic()
+                try:
+                    model_next, metadata = self.update_handler.load_model_update(model_update, helper)
+                except Exception as e:
+                    logger.error(f"AGGREGATOR({self.name}): Error loading model update: {e}")
+                    continue
+                logger.info("Time taken to load model update: {:.2f} seconds".format(time.monotonic() - t0))
                 data["time_model_load"] += time.time() - tic
 
                 logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
