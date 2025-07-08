@@ -160,7 +160,7 @@ class UpdateHandler:
 
         return model
 
-    def load_model_update_bytesIO(self, model_id, retry=3):
+    def load_model_update_bytesIO(self, model_id, retry=1):
         """Load model update object and return it as BytesIO.
 
         :param model_id: The ID of the model
@@ -181,7 +181,7 @@ class UpdateHandler:
                 tries += 1
                 if not model_str or sys.getsizeof(model_str) == 80:
                     logger.warning("Model download failed. retrying")
-                    time.sleep(3) # sleep longer
+                    time.sleep(0.5) # sleep longer
                     model_str = self.modelservice.get_model(model_id)
 
         return model_str
