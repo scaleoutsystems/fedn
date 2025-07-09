@@ -425,6 +425,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Update statestore with client status
         if len(clients["update_active_clients"]) > 0:
             for client in clients["update_active_clients"]:
+                logger.info("Updating client {} status to online".format(client))
                 client_to_update = self.db.client_store.get(client)
                 client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
