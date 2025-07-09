@@ -34,6 +34,9 @@ class ControlBase(ABC):
 
         self.repository = repository
         self.db = db
+        self._active_clients_cache = {} 
+        self.COMBINER_CACHE_COOLDOWN = 20.0  # seconds
+
 
     @abstractmethod
     def round(self, config, round_number):
