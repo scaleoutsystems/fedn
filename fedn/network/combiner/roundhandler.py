@@ -217,6 +217,9 @@ class RoundHandler:
                 data = None
         else:
             logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
+        
+        logger.info("Aggregation took: {:.3f} s".format(time.perf_counter() - t0))
+
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
         return model, meta
