@@ -50,7 +50,7 @@ class ImporterPackageRuntime(PackageRuntime):
                 self.python_env.remove_fedndependency()
                 self.python_env.set_base_path(self._target_path)
                 if not self.python_env.path.exists():
-                    self.python_env.create_virtualenv(self.python_env.path, capture_output=True, use_system_site_packages=True)
+                    self.python_env.create_virtualenv(capture_output=True, use_system_site_packages=True)
                 if not self.python_env.verify_installed_env():
                     logger.error(f"Python environment at {self.python_env.path} is not valid.")
                     raise RuntimeError(f"Invalid Python environment at {self.python_env.path}.")

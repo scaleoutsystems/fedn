@@ -127,10 +127,9 @@ class _PythonEnv:
         activate_cmd = f"source {activate_cmd}" if _IS_UNIX else str(activate_cmd)
         return activate_cmd
 
-    def create_virtualenv(self, env_dir, capture_output=False, use_system_site_packages=False):
+    def create_virtualenv(self, capture_output=False, use_system_site_packages=False):
         # Created a command to activate the environment
-        if not isinstance(env_dir, Path):
-            env_dir = Path(env_dir)
+        env_dir = self.path
 
         activate_cmd = self.get_activate_cmd(env_dir)
 

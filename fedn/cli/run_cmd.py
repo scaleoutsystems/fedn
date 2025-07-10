@@ -47,8 +47,8 @@ def check_yaml_exists(path):
     return yaml_file
 
 
-def delete_virtual_environment(dispatcher):
-    if dispatcher.python_env_path:
+def delete_virtual_environment(dispatcher: Dispatcher):
+    if dispatcher.python_env_path and os.path.exists(dispatcher.python_env_path):
         logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
     else:
