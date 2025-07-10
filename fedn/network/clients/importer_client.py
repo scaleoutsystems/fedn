@@ -1,20 +1,17 @@
 """Client module for handling client operations in the FEDn network."""
 
-import io
-import json
 import os
+import sys
 import time
 import uuid
-from io import BytesIO
+from pathlib import Path
 from typing import Dict, Optional, Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
-from fedn.network.clients.dispatcher_package_runtime import DispatcherPackageRuntime
 from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
 from fedn.network.clients.importer_package_runtime import ImporterPackageRuntime, get_compute_package_dir_path
-from fedn.network.combiner.modelservice import get_tmp_path
-from fedn.utils.helpers.helpers import get_helper, save_metadata
+from fedn.utils.process import _IS_UNIX, _join_commands
 
 
 def get_url(api_url: str, api_port: int) -> str:
@@ -50,7 +47,7 @@ class ClientOptions:
         }
 
 
-class DispatcherClient:
+class ImporterClient:
     """Client for interacting with the FEDn network."""
 
     def __init__(
@@ -64,6 +61,7 @@ class DispatcherClient:
         package_checksum: Optional[str] = None,
         helper_type: Optional[str] = None,
         startup_path: Optional[str] = None,
+        managed_env: Optional[bool] = True,
     ) -> None:
         """Initialize the Client."""
         self.api_url = api_url
@@ -76,7 +74,9 @@ class DispatcherClient:
         self.helper_type = helper_type
 
         package_path, archive_path = get_compute_package_dir_path()
-        self._package_runtime = ImporterPackageRuntime(package_path, archive_path)
+        self.package_runtime = ImporterPackageRuntime(package_path, archive_path)
+
+        self.managed_env = managed_env
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
         self.fedn_client: FednClient = FednClient()
@@ -108,204 +108,67 @@ class DispatcherClient:
             if not result:
                 return
         if self.client_obj.package == "remote":
-            result = self._package_runtime.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self.package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
             if not result:
                 return
         else:
-            result = self._package_runtime.init_local_compute_package()
+            result = self.package_runtime.load_local_compute_package(os.path.join(os.getcwd(), "client"))
             if not result:
                 return
-
-        self.set_helper(combiner_config)
 
         result = self.fedn_client.init_grpchandler(config=combiner_config, client_name=self.client_obj.client_id, token=self.token)
         if not result:
             return
 
-        logger.info("-----------------------------")
-
-        self.fedn_client.set_train_callback(self.on_train)
-        self.fedn_client.set_validate_callback(self.on_validation)
-        self.fedn_client.set_forward_callback(self.on_forward)
-        self.fedn_client.set_backward_callback(self.on_backward)
-        self.fedn_client.set_predict_callback(self._process_prediction_request)
-
         self.fedn_client.set_name(self.client_obj.name)
         self.fedn_client.set_client_id(self.client_obj.client_id)
 
+        if self.managed_env:
+            self.package_runtime.init_env_runtime()
+
+            if not self.verify_active_environment():
+                self.__restart_client_with_env()
+            else:
+                logger.info("Managed environment is active and verified.")
+
+        self.package_runtime.run_startup(self.fedn_client)
+
+        return
         self.fedn_client.run()
 
-    def set_helper(self, response: Optional[GrpcConnectionOptions] = None) -> None:
-        """Set the helper based on the response or default."""
-        helper_type = response.helper_type if response else None
-        helper_type_to_use = self.helper_type or helper_type or "numpyhelper"
-        logger.info(f"Setting helper to: {helper_type_to_use}")
-        self.helper = get_helper(helper_type_to_use)
+    def verify_active_environment(self) -> None:
+        """Verify the Python environment."""
+        if self.package_runtime is None or self.package_runtime.python_env is None:
+            logger.error("Package runtime or Python environment is not initialized.")
+            return False
+        if self.managed_env:
+            venv_path = os.environ.get("VIRTUAL_ENV")
+            if not venv_path:
+                logger.warning("No virtual environment detected.")
+                return False
+            logger.info(f"Virtual environment detected at: {venv_path}")
+            if Path(venv_path) != Path(self.package_runtime.python_env.path):
+                logger.warning(f"Virtual environment path {venv_path} does not match the expected path {self.package_runtime.python_env.path}.")
+                return False
+            return True
+        else:
+            logger.info("Managed environment is disabled, skipping verification.")
+            return True
 
-    def on_train(self, in_model: BytesIO, client_settings: dict) -> Tuple[Optional[BytesIO], dict]:
-        """Handle the training callback."""
-        return self._process_training_request(in_model, client_settings)
+    def __restart_client_with_env(self) -> None:
+        """Restart the client."""
+        # This method could be replace by letting a process manager handle the restart, i.e. a watchdog or supervisor.
+        # The watchdog would monitor the client process and restart it if it exits unexpectedly
+        # and start the client with the correct environment activated.
+        logger.info("Restarting client with managed environment.")
+        args = " ".join(sys.argv)
+        logger.info(f"Current command line arguments: {args}")
+        args_after_start = args.split("client start", 1)[1].strip() if "client start" in args else ""
 
-    def on_validation(self, in_model: BytesIO) -> Optional[dict]:
-        """Handle the validation callback."""
-        return self._process_validation_request(in_model)
-
-    def on_forward(self, client_id, is_sl_inference):
-        out_embeddings, meta = self._process_forward_request(client_id, is_sl_inference)
-        return out_embeddings, meta
-
-    def on_backward(self, in_gradients, client_id):
-        meta = self._process_backward_request(in_gradients, client_id)
-        return meta
-
-    def _process_training_request(self, in_model: BytesIO, client_settings: dict) -> Tuple[Optional[BytesIO], dict]:
-        """Process a training (model update) request."""
-        try:
-            meta = {}
-            inpath = self.helper.get_tmp_path()
-
-            with open(inpath, "wb") as fh:
-                fh.write(in_model.getbuffer())
-
-            save_metadata(metadata=client_settings, filename=inpath)
-            outpath = self.helper.get_tmp_path()
-            tic = time.time()
-
-            self._package_runtime.dispatcher.run_cmd(f"train {inpath} {outpath}")
-            meta["exec_training"] = time.time() - tic
-
-            with open(outpath, "rb") as fr:
-                out_model = io.BytesIO(fr.read())
-
-            with open(outpath + "-metadata", "r") as fh:
-                training_metadata = json.loads(fh.read())
-
-            logger.info(f"SETTING Training metadata: {training_metadata}")
-            meta["training_metadata"] = training_metadata
-
-            os.unlink(inpath)
-            os.unlink(outpath)
-            os.unlink(outpath + "-metadata")
-
-        except Exception as e:
-            logger.error(f"Could not process training request due to error: {e}")
-            out_model = None
-            meta = {"status": "failed", "error": str(e)}
-
-        return out_model, meta
-
-    def _process_validation_request(self, in_model: BytesIO) -> Optional[dict]:
-        """Process a validation request."""
-        try:
-            inpath = self.helper.get_tmp_path()
-
-            with open(inpath, "wb") as fh:
-                fh.write(in_model.getbuffer())
-
-            outpath = get_tmp_path()
-            self._package_runtime.dispatcher.run_cmd(f"validate {inpath} {outpath}")
-
-            with open(outpath, "r") as fh:
-                metrics = json.loads(fh.read())
-
-            os.unlink(inpath)
-            os.unlink(outpath)
-
-        except Exception as e:
-            logger.warning(f"Validation failed with exception {e}")
-            metrics = None
-
-        return metrics
-
-    def _process_prediction_request(self, in_model: BytesIO) -> Optional[dict]:
-        """Process a prediction request."""
-        try:
-            inpath = self.helper.get_tmp_path()
-
-            with open(inpath, "wb") as fh:
-                fh.write(in_model.getbuffer())
-
-            outpath = get_tmp_path()
-            self._package_runtime.dispatcher.run_cmd(f"predict {inpath} {outpath}")
-
-            with open(outpath, "r") as fh:
-                metrics = json.load(fh)
-
-            os.unlink(inpath)
-            os.unlink(outpath)
-
-        except Exception as e:
-            logger.warning(f"Prediction failed with exception {e}")
-            metrics = None
-
-        return metrics
-
-    def _process_forward_request(self, client_id, is_sl_inference) -> Tuple[BytesIO, dict]:
-        """Process a forward request. Param is_sl_inference determines whether the forward pass is used for gradient calculation or validation.
-
-        :param client_id: The client ID.
-        :type client_id: str
-        :param is_sl_inference: Whether the request is for splitlearning inference or not.
-        :type is_sl_inference: str
-        :return: The embeddings, or None if forward failed.
-        :rtype: tuple
-        """
-        try:
-            out_embedding_path = get_tmp_path()
-
-            tic = time.time()
-            self._package_runtime.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_sl_inference}")
-
-            meta = {}
-            embeddings = None
-
-            with open(out_embedding_path, "rb") as fr:
-                embeddings = io.BytesIO(fr.read())
-
-            meta["exec_training"] = time.time() - tic
-
-            # Read the metadata file
-            with open(out_embedding_path + "-metadata", "r") as fh:
-                training_metadata = json.loads(fh.read())
-
-            logger.debug("SETTING Forward metadata: {}".format(training_metadata))
-            meta["training_metadata"] = training_metadata
-
-            os.unlink(out_embedding_path)
-            os.unlink(out_embedding_path + "-metadata")
-
-        except Exception as e:
-            logger.warning("Forward failed with exception {}".format(e))
-            embeddings = None
-            meta = {"status": "failed", "error": str(e)}
-
-        return embeddings, meta
-
-    def _process_backward_request(self, in_gradients: BytesIO, client_id: str) -> dict:
-        """Process a backward request.
-
-        :param in_gradients: The gradients to be processed.
-        :type in_gradients: BytesIO
-        :return: Metadata, or None if backward failed.
-        :rtype: dict
-        """
-        try:
-            meta = {}
-            inpath = get_tmp_path()
-
-            # load gradients
-            with open(inpath, "wb") as fh:
-                fh.write(in_gradients.getbuffer())
-
-            tic = time.time()
-
-            self._package_runtime.dispatcher.run_cmd(f"backward {inpath} {client_id}")
-            meta["exec_training"] = time.time() - tic
-
-            os.unlink(inpath)
-
-        except Exception as e:
-            logger.error("Backward failed with exception {}".format(e))
-            meta = {"status": "failed", "error": str(e)}
-
-        return meta
+        activate_env_cmd = self.package_runtime.python_env.get_activate_cmd()
+        cmd = _join_commands(activate_env_cmd, "python -m fedn client start " + args_after_start)
+        logger.info(f"Restarting with cmd: {cmd}")
+        time.sleep(2)
+        entry_point = ["/bin/bash"] if _IS_UNIX else ["C:\\Windows\\System32\\cmd.exe"]
+        os.execv(entry_point, cmd)
+        logger.info("This should not be printed if execv is successful, check your command and environment setup.")

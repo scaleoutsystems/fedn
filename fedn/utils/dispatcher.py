@@ -23,8 +23,6 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-import yaml
-
 from fedn.common.log_config import logger
 from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
@@ -86,7 +84,7 @@ def _get_python_env(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)
 
 
-def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, capture_output=False):
+def _create_virtualenv(self, python_bin_path, env_dir, python_env, extra_env=None, capture_output=False):
     # Created a command to activate the environment
     paths = ("bin", "activate") if _IS_UNIX else ("Scripts", "activate.bat")
     activate_cmd = env_dir.joinpath(*paths)
@@ -119,18 +117,6 @@ def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, cap
                 _exec_cmd(cmd, capture_output=capture_output, cwd=tmpdir, extra_env=extra_env)
 
     return activate_cmd
-
-
-def _read_yaml_file(file_path):
-    try:
-        cfg = None
-        with open(file_path, "rb") as config_file:
-            cfg = yaml.safe_load(config_file.read())
-
-    except Exception as e:
-        logger.error(f"Error trying to read yaml file: {file_path}")
-        raise e
-    return cfg
 
 
 class Dispatcher:

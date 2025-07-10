@@ -11,6 +11,7 @@ from fedn.cli.shared import CONTROLLER_DEFAULTS, STUDIO_DEFAULTS, apply_config, 
 from fedn.common.exceptions import InvalidClientConfig
 from fedn.common.log_config import set_log_level_from_string
 from fedn.network.clients.dispatcher_client import ClientOptions, DispatcherClient
+from fedn.network.clients.importer_client import ImporterClient
 
 home_dir = os.path.expanduser("~")
 
@@ -199,6 +200,7 @@ def _complement_client_params(config: dict) -> None:
 @click.option("-tr", "--trainer", required=False, default=None)
 @click.option("-hp", "--helper_type", required=False, default=None)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
+@click.option("--importer", is_flag=True, help="Use the importer client instead of the dispatcher client.")
 @click.pass_context
 def client_start_v2_cmd(
     ctx,
@@ -216,6 +218,7 @@ def client_start_v2_cmd(
     trainer: bool,
     helper_type: str,
     init: str,
+    importer: bool,
 ):
     """Start client."""
     package = "local" if local_package else "remote"
@@ -328,15 +331,29 @@ def client_start_v2_cmd(
         preferred_combiner=config["preferred_combiner"],
         id=config["client_id"],
     )
-    client = DispatcherClient(
-        api_url=config["api_url"],
-        api_port=config["api_port"],
-        client_obj=client_options,
-        combiner_host=config["combiner"],
-        combiner_port=config["combiner_port"],
-        token=config["token"],
-        package_checksum=config["package_checksum"],
-        helper_type=config["helper_type"],
-    )
+    if importer:
+        click.echo("Using ImporterClient")
+        client = ImporterClient(
+            api_url=config["api_url"],
+            api_port=config["api_port"],
+            client_obj=client_options,
+            combiner_host=config["combiner"],
+            combiner_port=config["combiner_port"],
+            token=config["token"],
+            package_checksum=config["package_checksum"],
+            helper_type=config["helper_type"],
+        )
+    else:
+        click.echo("Using DispatcherClient")
+        client = DispatcherClient(
+            api_url=config["api_url"],
+            api_port=config["api_port"],
+            client_obj=client_options,
+            combiner_host=config["combiner"],
+            combiner_port=config["combiner_port"],
+            token=config["token"],
+            package_checksum=config["package_checksum"],
+            helper_type=config["helper_type"],
+        )
 
     client.start()

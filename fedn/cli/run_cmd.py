@@ -11,7 +11,8 @@ from fedn.common.config import FEDN_OBJECT_STORAGE_TYPE, get_modelstorage_config
 from fedn.common.log_config import logger
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
+from fedn.utils.dispatcher import Dispatcher
+from fedn.utils.yaml import read_yaml_file
 
 
 def get_statestore_config_from_file(init):
@@ -77,7 +78,7 @@ def validate_cmd(ctx, path, input, output, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that validate is defined in fedn.yaml under entry_points
     if "validate" not in config["entry_points"]:
         logger.error("No validate command defined in fedn.yaml")
@@ -106,7 +107,7 @@ def train_cmd(ctx, path, input, output, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that train is defined in fedn.yaml under entry_points
     if "train" not in config["entry_points"]:
         logger.error("No train command defined in fedn.yaml")
@@ -133,7 +134,7 @@ def startup_cmd(ctx, path, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that startup is defined in fedn.yaml under entry_points
     if "startup" not in config["entry_points"]:
         logger.error("No startup command defined in fedn.yaml")
@@ -159,7 +160,7 @@ def build_cmd(ctx, path, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that build is defined in fedn.yaml under entry_points
     if "build" not in config["entry_points"]:
         logger.error("No build command defined in fedn.yaml")

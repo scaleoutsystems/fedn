@@ -8,32 +8,18 @@ import uuid
 from io import BytesIO
 from typing import Dict, Optional, Tuple
 
-from fedn.common.config import FEDN_CUSTOM_URL_PREFIX, FEDN_PACKAGE_EXTRACT_DIR
+from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
 from fedn.network.clients.dispatcher_package_runtime import DispatcherPackageRuntime
 from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
+from fedn.network.clients.package_runtime import get_compute_package_dir_path
 from fedn.network.combiner.modelservice import get_tmp_path
-from fedn.utils.dispatcher import Dispatcher
 from fedn.utils.helpers.helpers import get_helper, save_metadata
 
 
 def get_url(api_url: str, api_port: int) -> str:
     """Construct the URL for the API."""
     return f"{api_url}:{api_port}/{FEDN_CUSTOM_URL_PREFIX}" if api_port else f"{api_url}/{FEDN_CUSTOM_URL_PREFIX}"
-
-
-def get_compute_package_dir_path() -> str:
-    """Get the directory path for the compute package."""
-    if FEDN_PACKAGE_EXTRACT_DIR:
-        result = os.path.join(os.getcwd(), FEDN_PACKAGE_EXTRACT_DIR)
-    else:
-        dirname = "compute-package-" + time.strftime("%Y%m%d-%H%M%S")
-        result = os.path.join(os.getcwd(), dirname)
-
-    if not os.path.exists(result):
-        os.mkdir(result)
-
-    return result
 
 
 class ClientOptions:
@@ -88,8 +74,8 @@ class DispatcherClient:
         self.package_checksum = package_checksum
         self.helper_type = helper_type
 
-        path = get_compute_package_dir_path()
-        self._package_runtime = DispatcherPackageRuntime(path)
+        package_path, archive_path = get_compute_package_dir_path()
+        self._package_runtime = DispatcherPackageRuntime(package_path, archive_path)
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
         self.fedn_client: FednClient = FednClient()
@@ -120,13 +106,17 @@ class DispatcherClient:
             if not result:
                 return
         if self.client_obj.package == "remote":
-            result = self._package_runtime.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self._package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
             if not result:
                 return
         else:
-            result = self._package_runtime.init_local_compute_package()
+            result = self._package_runtime.load_local_compute_package(os.path.join(os.getcwd(), "client"))
             if not result:
                 return
+
+        result = self._package_runtime.run_startup()
+        if not result:
+            return
 
         self.set_helper(combiner_config)
 
