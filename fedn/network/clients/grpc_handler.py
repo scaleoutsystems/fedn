@@ -274,7 +274,7 @@ class GrpcHandler:
                 logger.info(f"Received task request of type {request.type} for model_id {request.model_id}")
                 callback(request)
 
-    @grpc_retry(max_retries=-1, retry_interval=5)
+    @grpc_retry(max_retries=-1, retry_interval=20)
     def PollAndReport(self, report: fedn.ActivityReport) -> fedn.TaskRequest:
         return self.combinerStub.PollAndReport(report, metadata=self.metadata)
 

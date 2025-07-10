@@ -120,6 +120,10 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         # Set up model repository
         self.repository = repository
         self.db = db
+        
+        self._active_clients_cache = {} 
+        self.COMBINER_CACHE_COOLDOWN = 20.0  # seconds
+
 
         # Check if combiner already exists in statestore
         if self.db.combiner_store.get_by_name(config["name"]) is None:
@@ -412,7 +416,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             status = self.clients[client]["status"]
             now = datetime.now()
             then = self.clients[client]["last_seen"]
-            if (now - then) < timedelta(seconds=10):
+            if (now - then) < timedelta(seconds=30):
                 clients["active_clients"].append(client)
                 # If client has changed status, update client queue
                 if status != "online":
@@ -644,6 +648,22 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the client list
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientList`
         """
+
+        # Check if the cache is still valid
+        now      = datetime.now()
+        channel  = request.channel or "__default__" 
+
+        cache_ok = (
+            channel in self._active_clients_cache and
+            (now - self._active_clients_cache[channel]["last_seen"]
+            ).total_seconds() < self.COMBINER_CACHE_COOLDOWN
+        )
+
+        if cache_ok:
+            logger.debug("Combiner.ListActiveClients: returning cached list for %s", channel)
+            return self._active_clients_cache[channel]["clients"]
+
+
         clients = fedn.ClientList()
         active_clients = self._list_active_clients(request.channel)
         nr_active_clients = len(active_clients)
@@ -655,6 +675,15 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         for client in active_clients:
             clients.client.append(fedn.Client(name=client, role=fedn.CLIENT, client_id=client))
+
+        # Add clients to _active_clients_cache
+        # Update cache
+        self._active_clients_cache[channel] = {
+            "last_seen": now,
+            "clients":   clients,
+        }
+
+        
         return clients
 
     def AcceptingClients(self, request: fedn.ConnectionRequest, context):

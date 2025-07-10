@@ -24,7 +24,7 @@ class Task:
 
 
 class TaskReceiver:
-    def __init__(self, client: "FednClient", task_callback: callable, polling_interval: int = 5):
+    def __init__(self, client: "FednClient", task_callback: callable, polling_interval: int = 20):
         self.client = client
         self.task_callback = task_callback
 
