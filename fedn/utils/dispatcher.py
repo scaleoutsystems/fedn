@@ -90,7 +90,6 @@ class Dispatcher:
             python_env = _get_python_env(python_env_yaml_path)
 
         python_env.set_base_path(self.project_dir)
-        python_env.remove_fedndependency()
         if not python_env.path.exists():
             python_env.create_virtualenv(capture_output=capture_output, use_system_site_packages=True)
 
