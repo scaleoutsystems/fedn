@@ -1,12 +1,10 @@
 """Contains the PackageRuntime class, used to download, validate, and unpack compute packages."""
 
-import os
 from typing import Optional
 
 from fedn.common.log_config import logger
 from fedn.network.clients.package_runtime import PackageRuntime
 from fedn.utils.dispatcher import Dispatcher
-from fedn.utils.yaml import read_yaml_file
 
 # Default timeout for requests
 REQUEST_TIMEOUT = 10  # seconds

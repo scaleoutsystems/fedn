@@ -165,10 +165,12 @@ class ImporterClient:
         logger.info(f"Current command line arguments: {args}")
         args_after_start = args.split("client start", 1)[1].strip() if "client start" in args else ""
 
+        # TODO: Maybe we need to close open connections or clean up resources before restarting.
+
         activate_env_cmd = self.package_runtime.python_env.get_activate_cmd()
         cmd = _join_commands(activate_env_cmd, "python -m fedn client start " + args_after_start)
         logger.info(f"Restarting with cmd: {cmd}")
         time.sleep(2)
         entry_point = "/bin/bash" if _IS_UNIX else "C:\\Windows\\System32\\cmd.exe"
-        os.execv(entry_point, cmd)
-        logger.info("This should not be printed if execv is successful, check your command and environment setup.")
+        os.execv(entry_point, cmd)  # noqa: S606
+        # This line will never be reached, as os.execv replaces the current process with a new one.

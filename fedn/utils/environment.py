@@ -166,9 +166,9 @@ class _PythonEnv:
                     cmd = _join_commands(activate_cmd, f"python -m pip install -r {tmp_req_file}")
                     _exec_cmd(cmd, capture_output=capture_output, cwd=tmpdir, extra_env=extra_env)
 
-            Path(env_dir).joinpath(_PYTHON_ENV_METADATA_FILE_NAME).write_text(
-                f"{self.get_sha()}\n{self.python}\n{'\n'.join(self.build_dependencies or [])}\n{'\n'.join(self.dependencies or [])}"
-            )
+            build_deps = "\n".join(self.build_dependencies or [])
+            deps = "\n".join(self.dependencies or [])
+            Path(env_dir).joinpath(_PYTHON_ENV_METADATA_FILE_NAME).write_text(f"{self.get_sha()}\n{self.python}\n{build_deps}\n{deps}")
 
         return True
 

@@ -2,5 +2,6 @@
 python_env: python_env.yaml 
 
 entry_points:
-  build: build.py
+  build: 
+    command: python build.py
   startup: startup.py
