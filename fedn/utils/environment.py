@@ -131,7 +131,7 @@ class _PythonEnv:
         # Created a command to activate the environment
         env_dir = self.path
 
-        activate_cmd = self.get_activate_cmd(env_dir)
+        activate_cmd = self.get_activate_cmd()
 
         if env_dir.exists():
             logger.info("Environment %s already exists", env_dir)

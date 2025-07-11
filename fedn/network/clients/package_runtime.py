@@ -218,6 +218,7 @@ class PackageRuntime:
         if not self.config:
             logger.error(f"Configuration file {os.path.join(self._target_path, self._target_name)} not found or is empty.")
             return False
+        return True
 
     def run_startup(self, *args, **kwargs):
         raise NotImplementedError("The start method should be implemented in subclasses.")

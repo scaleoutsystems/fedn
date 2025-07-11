@@ -124,6 +124,7 @@ class ImporterClient:
         self.fedn_client.set_client_id(self.client_obj.client_id)
 
         if self.managed_env:
+            logger.info("Initializing managed environment.")
             self.package_runtime.init_env_runtime()
 
             if not self.verify_active_environment():
@@ -133,7 +134,6 @@ class ImporterClient:
 
         self.package_runtime.run_startup(self.fedn_client)
 
-        return
         self.fedn_client.run()
 
     def verify_active_environment(self) -> None:
@@ -169,6 +169,6 @@ class ImporterClient:
         cmd = _join_commands(activate_env_cmd, "python -m fedn client start " + args_after_start)
         logger.info(f"Restarting with cmd: {cmd}")
         time.sleep(2)
-        entry_point = ["/bin/bash"] if _IS_UNIX else ["C:\\Windows\\System32\\cmd.exe"]
+        entry_point = "/bin/bash" if _IS_UNIX else "C:\\Windows\\System32\\cmd.exe"
         os.execv(entry_point, cmd)
         logger.info("This should not be printed if execv is successful, check your command and environment setup.")
