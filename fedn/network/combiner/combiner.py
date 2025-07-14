@@ -422,7 +422,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
-            elif status != "offline":
+            elif status != "offline" and (now - then) < timedelta(seconds=30):
                 self.clients[client]["status"] = "offline"
                 clients["update_offline_clients"].append(client)
             logger.info("Time taken to check client {}: {} seconds".format(client, time.perf_counter() - start_time_client))
@@ -434,10 +434,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             for client in clients["update_active_clients"]:
                 start_time_update_client = time.perf_counter()
                 logger.info("Updating client {} status to online".format(client))
+                start_time_get_client = time.perf_counter()
                 client_to_update = self.db.client_store.get(client)
+                logger.info("Time taken for db.client_store.get call {}: {} seconds".format(client, time.perf_counter() - start_time_get_client))
                 client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "online"
+                start_time_update_db = time.perf_counter()
                 self.db.client_store.update(client_to_update)
+                logger.info("Time taken for client_store.update call {}: {} seconds".format(client, time.perf_counter() - start_time_update_db))
                 logger.info("Time taken to update client {}: {} seconds".format(client, time.perf_counter() - start_time_update_client))
         
         logger.info("Time taken to update active clients: {} seconds".format(time.perf_counter() - start_time_update))
@@ -446,10 +450,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         if len(clients["update_offline_clients"]) > 0:
             for client in clients["update_offline_clients"]:
                 start_time_update_offline_client = time.perf_counter()
+                start_time_get_client = time.perf_counter()
                 client_to_update = self.db.client_store.get(client)
+                logger.info("Time taken for db.client_store.get call {}: {} seconds".format(client, time.perf_counter() - start_time_get_client))
                 client_to_update.last_seen = self.clients[client]["last_seen"]
                 client_to_update.status = "offline"
+                start_time_update_offline_db = time.perf_counter()
                 self.db.client_store.update(client_to_update)
+                logger.info("Time taken for client_store.update call {}: {} seconds".format(client, time.perf_counter() - start_time_update_offline_db))
                 logger.info("time taken to update offline client {}: {} seconds".format(client, time.perf_counter() - start_time_update_offline_client))
 
         logger.info("Time taken to update offline clients: {} seconds".format(time.perf_counter() - start_time_update_offline))
