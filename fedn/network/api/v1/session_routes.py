@@ -437,10 +437,10 @@ def start_session():
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config.rounds
-        nr_available_clients = network.get_number_of_available_clients(client_ids=client_ids)
+        #nr_available_clients = network.get_number_of_available_clients(client_ids=client_ids)
 
-        if nr_available_clients < min_clients:
-            return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
+        #if nr_available_clients < min_clients:
+        #    return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
         model = db.model_store.get(model_id)
         if model is None:
