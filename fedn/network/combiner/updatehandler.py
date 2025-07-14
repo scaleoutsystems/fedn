@@ -246,7 +246,7 @@ class SessionQueue:
         self,
         update_handler: UpdateHandler,
         session_id: str,
-        accept_stragglers: bool = False,
+        accept_stragglers: bool = True,
     ):
         self.session_id = session_id
         self.round_id: str = None
@@ -310,7 +310,7 @@ class SessionQueue:
         # For now, just delete them
         self.update_handler.delete_model(model_update)
 
-    def start_round_queue(self, round_id, expected_correlation_ids: List[str], accept_stragglers: bool = False):
+    def start_round_queue(self, round_id, expected_correlation_ids: List[str], accept_stragglers: bool = True):
         """Progress to the next round transfering stragglers to the next round."""
         with self.lock:
             self.round_id = round_id
