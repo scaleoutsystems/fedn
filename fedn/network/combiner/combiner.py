@@ -444,12 +444,14 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         return clients["active_clients"]
 
-    def _deamon_thread_client_status(self, timeout=5):
+    def _deamon_thread_client_status(self, timeout=120):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
-            time.sleep(timeout)
             # TODO: Also update validation clients
+            start_time = time.perf_counter()
             self._list_active_clients(fedn.Queue.TASK_QUEUE)
+            logger.info("Client status update took {} seconds".format(time.perf_counter() - start_time))
+            time.sleep(timeout)
 
     def _put_request_to_client_queue(self, request, queue_name):
         """Get a client specific queue and add a request to it.
