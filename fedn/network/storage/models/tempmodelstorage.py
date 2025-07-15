@@ -16,6 +16,7 @@ class TempModelStorage:
             os.makedirs(self.default_dir)
 
         self.models = {}
+        self.model_latest_id = ""
 
     def exist(self, model_id):
         if model_id in self.models.keys():
@@ -93,6 +94,7 @@ class TempModelStorage:
             return False
         self.models[model_id]["checksum"] = downloaded_file_checksum
         self.models[model_id]["state"] = fedn.ModelStatus.OK
+        self.model_latest_id = model_id
         return True
 
     def compute_checksum(self, model_id):
@@ -126,6 +128,18 @@ class TempModelStorage:
         except KeyError:
             logger.error("TEMPMODELSTORAGE: model_id {} does not exist".format(model_id))
             return False
+        
+    def is_latest_ready(self):
+        """Check if the latest model is ready.
+
+        :return: True if the latest model is ready, else False.
+        :rtype: bool
+        """
+        try:
+            return self.models[self.model_latest_id]["state"] == fedn.ModelStatus.OK, self.model_latest_id
+        except KeyError:
+            logger.error("TEMPMODELSTORAGE: Latest model_id {} is not ready".format(self.model_latest_id))
+            return False, None
 
     def get_checksum(self, model_id):
         try:

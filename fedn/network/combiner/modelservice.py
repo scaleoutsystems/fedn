@@ -214,14 +214,22 @@ class ModelService(rpc.ModelServiceServicer):
         :return: A model response iterator.
         :rtype: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         """
-        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.model_id}")
+        requested_model_id = request.model_id
+        logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {requested_model_id}")
 
-        if not self.temp_model_storage.is_ready(request.model_id):
-            logger.error(f"ModelServicer: Model file is not ready: {request.model_id}")
-            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready.")
+        if not self.temp_model_storage.is_ready(requested_model_id):
+            logger.error(f"ModelServicer: Model file is not ready: {requested_model_id}")
+            ready, latest_model_id = self.temp_model_storage.is_latest_ready()
+            if not ready:
+                logger.error(f"ModelServicer: Latest model is not ready: {latest_model_id}")
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Latest model is not ready.")
+            else:
+                logger.info(f"ModelServicer: Skipping old model and using new: {latest_model_id}")
+                requested_model_id = latest_model_id
+
 
         try:
-            obj = self.temp_model_storage.get(request.model_id)
+            obj = self.temp_model_storage.get(requested_model_id)
             with obj as f:
                 while True:
                     chunk = f.read(CHUNK_SIZE)
@@ -230,7 +238,7 @@ class ModelService(rpc.ModelServiceServicer):
                     else:
                         break
         except Exception as e:
-            logger.error("Downloading went wrong: {} {}".format(request.model_id, e))
+            logger.error("Downloading went wrong: {} {}".format(requested_model_id, e))
             context.abort(grpc.StatusCode.UNKNOWN, "Download failed.")
 
-        context.set_trailing_metadata((("checksum", self.temp_model_storage.get_checksum(request.model_id)),))
+        context.set_trailing_metadata((("checksum", self.temp_model_storage.get_checksum(requested_model_id)),))
