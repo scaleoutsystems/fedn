@@ -20,7 +20,7 @@ def run_gunicorn(app, host, port, workers=4, post_fork_func=None):
     bind_address = f"{host}:{port}"
     options = {
         "bind": bind_address,  # Specify the bind address and port here
-        "workers": workers,
+        "workers": workers,  # Number of worker processes
         # After forking, initialize the database connection
         "timeout": 120,
     }

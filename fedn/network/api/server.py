@@ -510,7 +510,7 @@ def start_api_server():
         def post_fork(server, worker):
             init_globals()
 
-        workers = os.cpu_count()
+        workers = 4 #os.cpu_count()
         gunicorn_app.run_gunicorn(app, host, port, workers, post_fork_func=post_fork)
 
 
