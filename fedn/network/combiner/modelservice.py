@@ -170,6 +170,15 @@ class ModelService(rpc.ModelServiceServicer):
         """
         bt = model_as_bytesIO(model)
         self.temp_model_storage.set_model(model_id, bt)
+    
+    def set_latest_id(self, model_id):
+        """Set the latest model id.
+
+        :param model_id: The model id to set as latest.
+        :type model_id: str
+        """
+        self.temp_model_storage.set_latest_id(model_id)
+        logger.info(f"ModelServicer: Set latest model id to {model_id}")
 
     # Model Service
     def Upload(self, filechunk_iterator: Generator[fedn.FileChunk, None, None], context: grpc.ServicerContext):

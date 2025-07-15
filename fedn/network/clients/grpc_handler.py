@@ -344,7 +344,8 @@ class GrpcHandler:
         _ = self.combinerStub.SendTelemetryMessage(telemetry, metadata=self.metadata)
         return True
 
-    @grpc_retry(max_retries=-1, retry_interval=5)
+    # running infinite retries can cause client to hang indefinitely, so we set a max retry count
+    @grpc_retry(max_retries=1, retry_interval=3)
     def get_model_from_combiner(self, model_id: str, client_id: str) -> Optional[BytesIO]:
         """Fetch a model from the assigned combiner.
 
@@ -364,7 +365,7 @@ class GrpcHandler:
         request.sender.client_id = client_id
         request.sender.role = fedn.CLIENT
 
-        logger.info("Downloading model from combiner.")
+        logger.info(f"Downloading model from combiner: {model_id}")
         part_iterator = self.modelStub.Download(request, metadata=self.metadata)
         for part in part_iterator:
             data.write(part.data)
@@ -384,7 +385,7 @@ class GrpcHandler:
         data.seek(0, 0)
         return data
 
-    @grpc_retry(max_retries=-1, retry_interval=5)
+    @grpc_retry(max_retries=2, retry_interval=5)
     def send_model_to_combiner(self, model: BytesIO, model_id: str) -> Optional[BytesIO]:
         """Send a model update to the assigned combiner.
 
@@ -397,6 +398,7 @@ class GrpcHandler:
         :return: The model update object.
         :rtype: Optional[BytesIO]
         """
+        print("Debug!")
         if not isinstance(model, BytesIO):
             byte_stream = BytesIO()
 

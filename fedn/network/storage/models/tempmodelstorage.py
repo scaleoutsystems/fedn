@@ -22,6 +22,14 @@ class TempModelStorage:
         if model_id in self.models.keys():
             return True
         return False
+    
+    def set_latest_id(self, model_id):
+        """Set the latest model id."""
+        if model_id in self.models:
+            self.model_latest_id = model_id
+            logger.info(f"TEMPMODELSTORAGE: Set latest model id to {model_id}")
+        else:
+            logger.error(f"TEMPMODELSTORAGE: Model id {model_id} does not exist in models.")
 
     def get(self, model_id):
         try:
@@ -94,7 +102,6 @@ class TempModelStorage:
             return False
         self.models[model_id]["checksum"] = downloaded_file_checksum
         self.models[model_id]["state"] = fedn.ModelStatus.OK
-        self.model_latest_id = model_id
         return True
 
     def compute_checksum(self, model_id):

@@ -456,6 +456,8 @@ class RoundHandler:
 
         # Download model to update and set in temp storage.
         self.stage_model(config["model_id"])
+        self.modelservice.set_latest_id(config["model_id"])  # Set the latest model id in modelservice
+
 
         # dictionary to which functions are provided
         provided_functions = self.hook_interface.provided_functions(self.server_functions)
