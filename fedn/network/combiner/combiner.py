@@ -422,7 +422,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
                 if status != "online":
                     self.clients[client]["status"] = "online"
                     clients["update_active_clients"].append(client)
-            elif status != "offline" and (now - then) < timedelta(seconds=30):
+            elif status != "offline":
                 self.clients[client]["status"] = "offline"
                 clients["update_offline_clients"].append(client)
             logger.info("Time taken to check client {}: {} seconds".format(client, time.perf_counter() - start_time_client))
@@ -463,7 +463,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.info("Time taken to update offline clients: {} seconds".format(time.perf_counter() - start_time_update_offline))
         return clients["active_clients"]
 
-    def _deamon_thread_client_status(self, timeout=5):
+    def _deamon_thread_client_status(self, timeout=600):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             # TODO: Also update validation clients
