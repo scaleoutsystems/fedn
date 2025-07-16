@@ -276,7 +276,7 @@ class FednClient:
 
     def default_telemetry_loop(self, update_frequency: float = 5.0) -> None:
         """Send default telemetry data."""
-        send_telemetry = True
+        send_telemetry = False
         while send_telemetry:
             memory_usage = psutil.virtual_memory().percent
             cpu_usage = psutil.cpu_percent()
@@ -289,20 +289,6 @@ class FednClient:
                 send_telemetry = False
             time.sleep(update_frequency)
 
-    def default_telemetry_loop(self, update_frequency: float = 5.0) -> None:
-        """Send default telemetry data."""
-        send_telemetry = True
-        while send_telemetry:
-            memory_usage = psutil.virtual_memory().percent
-            cpu_usage = psutil.cpu_percent()
-            try:
-                success = self.log_telemetry(telemetry={"memory_usage": memory_usage, "cpu_usage": cpu_usage})
-            except RetryException as e:
-                logger.error(f"Sending telemetry failed: {e}")
-            if not success:
-                logger.error("Telemetry failed.")
-                send_telemetry = False
-            time.sleep(update_frequency)
 
     @contextmanager
     def logging_context(self, context: LoggingContext):
@@ -640,26 +626,6 @@ class FednClient:
 
         return self.grpc_handler.send_telemetry(message)
 
-    def log_telemetry(self, telemetry: dict) -> bool:
-        """Log the telemetry data to the server.
-
-        Args:
-            telemetry (dict): The telemetry data to log.
-
-        Returns:
-            bool: True if the telemetry data was logged successfully, False otherwise.
-
-        """
-        message = fedn.TelemetryMessage()
-        message.sender.name = self.name
-        message.sender.client_id = self.client_id
-        message.sender.role = fedn.Role.CLIENT
-        message.timestamp.GetCurrentTime()
-
-        for key, value in telemetry.items():
-            message.telemetries.add(key=key, value=value)
-
-        return self.grpc_handler.send_telemetry(message)
 
     def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> fedn.ModelUpdate:
         """Create an update message."""
