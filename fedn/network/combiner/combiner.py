@@ -772,7 +772,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
         q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
 
-        self._send_status(status)
+        # Reducing communication overhead by not sending status updates to mongodb
+        #self._send_status(status)
 
         # Set client status to online
         self.clients[client.client_id]["status"] = "online"
@@ -810,7 +811,8 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.type = fedn.StatusType.NETWORK
         status.timestamp.GetCurrentTime()
         self.__whoami(status.sender, self)
-        self._send_status(status)
+        # Reducing communication overhead by not sending status updates to mongodb
+        #self._send_status(status)
 
     def PollAndReport(self, report: fedn.ActivityReport, context):
         # Subscribe client, this also adds the client to self.clients
@@ -919,8 +921,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status.session_id = request.session_id
 
         logger.info(f"Creating status message with session_id: {request.session_id}")
-        self._send_status(status)
-        logger.info("Status message sent to MongoDB")
+        # Reducing communication overhead by not sending status updates to mongodb
+        # self._send_status(status)
+        #logger.info("Status message sent to MongoDB")
 
         ###########
 

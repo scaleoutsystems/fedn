@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 
 from flask import Blueprint, jsonify, request
 
@@ -488,6 +489,7 @@ def add_client():
         else:
             helper_type = ""
 
+        time_get_comb = time.perf_counter()  # Start timer for performance measurement
         if preferred_combiner:
             combiner = network.get_combiner(preferred_combiner)
             if combiner is None:
@@ -498,11 +500,14 @@ def add_client():
                     },
                     400,
                 )
+            logger.info(f"Time to get combiner: {time.perf_counter() - time_get_comb:.4f} seconds")  # Log time taken
         else:
+            find_available_combiner = time.perf_counter()  # Reset timer
             combiner = network.find_available_combiner()
+            logger.info(f"Time to find available combiner: {time.perf_counter() - find_available_combiner:.4f} seconds")  # Log time taken
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
-
+        time_add_client = time.perf_counter()  # Start timer for performance measurement
         if db.client_store.get(client_id) is None:
             logger.info("Adding client {}".format(client_id))
 
@@ -521,6 +526,7 @@ def add_client():
 
             added_client = db.client_store.add(new_client)
             client_id = added_client.client_id
+            logger.info(f"Time to add client: {time.perf_counter() - time_add_client:.4f} seconds")  # Log time taken
 
         payload = {
             "status": "assigned",
