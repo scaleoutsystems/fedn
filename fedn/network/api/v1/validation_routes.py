@@ -7,6 +7,7 @@ from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get
 
 bp = Blueprint("validation", __name__, url_prefix=f"/api/{api_version}/validations")
 
+MAX_VALIDATIONS = 200  # for Async Gunicorn worker timeout error
 
 @bp.route("/", methods=["GET"])
 @jwt_auth_required(role="admin")
@@ -128,6 +129,7 @@ def get_validations():
     try:
         db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
+        limit = MAX_VALIDATIONS  
         kwargs = request.args.to_dict()
 
         result = db.validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
@@ -226,6 +228,7 @@ def list_validations():
     try:
         db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
+        limit = MAX_VALIDATIONS
         kwargs = get_post_data_to_kwargs(request)
 
         result = db.validation_store.list(limit, skip, sort_key, sort_order, **kwargs)
