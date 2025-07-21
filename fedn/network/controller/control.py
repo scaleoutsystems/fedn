@@ -156,7 +156,6 @@ class Control(ControlBase, rpc.ControlServicer):
             except Exception as e:
                 logger.error(f"Failed to start command: {e}")
                 context.abort(grpc.StatusCode.UNKNOWN, f"Failed to start command: {e}")
-
             response = fedn.ControlResponse()
             response.message = "Success"
             return response
@@ -227,11 +226,16 @@ class Control(ControlBase, rpc.ControlServicer):
         last_round = self.get_latest_round_id()
 
         aggregator = session_config.aggregator
-
-        for combiner in self.network.get_combiners():
-            combiner.set_aggregator(aggregator)
-            if session_config.server_functions is not None:
-                combiner.set_server_functions(session_config.server_functions)
+        time_get_combiners = time.perf_counter()
+        try:
+            for combiner in self.network.get_combiners():
+                combiner.set_aggregator(aggregator)
+                if session_config.server_functions is not None:
+                    combiner.set_server_functions(session_config.server_functions)
+            logger.info("Time to get combiners: {:.2f} seconds".format(time.perf_counter() - time_get_combiners))
+        except Exception as e:
+            logger.error(f"Failed to set aggregator for combiners: {e}")
+            return
 
         self.set_session_status(session_id, "Started")
 
