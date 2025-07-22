@@ -139,6 +139,7 @@ class ControlBase(ABC):
         cl = []
         for combiner, combiner_round_config in combiners:
             response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
+            logger.info(f"Combiner {combiner.name} responded with: {response}")
             cl.append((combiner, response))
         return cl
 

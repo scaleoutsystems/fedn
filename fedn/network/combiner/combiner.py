@@ -637,7 +637,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.Response`
         """
         logger.debug("grpc.Combiner.SendStatus: Called")
-        self._send_status(status)
+        #self._send_status(status)
 
         response = fedn.Response()
         response.response = "Status received."
