@@ -35,7 +35,7 @@ class ControlBase(ABC):
         self.repository = repository
         self.db = db
         self._active_clients_cache = {} 
-        self.COMBINER_CACHE_COOLDOWN = 20.0  # seconds
+        self.COMBINER_CACHE_COOLDOWN = 180.0  # seconds
 
 
     @abstractmethod
@@ -138,9 +138,12 @@ class ControlBase(ABC):
         """
         cl = []
         for combiner, combiner_round_config in combiners:
-            response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
-            logger.info(f"Combiner {combiner.name} responded with: {response}")
-            cl.append((combiner, response))
+            try:
+                response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
+                cl.append((combiner, response))
+            except CombinerUnavailableError:
+                self._handle_unavailable_combiner(combiner)
+                continue
         return cl
 
     def get_combiner(self, name):
