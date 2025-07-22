@@ -423,13 +423,14 @@ class Control(ControlBase, rpc.ControlServicer):
             return None, self.db.round_store.get(round_id)
 
         # Ask participating combiners to coordinate model updates
-        _ = self.request_model_updates(participating_combiners)
-        # TODO: Check response
 
+        _, participating_combiners = self.request_model_updates(participating_combiners)
+        # TODO: Check response
         def check_round_reported():
             round = self.db.round_store.get(round_id)
             if len(round.combiners) < len(participating_combiners):
-                logger.info("Waiting for combiners to update model...")
+                for combiner in round.combiners:
+                    logger.info(f"Combiner {combiner.name} has reported.")
                 return False
             return True
 
@@ -568,7 +569,7 @@ class Control(ControlBase, rpc.ControlServicer):
 
         logger.info("CONTROLLER: Requesting forward pass")
         # Request forward pass using existing method
-        _ = self.request_model_updates(participating_combiners)
+        _, _ = self.request_model_updates(participating_combiners)
 
         # Wait until participating combiners have produced an updated global model,
         # or round times out.
@@ -638,7 +639,7 @@ class Control(ControlBase, rpc.ControlServicer):
             backward_config.update({"rounds": 1, "round_id": round_id, "task": "backward", "session_id": session_id, "model_id": model_id})
 
             participating_combiners = [(combiner, backward_config) for combiner, _ in participating_combiners]
-            result = self.request_model_updates(participating_combiners)
+            result, _ = self.request_model_updates(participating_combiners)
 
             if not result:
                 logger.error("Backward pass failed - no result from model updates")

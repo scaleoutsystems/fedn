@@ -137,14 +137,16 @@ class ControlBase(ABC):
         :type combiners: tuple (combiner, combiner_round_config)
         """
         cl = []
+        participating_combiners = []
         for combiner, combiner_round_config in combiners:
             try:
                 response = combiner.submit(fedn_proto.Command.START, combiner_round_config)
                 cl.append((combiner, response))
+                participating_combiners.append((combiner, combiner_round_config))
             except CombinerUnavailableError:
                 self._handle_unavailable_combiner(combiner)
                 continue
-        return cl
+        return cl, participating_combiners
 
     def get_combiner(self, name):
         for combiner in self.network.get_combiners():
