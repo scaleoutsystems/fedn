@@ -35,7 +35,7 @@ class ControlBase(ABC):
         self.repository = repository
         self.db = db
         self._active_clients_cache = {} 
-        self.COMBINER_CACHE_COOLDOWN = 180.0  # seconds
+        self.COMBINER_CACHE_COOLDOWN = 600.0  # seconds
 
 
     @abstractmethod
