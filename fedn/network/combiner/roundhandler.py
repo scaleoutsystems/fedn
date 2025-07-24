@@ -680,6 +680,10 @@ class RoundHandler:
                         round_meta["status"] = "Failed"
                         round_meta["model_id"] = None
                         round_meta["name"] = self.server.id
+                        round_meta["time_exec_training"] = 0.0
+                        round_meta["config"] = None
+                        round_meta["data"] = None
+                        round_meta["round_id"] = round_config["round_id"]
                         # If the round failed we still need to update the round store with the round meta.
                         active_round = self.server.db.round_store.get(round_config["round_id"])
                         active_round.combiners.append(round_meta)
