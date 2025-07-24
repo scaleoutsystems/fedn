@@ -176,7 +176,6 @@ class RoundHandler:
             logger.info("Sent model update request for model {} to {} clients".format(model_id, len(clients_with_requests)))
 
         # If buffer_size is -1 (default), the round terminates when/if all clients have completed
-        # If buffer_size is -1 (default), the round terminates when/if all clients have completed
         if int(config["buffer_size"]) == -1:
             buffer_size = len(clients)
         else:
@@ -676,6 +675,23 @@ class RoundHandler:
                                 raise Exception("Backward pass: Failed to update round data in round store.")
                         else:
                             logger.warning("config contains unknown task type.")
+                    elif not ready and round_config["task"] == "training":
+                        round_meta = {}
+                        round_meta["status"] = "Failed"
+                        round_meta["reason"] = "Failed to meet client allocation requirements for this round config."
+                        logger.warning("{0}".format(round_meta["reason"]))
+                        # If the round failed we still need to update the round store with the round meta.
+                        active_round = self.server.db.round_store.get(round_config["round_id"])
+                        active_round.combiners.append(round_meta)
+                        try:
+                            self.server.db.round_store.update_one(
+                                    {"round_id": round_config["round_id"]},
+                                    {"$push": {"combiners": round_meta}},
+                                    upsert=True 
+                            )
+                        except Exception as e:
+                            logger.error("Failed to update round data in round store. {}".format(e))
+                            raise Exception("Failed to update round data in round store.")
                     else:
                         round_meta = {}
                         round_meta["status"] = "Failed"
