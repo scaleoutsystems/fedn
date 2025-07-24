@@ -678,8 +678,8 @@ class RoundHandler:
                     elif not ready and round_config["task"] == "training":
                         round_meta = {}
                         round_meta["status"] = "Failed"
-                        round_meta["reason"] = "Failed to meet client allocation requirements for this round config."
-                        logger.warning("{0}".format(round_meta["reason"]))
+                        round_meta["model_id"] = None
+                        round_meta["name"] = self.server.id
                         # If the round failed we still need to update the round store with the round meta.
                         active_round = self.server.db.round_store.get(round_config["round_id"])
                         active_round.combiners.append(round_meta)
@@ -692,6 +692,9 @@ class RoundHandler:
                         except Exception as e:
                             logger.error("Failed to update round data in round store. {}".format(e))
                             raise Exception("Failed to update round data in round store.")
+                        round_meta["reason"] = "Failed to meet client allocation requirements for this round config."
+                        logger.warning("{0}".format(round_meta["reason"]))
+
                     else:
                         round_meta = {}
                         round_meta["status"] = "Failed"
@@ -699,6 +702,7 @@ class RoundHandler:
                         logger.warning("{0}".format(round_meta["reason"]))
 
                     self.round_configs.task_done()
+
                 except Exception as e:
                     tb = traceback.format_exc()
                     logger.error("Uncought exception: {}".format(e))
