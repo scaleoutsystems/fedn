@@ -103,6 +103,7 @@ class Repository:
         :rtype: str
         """
         model_id = uuid.uuid4()
+        logger.info("Attempting to set model with id: {}".format(model_id))
 
         try:
             self.client.set_artifact(str(model_id), model, bucket=self.model_bucket, is_file=is_file)

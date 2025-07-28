@@ -494,6 +494,7 @@ class RoundHandler:
 
         if model is not None:
             helper = get_helper(config["helper_type"])
+            logger.info("Model type: {}".format(type(model)))
             a = serialize_model_to_BytesIO(model, helper)
             model_id = self.storage.set_model(a.read(), is_file=False)
             a.close()
