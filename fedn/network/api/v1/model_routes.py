@@ -809,14 +809,10 @@ def upload_model():
         name: str = data.get("name", None)
 
         try:
-            object = BytesIO()
-            object.seek(0, 0)
             file.seek(0)
-            object.write(file.read())
             helper = network.get_helper()
             logger.info(f"Loading model from file using helper {helper.name}")
-            object.seek(0)
-            model = helper.load(object)
+            model = helper.load(file)
             network.commit_model(model=model, name=name)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
