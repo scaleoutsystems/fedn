@@ -139,7 +139,6 @@ def load_model_from_path(path, helper):
     logger.info("Loading model from path: {}".format(path))
     model = helper.load(path)
     logger.info("Model loaded successfully from path. Type: {}".format(type(model)))
-    os.unlink(path)
     return model
 
 
