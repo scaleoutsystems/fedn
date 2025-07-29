@@ -727,7 +727,7 @@ class Control(ControlBase, rpc.ControlServicer):
                         tic = time.time()
                         model = helper.increment_average(model, model_next, 1.0, i)
                         meta["time_aggregate_model"] += time.time() - tic
-                    except:
+                    except Exception as e:
                         logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
                         tic = time.time()
                         model = load_model_from_path(temp_path, helper)
@@ -743,7 +743,7 @@ class Control(ControlBase, rpc.ControlServicer):
                         tic = time.time()
                         model = helper.increment_average(model, model_next, 1.0, i)
                         meta["time_aggregate_model"] += time.time() - tic
-                    except Exception:
+                    except Exception as e:
                         tic = time.time()
                         model = load_model_from_bytes(data, helper)
                         meta["time_aggregate_model"] += time.time() - tic
@@ -754,7 +754,7 @@ class Control(ControlBase, rpc.ControlServicer):
         try:
             self.repository.delete_model(model_id)
         except Exception as e:
-            logger.error(f"Failed to delete model {model_id} from repository")
+            logger.error(f"Failed to delete model {model_id} from repository, reason: {e}")
 
         logger.info("Model type: {}".format(type(model)))
         return model, meta
