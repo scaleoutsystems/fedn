@@ -178,6 +178,7 @@ class Network:
 
         try:
             self.db.model_store.add(new_model)
+            logger.info("CONTROL: Model {} committed to global model trail.".format(model_id))
         except Exception as e:
             logger.error("Failed to commit model to global model trail: {}".format(e))
             raise Exception("Failed to commit model to global model trail")

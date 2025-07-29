@@ -115,6 +115,7 @@ def load_model_from_bytes(model_bytes, helper):
     :return: The model object.
     :rtype: return type of helper.load
     """
+    logger.info("Loading model of type: {}".format(type(model_bytes)))
     path = get_tmp_path()
     with open(path, "wb") as fh:
         fh.write(model_bytes)
@@ -136,13 +137,17 @@ def serialize_model_to_BytesIO(model, helper):
     """
     outfile_name = helper.save(model)
 
-    a = BytesIO()
-    a.seek(0, 0)
+    temp_file = tempfile.SpooledTemporaryFile(max_size=10 * 1024 * 1024)  # 10 MB
     with open(outfile_name, "rb") as f:
-        a.write(f.read())
-    a.seek(0)
+        while True:
+            chunk = f.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            temp_file.write(chunk)
+    temp_file.seek(0)
     os.unlink(outfile_name)
-    return a
+    return temp_file
+
 
 
 class ModelService(rpc.ModelServiceServicer):

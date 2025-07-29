@@ -699,6 +699,7 @@ class Control(ControlBase, rpc.ControlServicer):
                 tic = time.time()
                 data = self.repository.get_model(model_id)
                 meta["time_fetch_model"] += time.time() - tic
+                logger.info("Fetched model {} from repository in {:.2f} seconds".format(model_id, meta["time_fetch_model"]))
             except Exception as e:
                 logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
                 data = None
