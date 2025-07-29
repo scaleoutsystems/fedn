@@ -4,13 +4,15 @@ import json
 import signal
 import time
 from typing import Dict, Optional
+import os
+import tempfile
 
 import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import load_model_from_bytes
+from fedn.network.combiner.modelservice import load_model_from_bytes, load_model_from_path
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.common.command import CommandType
 from fedn.network.common.flow_controller import FlowController
@@ -705,18 +707,45 @@ class Control(ControlBase, rpc.ControlServicer):
                 data = None
 
             if data is not None:
-                try:
-                    tic = time.time()
-                    helper = self.network.get_helper()
-                    model_next = load_model_from_bytes(data, helper)
-                    meta["time_load_model"] += time.time() - tic
+                threshold = 10 * 1024 * 1024  # 10 MB
+                helper = self.network.get_helper()
+                if len(data) > threshold:
+                    try:
+                        logger.warning(
+                            "Model size ({}) exceeds threshold ({}), this may cause performance issues.".format(
+                                len(data), threshold
+                            )
+                        )
+                        fd, path = tempfile.mkstemp()
+                        os.close(fd)
+                        with open(path, "wb") as f:
+                            f.write(data)
+                            f.flush()
+                        logger.info("Model written to temporary file: {}".format(path))
+                        del data
+                        model_next = load_model_from_path(path, helper)
+                    except:
+                        logger.error("Failed to write model to temporary file, falling back to in-memory model loading.")
+
+                else:    
+                    logger.info("Model size ({}) is within threshold ({}), loading in memory.".format(len(data), threshold))
+                    try:
+                        tic = time.time() 
+                        model_next = load_model_from_bytes(data, helper)
+                        meta["time_load_model"] += time.time() - tic
+                    except Exception:
+                        tic = time.time()
+                        model = load_model_from_bytes(data, helper)
+                        meta["time_aggregate_model"] += time.time() - tic
+                    
+                try: 
                     tic = time.time()
                     model = helper.increment_average(model, model_next, 1.0, i)
                     meta["time_aggregate_model"] += time.time() - tic
-                except Exception:
-                    tic = time.time()
-                    model = load_model_from_bytes(data, helper)
-                    meta["time_aggregate_model"] += time.time() - tic
+                except Exception as e:
+                    logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
+                    continue
+                    
                 i = i + 1
         try:
             self.repository.delete_model(model_id)
