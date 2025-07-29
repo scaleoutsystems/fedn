@@ -716,16 +716,23 @@ class Control(ControlBase, rpc.ControlServicer):
                                 len(data), threshold
                             )
                         )
-                        fd, path = tempfile.mkstemp()
+                        fd, temp_path = tempfile.mkstemp()
                         os.close(fd)
-                        with open(path, "wb") as f:
+                        with open(temp_path, "wb") as f:
                             f.write(data)
                             f.flush()
-                        logger.info("Model written to temporary file: {}".format(path))
+                        logger.info("Model written to temporary file: {}".format(temp_path))
                         del data
-                        model_next = load_model_from_path(path, helper)
+                        model_next = load_model_from_path(temp_path, helper)
+                        tic = time.time()
+                        model = helper.increment_average(model, model_next, 1.0, i)
+                        meta["time_aggregate_model"] += time.time() - tic
                     except:
-                        logger.error("Failed to write model to temporary file, falling back to in-memory model loading.")
+                        logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
+                        tic = time.time()
+                        model = load_model_from_path(temp_path, helper)
+                        meta["time_aggregate_model"] += time.time() - tic
+                        continue
 
                 else:    
                     logger.info("Model size ({}) is within threshold ({}), loading in memory.".format(len(data), threshold))
@@ -733,25 +740,23 @@ class Control(ControlBase, rpc.ControlServicer):
                         tic = time.time() 
                         model_next = load_model_from_bytes(data, helper)
                         meta["time_load_model"] += time.time() - tic
+                        tic = time.time()
+                        model = helper.increment_average(model, model_next, 1.0, i)
+                        meta["time_aggregate_model"] += time.time() - tic
                     except Exception:
                         tic = time.time()
                         model = load_model_from_bytes(data, helper)
                         meta["time_aggregate_model"] += time.time() - tic
-                    
-                try: 
-                    tic = time.time()
-                    model = helper.increment_average(model, model_next, 1.0, i)
-                    meta["time_aggregate_model"] += time.time() - tic
-                except Exception as e:
-                    logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
-                    continue
-                    
+                        logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
+                        continue
+                # Next combiner
                 i = i + 1
         try:
             self.repository.delete_model(model_id)
         except Exception as e:
             logger.error(f"Failed to delete model {model_id} from repository")
 
+        logger.info("Model type: {}".format(type(model)))
         return model, meta
 
     def predict_instruct(self, config):

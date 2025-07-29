@@ -120,10 +120,7 @@ def load_model_from_bytes(model_bytes, helper):
     with open(path, "wb") as fh:
         fh.write(model_bytes)
         fh.flush()
-    
-    # remove the model_bytes object before loading to reduce memory usage
-    del model_bytes
-    logger.info("Model bytes deleted from memory and written to file.")
+
     model = helper.load(path)
     logger.info("Model loaded successfully from bytes.")
     os.unlink(path)
@@ -141,7 +138,7 @@ def load_model_from_path(path, helper):
     """
     logger.info("Loading model from path: {}".format(path))
     model = helper.load(path)
-    logger.info("Model loaded successfully from path.")
+    logger.info("Model loaded successfully from path. Type: {}".format(type(model)))
     os.unlink(path)
     return model
 
