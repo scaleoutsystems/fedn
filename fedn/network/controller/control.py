@@ -707,29 +707,18 @@ class Control(ControlBase, rpc.ControlServicer):
                 data = None
 
             if data is not None:
-                threshold = 10 * 1024 * 1024  # 10 MB
+                threshold = 10 * 1024 * 1024  # 10 MB threshold for in-memory model loading
                 helper = self.network.get_helper()
                 if len(data) > threshold:
+                    temp_path = self.save_model_path(data)
+                    del data
                     try:
-                        logger.warning(
-                            "Model size ({}) exceeds threshold ({}), this may cause performance issues.".format(
-                                len(data), threshold
-                            )
-                        )
-                        fd, temp_path = tempfile.mkstemp()
-                        os.close(fd)
-                        with open(temp_path, "wb") as f:
-                            f.write(data)
-                            f.flush()
-                        logger.info("Model written to temporary file: {}".format(temp_path))
-                        del data
                         model_next = load_model_from_path(temp_path, helper)
                         tic = time.time()
                         model = helper.increment_average(model, model_next, 1.0, i)
                         meta["time_aggregate_model"] += time.time() - tic
                         os.unlink(temp_path)  # Remove temporary file
                     except Exception as e:
-                        logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
                         tic = time.time()
                         model = load_model_from_path(temp_path, helper)
                         meta["time_aggregate_model"] += time.time() - tic
@@ -749,7 +738,6 @@ class Control(ControlBase, rpc.ControlServicer):
                         tic = time.time()
                         model = load_model_from_bytes(data, helper)
                         meta["time_aggregate_model"] += time.time() - tic
-                        logger.error("Failed to aggregate model from combiner {}: {}".format(name, e))
                         continue
                 # Next combiner
                 i = i + 1
@@ -831,3 +819,12 @@ class Control(ControlBase, rpc.ControlServicer):
                 pass
 
         return round_data
+
+    def save_model_path(data):
+        fd, temp_path = tempfile.mkstemp()
+        os.close(fd)
+        with open(temp_path, "wb") as f:
+            f.write(data)
+            f.flush()
+        logger.info("Model size exceeded 10 MB, model written to temporary file on disk to save in-memory: {}".format(temp_path))
+        return temp_path
