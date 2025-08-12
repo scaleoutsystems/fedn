@@ -39,7 +39,7 @@ class ImporterPackageRuntime(PackageRuntime):
 
     def init_env_runtime(self):
         if self.config is None:
-            logger.error("Package runtime is not initialized.")
+            logger.error("Package runtime is not loaded.")
             return False
         try:
             python_env_yaml_path = self.config.get("python_env")

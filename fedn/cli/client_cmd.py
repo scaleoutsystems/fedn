@@ -201,6 +201,7 @@ def _complement_client_params(config: dict) -> None:
 @click.option("-hp", "--helper_type", required=False, default=None)
 @click.option("-in", "--init", required=False, default=None, help="Set to a filename to (re)init client from file state.")
 @click.option("--importer", is_flag=True, help="Use the importer client instead of the dispatcher client.")
+@click.option("--manual_env", is_flag=True, help="Use the manual environment for the client. This will not use the managed environment.")
 @click.pass_context
 def client_start_v2_cmd(
     ctx,
@@ -219,6 +220,7 @@ def client_start_v2_cmd(
     helper_type: str,
     init: str,
     importer: bool,
+    manual_env: bool = False,
 ):
     """Start client."""
     package = "local" if local_package else "remote"
@@ -342,6 +344,7 @@ def client_start_v2_cmd(
             token=config["token"],
             package_checksum=config["package_checksum"],
             helper_type=config["helper_type"],
+            manual_env=manual_env,
         )
     else:
         click.echo("Using DispatcherClient")

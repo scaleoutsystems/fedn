@@ -61,7 +61,7 @@ class ImporterClient:
         package_checksum: Optional[str] = None,
         helper_type: Optional[str] = None,
         startup_path: Optional[str] = None,
-        managed_env: Optional[bool] = True,
+        manual_env: Optional[bool] = True,
     ) -> None:
         """Initialize the Client."""
         self.api_url = api_url
@@ -76,7 +76,7 @@ class ImporterClient:
         package_path, archive_path = get_compute_package_dir_path()
         self.package_runtime = ImporterPackageRuntime(package_path, archive_path)
 
-        self.managed_env = managed_env
+        self.manual_env = manual_env
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
         self.fedn_client: FednClient = FednClient()
@@ -123,7 +123,7 @@ class ImporterClient:
         self.fedn_client.set_name(self.client_obj.name)
         self.fedn_client.set_client_id(self.client_obj.client_id)
 
-        if self.managed_env:
+        if self.manual_env:
             logger.info("Initializing managed environment.")
             self.package_runtime.init_env_runtime()
 
@@ -141,7 +141,7 @@ class ImporterClient:
         if self.package_runtime is None or self.package_runtime.python_env is None:
             logger.error("Package runtime or Python environment is not initialized.")
             return False
-        if self.managed_env:
+        if self.manual_env:
             venv_path = os.environ.get("VIRTUAL_ENV")
             if not venv_path:
                 logger.warning("No virtual environment detected.")
