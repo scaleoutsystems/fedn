@@ -4,6 +4,7 @@ client_reference: FednClient = None
 
 
 def startup(client: FednClient):
+    global client_reference
     client_reference = client
     client.set_train_callback(train)
     client.set_validate_callback(validate)
