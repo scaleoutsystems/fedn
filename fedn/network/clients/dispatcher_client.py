@@ -106,7 +106,7 @@ class DispatcherClient:
             if not result:
                 return
         if self.client_obj.package == "remote":
-            result = self._package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self._package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token)
             if not result:
                 return
         else:

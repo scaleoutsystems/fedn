@@ -82,7 +82,8 @@ class Dispatcher:
         python_env = self.config.get("python_env", "")
         if not python_env:
             logger.info("No python_env specified in the configuration, using the system Python.")
-            return python_env
+            self.activate_cmd = ""
+            return self.activate_cmd
         else:
             python_env_yaml_path = os.path.join(self.project_dir, python_env)
             if not os.path.exists(python_env_yaml_path):

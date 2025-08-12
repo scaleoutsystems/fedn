@@ -131,8 +131,8 @@ class PackageRuntime:
 
         try:
             if self.pkg_name.endswith(("tar.gz", ".tgz", "tar.bz2")):
-                pkg_path = os.path.join(self.pkg_path, self.pkg_name)
-                with tarfile.open(pkg_path, "r:*") as f:
+                tar_path = os.path.join(self.tar_path, self.pkg_name)
+                with tarfile.open(tar_path, "r:*") as f:
                     for member in f.getmembers():
                         f.extract(member, self.pkg_path)
                 logger.info(f"Successfully extracted compute package content in {self.pkg_path}")
@@ -141,7 +141,6 @@ class PackageRuntime:
                 return None
         except Exception as e:
             logger.error(f"Error extracting files: {e}")
-            os.remove(os.path.join(self.pkg_path, self.pkg_name))
             return None
 
     def find_target_path(self, path) -> Optional[str]:

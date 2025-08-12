@@ -108,7 +108,7 @@ class ImporterClient:
             if not result:
                 return
         if self.client_obj.package == "remote":
-            result = self.package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self.package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token)
             if not result:
                 return
         else:
@@ -124,6 +124,9 @@ class ImporterClient:
         self.fedn_client.set_client_id(self.client_obj.client_id)
 
         if self.manual_env:
+            if "python_env" not in self.package_runtime.config:
+                logger.error("Python environment is not specified in the package configuration. Running without managed environment.")
+
             logger.info("Initializing managed environment.")
             self.package_runtime.init_env_runtime()
 
