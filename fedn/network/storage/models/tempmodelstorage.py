@@ -17,10 +17,28 @@ class TempModelStorage:
 
         self.models = {}
 
+    def _file_name(self, model_id):
+        """Get the file name for a model_id."""
+        return os.path.join(self.default_dir, str(model_id))
+
     def exist(self, model_id):
         if model_id in self.models.keys():
             return True
         return False
+
+    def model_ready(self, model_id):
+        """Check if model is fully cached.
+
+        :param model_id: The id of the model.
+        :type model_id: str
+        :return: True if model is ready, else False.
+        :rtype: bool
+        """
+        try:
+            return self.models[model_id]["state"] == fedn.ModelStatus.OK
+        except KeyError:
+            logger.error("TEMPMODELSTORAGE: model_id {} does not exist".format(model_id))
+            return False
 
     def get(self, model_id):
         try:
@@ -30,19 +48,9 @@ class TempModelStorage:
         except KeyError:
             logger.error("TEMPMODELSTORAGE: model_id {} does not exist".format(model_id))
             return None
+        return open(self.models[model_id]["filename"], "rb")
 
-        obj = BytesIO()
-        with open(os.path.join(self.default_dir, str(model_id)), "rb") as f:
-            while True:
-                chunk = f.read(CHUNK_SIZE)
-                if not chunk:
-                    break
-                obj.write(chunk)
-
-        obj.seek(0, 0)
-        return obj
-
-    def get_file_hdl(self, model_id):
+    def _get_file_hdl(self, model_id):
         """Returns a handle to a potential new model file.
 
         User is responsible for closing the file.
@@ -53,8 +61,8 @@ class TempModelStorage:
         try:
             filename = self.models[model_id]["filename"]
         except KeyError:
-            filename = os.path.join(self.default_dir, str(model_id))
-            self.models[model_id] = {"filename": filename, "state": fedn.ModelStatus.IN_PROGRESS}
+            filename = self._file_name(model_id)
+            self.models[model_id] = {"filename": filename, "state": fedn.ModelStatus.IN_PROGRESS, "checksum": None}
         return open(filename, "wb")
 
     def set_model(self, model_id: str, model_stream: BytesIO, checksum: str = None):
@@ -66,12 +74,30 @@ class TempModelStorage:
         :type model_stream: BytesIO
         """
         model_stream.seek(0, 0)
-        with self.get_file_hdl(model_id) as f:
+        with self._get_file_hdl(model_id) as f:
             while True:
                 chunk = model_stream.read(CHUNK_SIZE)
                 if not chunk:
                     break
                 f.write(chunk)
+        if self.finalize(model_id, checksum):
+            logger.info("TEMPMODELSTORAGE: Model {} added.".format(model_id))
+        else:
+            logger.error("TEMPMODELSTORAGE: Model {} failed.".format(model_id))
+            return False
+
+    def set_model_with_generator(self, model_id: str, chunk_generator, checksum: str = None):
+        """Set model in temp storage using a generator.
+
+        :param model_id: The id of the model.
+        :type model_id: str
+        :param chunk_generator: A generator that yields chunks of the model.
+        :type chunk_generator: Generator[bytes, None, None]
+        """
+        with self._get_file_hdl(model_id) as f:
+            for chunk in chunk_generator:
+                f.write(chunk)
+
         if self.finalize(model_id, checksum):
             logger.info("TEMPMODELSTORAGE: Model {} added.".format(model_id))
         else:
@@ -138,7 +164,7 @@ class TempModelStorage:
     # Delete model from disk
     def delete(self, model_id):
         try:
-            os.remove(os.path.join(self.default_dir, str(model_id)))
+            os.remove(self._file_name(model_id))
             logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
             # Delete id from metadata and models dict
             del self.models[model_id]

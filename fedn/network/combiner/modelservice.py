@@ -192,13 +192,7 @@ class ModelService(rpc.ModelServiceServicer):
             logger.error("ModelServicer: Model ID not provided.")
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
 
-        file_hdl = self.temp_model_storage.get_file_hdl(model_id)
-        for file_chunk in filechunk_iterator:
-            file_hdl.write(file_chunk.data)
-
-        file_hdl.flush()
-        file_hdl.close()
-        result = self.temp_model_storage.finalize(model_id, checksum)
+        result = self.temp_model_storage.set_model_with_generator(model_id, filechunk_iterator, checksum)
         if result:
             return fedn.ModelResponse(status=fedn.ModelStatus.OK, message="Got model successfully.")
         else:
@@ -215,14 +209,16 @@ class ModelService(rpc.ModelServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         """
         logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.model_id}")
+        if not request.model_id:
+            logger.error("ModelServicer: Model ID not provided.")
+            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
 
         if not self.temp_model_storage.is_ready(request.model_id):
             logger.error(f"ModelServicer: Model file is not ready: {request.model_id}")
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready.")
 
         try:
-            obj = self.temp_model_storage.get(request.model_id)
-            with obj as f:
+            with self.temp_model_storage.get(request.model_id) as f:
                 while True:
                     chunk = f.read(CHUNK_SIZE)
                     if chunk:
