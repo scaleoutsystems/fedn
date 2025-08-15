@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       custom_tag:
-        description: "Extra image tag to add (e.g. prod-2025-08-15)"
+        description: "Extra image tag to add (e.g. torchimage)"
         required: false
         default: ""
       extra_pip_packages:
