@@ -217,7 +217,11 @@ class FednClient:
             logger.info(f"Running train callback with model ID: {model_id}")
             client_settings = json.loads(request.data).get("client_settings", {})
             tic = time.time()
-            out_model, meta = self.train_callback(in_model, client_settings)
+            try:
+                out_model, meta = self.train_callback(in_model, client_settings)
+            except Exception as e:
+                logger.error(f"Train callback failed with expection: {e}")
+                return
             meta["processing_time"] = time.time() - tic
 
             tic = time.time()
@@ -272,7 +276,11 @@ class FednClient:
                 return
 
             logger.debug(f"Running validate callback with model ID: {model_id}")
-            metrics = self.validate_callback(in_model)
+            try:
+                metrics = self.validate_callback(in_model)
+            except Exception as e:
+                logger.error(f"Validation callback failed with expection: {e}")
+                return
 
             if metrics is not None:
                 # Send validation
@@ -323,7 +331,11 @@ class FednClient:
                 return
 
             logger.info(f"Running predict callback with model ID: {model_id}")
-            prediction = self.predict_callback(model)
+            try:
+                prediction = self.predict_callback(model)
+            except Exception as e:
+                logger.error(f"Predict callback failed with expection: {e}")
+                return
 
             prediction_message = self.grpc_handler.create_prediction_message(
                 sender_name=self.name,
