@@ -163,6 +163,14 @@ class ModelService(rpc.ModelServiceServicer):
         """
         return self.temp_model_storage.exist(model_id)
 
+    def model_ready(self, model_id):
+        """Check if a model is ready on the server.
+
+        :param model_id: The model id.
+        :return: True if the model is ready, else False.
+        """
+        return self.temp_model_storage.is_ready(model_id)
+
     def set_model(self, model, model_id):
         """Upload model to server.
 
@@ -174,7 +182,7 @@ class ModelService(rpc.ModelServiceServicer):
         bt = model_as_bytesIO(model)
         self.temp_model_storage.set_model(model_id, bt)
 
-    def fetch_model_from_repository(self, model_id):
+    def fetch_model_from_repository(self, model_id, blocking: bool = False):
         """Fetch model from the repository and store it in the temporary model storage.
 
         :param model_id: The model id to fetch.
@@ -185,13 +193,17 @@ class ModelService(rpc.ModelServiceServicer):
             model = self.repository.get_model_stream(model_id)
             if model:
                 logger.info(f"Model {model_id} fetched and stored successfully.")
-                threading.Thread(target=lambda: self.temp_model_storage.set_model(model_id, model, auto_managed=True)).run()
+                if blocking:
+                    return self.temp_model_storage.set_model(model_id, model, auto_managed=True)
+                else:
+                    threading.Thread(target=lambda: self.temp_model_storage.set_model(model_id, model, auto_managed=True)).run()
                 return True
             else:
                 logger.error(f"Model {model_id} not found in repository.")
                 return False
         except Exception as e:
             logger.error(f"Error fetching model {model_id} from repository: {e}")
+            return False
 
     # Model Service
     def Upload(self, filechunk_iterator: Generator[fedn.FileChunk, None, None], context: grpc.ServicerContext):

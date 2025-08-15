@@ -335,16 +335,18 @@ class RoundHandler:
         :type retry: int, optional
         """
         # If the model is already in memory at the server we do not need to do anything.
+        logger.info("Model Staging, fetching model from storage...")
+
         if self.modelservice.temp_model_storage.exist(model_id):
             logger.info("Model already exists in memory, skipping model staging.")
             return
-        logger.info("Model Staging, fetching model from storage...")
+
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
             try:
-                model = self.storage.get_model_stream(model_id)
-                if model:
+                success = self.modelservice.fetch_model_from_repository(model_id, blocking=True)
+                if success:
                     break
             except Exception:
                 logger.warning("Could not fetch model from storage backend, retrying.")
@@ -353,8 +355,6 @@ class RoundHandler:
                 if tries > retry:
                     logger.error("Failed to stage model {} from storage backend!".format(model_id))
                     raise
-
-        self.modelservice.set_model(model, model_id)
 
     def _assign_round_clients(self, n: int, type: str = "trainers", selected_clients: list = None):
         """Obtain a list of clients(trainers or validators) to ask for updates in this round.
