@@ -83,6 +83,7 @@ class ImporterPackageRuntime(PackageRuntime):
                 raise FileNotFoundError(f"Startup script {startup_py} not found.")
 
             startup_module = Path(self._target_path).joinpath(startup_py).stem
+            logger.info(f"Running startup script from: {startup_module}")
             startup = __import__(startup_module)
 
             startup.startup(fedn_client)
