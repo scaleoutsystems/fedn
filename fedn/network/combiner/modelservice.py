@@ -1,5 +1,6 @@
 import os
 import tempfile
+import threading
 from io import BytesIO
 from typing import Generator
 
@@ -10,6 +11,7 @@ import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
 from fedn.network.storage.models.tempmodelstorage import TempModelStorage
+from fedn.network.storage.s3.repository import Repository
 
 CHUNK_SIZE = 1 * 1024 * 1024
 
@@ -148,9 +150,10 @@ def serialize_model_to_BytesIO(model, helper):
 class ModelService(rpc.ModelServiceServicer):
     """Service for handling download and upload of models to the server."""
 
-    def __init__(self):
+    def __init__(self, repository: Repository):
         """Initialize the temporary model storage."""
         self.temp_model_storage = TempModelStorage()
+        self.repository = repository
 
     def exist(self, model_id):
         """Check if a model exists on the server.
@@ -170,6 +173,25 @@ class ModelService(rpc.ModelServiceServicer):
         """
         bt = model_as_bytesIO(model)
         self.temp_model_storage.set_model(model_id, bt)
+
+    def fetch_model_from_repository(self, model_id):
+        """Fetch model from the repository and store it in the temporary model storage.
+
+        :param model_id: The model id to fetch.
+        :type model_id: str
+        """
+        logger.info(f"Fetching model {model_id} from repository.")
+        try:
+            model = self.repository.get_model_stream(model_id)
+            if model:
+                logger.info(f"Model {model_id} fetched and stored successfully.")
+                threading.Thread(target=lambda: self.temp_model_storage.set_model(model_id, model, auto_managed=True)).run()
+                return True
+            else:
+                logger.error(f"Model {model_id} not found in repository.")
+                return False
+        except Exception as e:
+            logger.error(f"Error fetching model {model_id} from repository: {e}")
 
     # Model Service
     def Upload(self, filechunk_iterator: Generator[fedn.FileChunk, None, None], context: grpc.ServicerContext):
@@ -211,11 +233,21 @@ class ModelService(rpc.ModelServiceServicer):
         logger.info(f"grpc.ModelService.Download: {request.sender.role}:{request.sender.client_id} requested model {request.model_id}")
         if not request.model_id:
             logger.error("ModelServicer: Model ID not provided.")
-            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
+            context.abort(grpc.StatusCode.UNAVAILABLE, "Model ID not provided.")
 
         if not self.temp_model_storage.is_ready(request.model_id):
-            logger.error(f"ModelServicer: Model file is not ready: {request.model_id}")
-            context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready.")
+            if self.temp_model_storage.exist(request.model_id):
+                logger.error(f"ModelServicer: Model file is not ready: {request.model_id}")
+                context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready.")
+            else:
+                logger.error(f"ModelServicer: Model file does not exist: {request.model_id}. Trying to start automatic caching")
+                file_is_downloading = self.fetch_model_from_repository(request.model_id)
+                if file_is_downloading:
+                    logger.error(f"ModelServicer: Model file does not exist: {request.model_id}.")
+                    context.abort(grpc.StatusCode.UNAVAILABLE, "Model file does not exist. ")
+                else:
+                    logger.error(f"ModelServicer: Caching started: {request.model_id}.")
+                    context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready. Starting automatic caching.")
 
         try:
             with self.temp_model_storage.get(request.model_id) as f:
