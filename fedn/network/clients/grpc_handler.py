@@ -332,6 +332,7 @@ class GrpcHandler:
                 if time.time() - time_start >= timeout:
                     return None
                 continue
+        data.seek(0, 0)
         return data
 
     @grpc_retry(max_retries=-1, retry_interval=5)
