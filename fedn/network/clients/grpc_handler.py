@@ -323,6 +323,7 @@ class GrpcHandler:
                 data.write(part.data)
 
             if part.status == fedn.ModelStatus.OK:
+                data.seek(0)
                 return data
 
             if part.status == fedn.ModelStatus.FAILED:
@@ -332,7 +333,7 @@ class GrpcHandler:
                 if time.time() - time_start >= timeout:
                     return None
                 continue
-        data.seek(0, 0)
+        data.seek(0)
         return data
 
     @grpc_retry(max_retries=-1, retry_interval=5)
