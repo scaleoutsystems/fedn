@@ -504,10 +504,11 @@ def add_client():
             if combiner is None:
                 return jsonify({"success": False, "message": "No combiner available."}), 400
 
-        if db.client_store.get(client_id) is None:
-            logger.info("Adding client {}".format(client_id))
+        existing_client = db.client_store.get(client_id)
+        last_seen = datetime.now()
 
-            last_seen = datetime.now()
+        if existing_client is None:
+            logger.info("Adding client {}".format(client_id))
 
             new_client = ClientDTO(
                 client_id=client_id,
@@ -522,6 +523,17 @@ def add_client():
 
             added_client = db.client_store.add(new_client)
             client_id = added_client.client_id
+        else:
+            logger.info("Client {} already exists, updating client object".format(client_id))
+            existing_client.name = name
+            existing_client.combiner = combiner.name
+            existing_client.combiner_preferred = preferred_combiner
+            existing_client.ip = remote_addr
+            existing_client.status = "available"
+            existing_client.package = package
+            existing_client.last_seen = last_seen
+
+            db.client_store.update(existing_client)
 
         payload = {
             "status": "assigned",
