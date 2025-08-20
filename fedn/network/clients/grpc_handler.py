@@ -132,6 +132,8 @@ class GrpcHandler:
 
     def __init__(self, host: str, port: int, name: str, token: str, combiner_name: str) -> None:
         """Initialize the GrpcHandler."""
+        os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "false"  # Actively disable fork support in GRPC
+
         self.metadata = [
             ("client", name),
             ("grpc-server", combiner_name),
