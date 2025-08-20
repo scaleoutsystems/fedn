@@ -55,6 +55,11 @@ class BackgroundNoise(Dataset):
         return self._end_idx - self._start_idx
 
 
+def sc_collate_fn(batch: tuple[int, str, torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
+    ys, _, spectrogram, _ = zip(*batch)
+    return torch.tensor(ys, dtype=torch.long), torch.stack(spectrogram)
+
+
 class FedSCDataset(Dataset):
     """Dataset for the Federated Speech Commands dataset."""
 
@@ -241,11 +246,7 @@ class FedSCDataset(Dataset):
         return torch.tensor(label_mean), spectrogram_mean[:, None], spectrogram_std[:, None]
 
     def get_collate_fn(self) -> callable:
-        def collate_fn(batch: tuple[int, str, torch.Tensor, torch.Tensor]) -> tuple[torch.Tensor, torch.Tensor]:
-            ys, _, spectrogram, _ = zip(*batch)
-            return torch.tensor(ys, dtype=torch.long), torch.stack(spectrogram)
-
-        return collate_fn
+        return sc_collate_fn
 
     def _get_spectogram_transform(self, n_mels: int, hop_length: int, sr: int, data_augmentation: bool = False) -> torch.nn.Sequential:
         if data_augmentation:
@@ -266,7 +267,9 @@ def get_dataloaders(
 ) -> tuple[DataLoader, DataLoader, DataLoader]:
     """Get the dataloaders for the training, validation, and testing datasets."""
     dataset_train = FedSCDataset(path, keywords, "training", dataset_split_idx, dataset_total_splits, data_augmentation=True)
-    dataloader_train = DataLoader(dataset=dataset_train, batch_size=batchsize_train, collate_fn=dataset_train.get_collate_fn(), shuffle=True, drop_last=True)
+    dataloader_train = DataLoader(
+        dataset=dataset_train, batch_size=batchsize_train, num_workers=2, collate_fn=dataset_train.get_collate_fn(), shuffle=True, drop_last=True
+    )
 
     dataset_valid = FedSCDataset(path, keywords, "validation", dataset_split_idx, dataset_total_splits)
     dataloader_valid = DataLoader(dataset=dataset_valid, batch_size=batchsize_valid, collate_fn=dataset_valid.get_collate_fn(), shuffle=False, drop_last=False)

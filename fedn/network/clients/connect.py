@@ -17,12 +17,7 @@ from fedn.common.config import (
     FEDN_CUSTOM_URL_PREFIX,
 )
 from fedn.common.log_config import logger
-
-# Constants for HTTP status codes
-HTTP_STATUS_OK = 200
-HTTP_STATUS_NO_CONTENT = 204
-HTTP_STATUS_BAD_REQUEST = 400
-HTTP_STATUS_UNAUTHORIZED = 401
+from fedn.network.clients.http_status_codes import HTTP_STATUS_BAD_REQUEST, HTTP_STATUS_NO_CONTENT, HTTP_STATUS_OK, HTTP_STATUS_UNAUTHORIZED
 
 # Default timeout for requests
 REQUEST_TIMEOUT = 10  # seconds

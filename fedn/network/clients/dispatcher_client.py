@@ -10,7 +10,9 @@ from typing import Dict, Optional, Tuple
 
 from fedn.common.config import FEDN_CUSTOM_URL_PREFIX
 from fedn.common.log_config import logger
+from fedn.network.clients.dispatcher_package_runtime import DispatcherPackageRuntime
 from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient, GrpcConnectionOptions
+from fedn.network.clients.package_runtime import get_compute_package_dir_path
 from fedn.network.combiner.modelservice import get_tmp_path
 from fedn.utils.helpers.helpers import get_helper, save_metadata
 
@@ -48,7 +50,7 @@ class ClientOptions:
         }
 
 
-class Client:
+class DispatcherClient:
     """Client for interacting with the FEDn network."""
 
     def __init__(
@@ -71,6 +73,9 @@ class Client:
         self.client_obj = client_obj
         self.package_checksum = package_checksum
         self.helper_type = helper_type
+
+        package_path, archive_path = get_compute_package_dir_path()
+        self._package_runtime = DispatcherPackageRuntime(package_path, archive_path)
 
         self.fedn_api_url = get_url(self.api_url, self.api_port)
         self.fedn_client: FednClient = FednClient()
@@ -101,13 +106,17 @@ class Client:
             if not result:
                 return
         if self.client_obj.package == "remote":
-            result = self.fedn_client.init_remote_compute_package(url=self.fedn_api_url, token=self.token, package_checksum=self.package_checksum)
+            result = self._package_runtime.load_remote_compute_package(url=self.fedn_api_url, token=self.token)
             if not result:
                 return
         else:
-            result = self.fedn_client.init_local_compute_package()
+            result = self._package_runtime.load_local_compute_package(os.path.join(os.getcwd(), "client"))
             if not result:
                 return
+
+        result = self._package_runtime.run_startup()
+        if not result:
+            return
 
         self.set_helper(combiner_config)
 
@@ -164,7 +173,7 @@ class Client:
             outpath = self.helper.get_tmp_path()
             tic = time.time()
 
-            self.fedn_client.dispatcher.run_cmd(f"train {inpath} {outpath}")
+            self._package_runtime.dispatcher.run_cmd(f"train {inpath} {outpath}")
             meta["exec_training"] = time.time() - tic
 
             with open(outpath, "rb") as fr:
@@ -196,7 +205,7 @@ class Client:
                 fh.write(in_model.getbuffer())
 
             outpath = get_tmp_path()
-            self.fedn_client.dispatcher.run_cmd(f"validate {inpath} {outpath}")
+            self._package_runtime.dispatcher.run_cmd(f"validate {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 metrics = json.loads(fh.read())
@@ -219,7 +228,7 @@ class Client:
                 fh.write(in_model.getbuffer())
 
             outpath = get_tmp_path()
-            self.fedn_client.dispatcher.run_cmd(f"predict {inpath} {outpath}")
+            self._package_runtime.dispatcher.run_cmd(f"predict {inpath} {outpath}")
 
             with open(outpath, "r") as fh:
                 metrics = json.load(fh)
@@ -247,7 +256,7 @@ class Client:
             out_embedding_path = get_tmp_path()
 
             tic = time.time()
-            self.fedn_client.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_sl_inference}")
+            self._package_runtime.dispatcher.run_cmd(f"forward {client_id} {out_embedding_path} {is_sl_inference}")
 
             meta = {}
             embeddings = None
@@ -292,7 +301,7 @@ class Client:
 
             tic = time.time()
 
-            self.fedn_client.dispatcher.run_cmd(f"backward {inpath} {client_id}")
+            self._package_runtime.dispatcher.run_cmd(f"backward {inpath} {client_id}")
             meta["exec_training"] = time.time() - tic
 
             os.unlink(inpath)

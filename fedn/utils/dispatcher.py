@@ -17,16 +17,9 @@ limitations under the License.
 
 import os
 import shutil
-import sys
-import tempfile
-import uuid
 from contextlib import contextmanager
-from pathlib import Path
-
-import yaml
 
 from fedn.common.log_config import logger
-from fedn.utils import PYTHON_VERSION
 from fedn.utils.environment import _PythonEnv
 from fedn.utils.process import _exec_cmd, _join_commands
 
@@ -59,80 +52,14 @@ def _install_python(version, pyenv_root=None, capture_output=False):
 
 
 def _is_virtualenv_available():
-    """Returns True if virtualenv is available, otherwise False.
-    """
+    """Returns True if virtualenv is available, otherwise False."""
     return shutil.which("virtualenv") is not None
 
 
-def _validate_virtualenv_is_available():
-    """Validates virtualenv is available. If not, throws an `Exception` with a brief instruction
-    on how to install virtualenv.
-    """
-    if not _is_virtualenv_available():
-        raise Exception("Could not find the virtualenv binary. Run `pip install virtualenv` to install " "virtualenv.")
-
-
-def _get_virtualenv_extra_env_vars(env_root_dir=None):
-    extra_env = {
-        # PIP_NO_INPUT=1 makes pip run in non-interactive mode,
-        # otherwise pip might prompt "yes or no" and ask stdin input
-        "PIP_NO_INPUT": "1",
-    }
-    return extra_env
-
-
-def _get_python_env(python_env_file):
-    """Parses a python environment file and returns a dictionary with the parsed content.
-    """
+def _get_python_env(python_env_file) -> _PythonEnv:
+    """Parses a python environment file and returns a dictionary with the parsed content."""
     if os.path.exists(python_env_file):
         return _PythonEnv.from_yaml(python_env_file)
-
-
-def _create_virtualenv(python_bin_path, env_dir, python_env, extra_env=None, capture_output=False):
-    # Created a command to activate the environment
-    paths = ("bin", "activate") if _IS_UNIX else ("Scripts", "activate.bat")
-    activate_cmd = env_dir.joinpath(*paths)
-    activate_cmd = f"source {activate_cmd}" if _IS_UNIX else str(activate_cmd)
-
-    if env_dir.exists():
-        logger.info("Environment %s already exists", env_dir)
-        return activate_cmd
-
-    with remove_on_error(
-        env_dir,
-        onerror=lambda e: logger.warning(
-            "Encountered an unexpected error: %s while creating a virtualenv environment in %s, " "removing the environment directory...",
-            repr(e),
-            env_dir,
-        ),
-    ):
-        logger.info("Creating a new environment in %s with %s", env_dir, python_bin_path)
-        _exec_cmd(
-            [sys.executable, "-m", "virtualenv", "--python", python_bin_path, env_dir],
-            capture_output=capture_output,
-        )
-
-        logger.info("Installing dependencies")
-        for deps in filter(None, [python_env.build_dependencies, python_env.dependencies]):
-            with tempfile.TemporaryDirectory() as tmpdir:
-                tmp_req_file = f"requirements.{uuid.uuid4().hex}.txt"
-                Path(tmpdir).joinpath(tmp_req_file).write_text("\n".join(deps))
-                cmd = _join_commands(activate_cmd, f"python -m pip install -r {tmp_req_file}")
-                _exec_cmd(cmd, capture_output=capture_output, cwd=tmpdir, extra_env=extra_env)
-
-    return activate_cmd
-
-
-def _read_yaml_file(file_path):
-    try:
-        cfg = None
-        with open(file_path, "rb") as config_file:
-            cfg = yaml.safe_load(config_file.read())
-
-    except Exception as e:
-        logger.error(f"Error trying to read yaml file: {file_path}")
-        raise e
-    return cfg
 
 
 class Dispatcher:
@@ -151,55 +78,25 @@ class Dispatcher:
         self.activate_cmd = ""
         self.python_env_path = ""
 
-    def _get_or_create_python_env(self, capture_output=False, pip_requirements_override=None):
+    def get_or_create_python_env(self, capture_output=False):
         python_env = self.config.get("python_env", "")
         if not python_env:
             logger.info("No python_env specified in the configuration, using the system Python.")
-            return python_env
+            self.activate_cmd = ""
+            return self.activate_cmd
         else:
-            python_env_path = os.path.join(self.project_dir, python_env)
-            if not os.path.exists(python_env_path):
-                raise Exception("Compute package specified python_env file %s, but no such " "file was found." % python_env_path)
-            python_env = _get_python_env(python_env_path)
+            python_env_yaml_path = os.path.join(self.project_dir, python_env)
+            if not os.path.exists(python_env_yaml_path):
+                raise Exception("Compute package specified python_env file %s, but no such file was found." % python_env_yaml_path)
+            python_env = _get_python_env(python_env_yaml_path)
 
-        extra_env = _get_virtualenv_extra_env_vars()
-        env_dir = Path(self.project_dir) / Path(python_env.name)
-        self.python_env_path = env_dir
-        try:
-            python_bin_path = _install_python(python_env.python, capture_output=True)
-        except NotImplementedError:
-            logger.warning("Failed to install Python: %s", python_env.python)
-            logger.warning("Python version installation is not implemented yet.")
-            logger.info(f"Using the system Python version: {PYTHON_VERSION}")
-            python_bin_path = Path(sys.executable)
+        python_env.set_base_path(self.project_dir)
+        if not python_env.path.exists():
+            python_env.create_virtualenv(capture_output=capture_output, use_system_site_packages=True)
 
-        try:
-            activate_cmd = _create_virtualenv(
-                python_bin_path,
-                env_dir,
-                python_env,
-                extra_env=extra_env,
-                capture_output=capture_output,
-            )
-            # Install additional dependencies specified by `requirements_override`
-            if pip_requirements_override:
-                logger.info("Installing additional dependencies specified by " f"pip_requirements_override: {pip_requirements_override}")
-                cmd = _join_commands(
-                    activate_cmd,
-                    f"python -m pip install --quiet -U {' '.join(pip_requirements_override)}",
-                )
-                _exec_cmd(cmd, capture_output=capture_output, extra_env=extra_env)
-            self.activate_cmd = activate_cmd
-            return activate_cmd
-        except Exception:
-            logger.critical("Encountered unexpected error while creating %s", env_dir)
-            if env_dir.exists():
-                logger.warning("Attempting to remove %s", env_dir)
-                shutil.rmtree(env_dir, ignore_errors=True)
-                msg = "Failed to remove %s" if env_dir.exists() else "Successfully removed %s"
-                logger.warning(msg, env_dir)
-
-            raise
+        self.activate_cmd = python_env.get_activate_cmd()
+        self.python_env_path = python_env.path
+        return self.activate_cmd
 
     def run_cmd(self, cmd_type, capture_output=False, extra_env=None, synchronous=True, stream_output=False):
         """Run a command.
