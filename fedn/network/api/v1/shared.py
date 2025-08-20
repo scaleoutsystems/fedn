@@ -61,6 +61,10 @@ def get_post_data_to_kwargs(request: object) -> dict:
         except Exception:
             request_data = {}
 
+    # Ensure request_data is a dictionary
+    if not isinstance(request_data, dict):
+        request_data = {}
+
     kwargs = {}
     for key, value in request_data.items():
         if isinstance(value, str) and "," in value:
