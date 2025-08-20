@@ -521,8 +521,12 @@ def add_client():
                 last_seen=last_seen,
             )
 
-            added_client = db.client_store.add(new_client)
-            client_id = added_client.client_id
+            try:
+                added_client = db.client_store.add(new_client)
+                client_id = added_client.client_id
+            except Exception as e:
+                logger.error(f"Failed to add new client: {e}")
+                return jsonify({"success": False, "message": "Failed to add new client"}), 500
         else:
             logger.info("Client {} already exists, updating client object".format(client_id))
             existing_client.name = name
@@ -533,7 +537,11 @@ def add_client():
             existing_client.package = package
             existing_client.last_seen = last_seen
 
-            db.client_store.update(existing_client)
+            try:
+                db.client_store.update(existing_client)
+            except Exception as e:
+                logger.error(f"Failed to update existing client: {e}")
+                return jsonify({"success": False, "message": "Failed to update existing client"}), 500
 
         payload = {
             "status": "assigned",
