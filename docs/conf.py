@@ -67,6 +67,10 @@ html_css_files = [
     "css/text.css",
 ]
 
+html_js_files = [
+    ('https://scripts.simpleanalyticscdn.com/latest.js', {'async': 'async'}),
+]
+
 # LaTeX elements
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
