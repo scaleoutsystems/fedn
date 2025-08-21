@@ -68,7 +68,7 @@ html_css_files = [
 ]
 
 html_js_files = [
-    ('https://scripts.simpleanalyticscdn.com/latest.js', {'async': 'async'}),
+    ("https://scripts.simpleanalyticscdn.com/latest.js", {"async": "async"}),
 ]
 
 # LaTeX elements
