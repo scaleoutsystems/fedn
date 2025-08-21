@@ -57,7 +57,7 @@ html_split_index = False
 
 # Allow search engines to index the documentation
 # Remove any robots restrictions
-html_extra_path = ["_static/robots.txt"]
+html_extra_path = ["robots.txt"]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
