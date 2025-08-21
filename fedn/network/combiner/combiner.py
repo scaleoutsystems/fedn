@@ -1,4 +1,5 @@
 import json
+import os
 import queue
 import re
 import signal
@@ -9,11 +10,13 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import TypedDict
 
+import yaml
 from google.protobuf.json_format import MessageToDict
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
+from fedn.common.config import FEDN_COMBINER_CONFIG, get_modelstorage_config, get_network_config, get_statestore_config
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
@@ -959,3 +962,24 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             pass
         self.server.stop()
         self.server.stop()
+
+
+if __name__ == "__main__":
+    if not os.path.exists(FEDN_COMBINER_CONFIG):
+        logger.error(f"Combiner config file {FEDN_COMBINER_CONFIG} does not exist.")
+        exit(1)
+
+    modelstorage_config = get_modelstorage_config()
+    statestore_config = get_statestore_config()
+    network_id = get_network_config()
+
+    with open(FEDN_COMBINER_CONFIG, "r") as file:
+        config = yaml.safe_load(file)
+
+    config = CombinerConfig(**config)
+
+    repository = Repository(modelstorage_config["storage_config"], storage_type=modelstorage_config["storage_type"], init_buckets=False)
+    db = DatabaseConnection(statestore_config, network_id)
+
+    server = Combiner(config, repository, db)
+    server.run()
