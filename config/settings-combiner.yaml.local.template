@@ -5,6 +5,8 @@ host: localhost
 address: localhost
 port: 12080
 max_clients: 30
+fqdn:
+secure: false
 
 cert_path: tmp/server.crt
 key_path: tmp/server.key

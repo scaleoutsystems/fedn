@@ -87,6 +87,7 @@ services:
       - MODELSTORAGE_CONFIG=/app/config/settings-combiner.yaml.template
       - HOOK_SERVICE_HOST=hook:12081
       - TMPDIR=/app/tmp
+      - FEDN_COMBINER_CONFIG=/app/config/settings-combiner.yaml.template
     build:
       context: .
       args:
@@ -95,11 +96,9 @@ services:
     working_dir: /app
     volumes:
       - ${HOST_REPO_DIR:-.}/fedn:/app/fedn
+    entrypoint: ["sh", "-c"]
     command:
-      - combiner
-      - start
-      - --init
-      - config/settings-combiner.yaml.template
+      - "/venv/bin/python /app/fedn/network/combiner/combiner.py"
     ports:
       - 12080:12080
     healthcheck:
