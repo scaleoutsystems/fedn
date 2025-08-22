@@ -67,6 +67,21 @@ html_css_files = [
     "css/text.css",
 ]
 
+html_js_files = [
+    (
+        "https://scripts.simpleanalyticscdn.com/sri/v11.js",
+        {
+            "async": "async",
+            "crossorigin": "anonymous",
+            "integrity": (
+                "sha256-hkUzQr3zWmSDnmhw95ZmQSZ949upqD+ML9ejiN0UIIE= "
+                "sha384-rfv15RJy1bBYZ1Mf4xizO26jorXb2myipCvHXy4rkG0SuEET96S+m0sTzu5vfbSI "
+                "sha512-lQzjzTbOxHLwkZGDVMf4V0sm8v2Mrqm73IvKcXBftJ/MSZKQC4/jwKFToxT+3IVAVWQzLplSNHH8gM5d7b1BSg=="
+            ),
+        },
+    ),
+]
+
 # LaTeX elements
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
