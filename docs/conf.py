@@ -28,6 +28,10 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+# SEO configuration
+html_title = "FEDn Documentation - Scalable Federated Learning Framework"
+html_short_title = "FEDn Docs"
+
 # The master toctree document.
 master_doc = "index"
 
@@ -46,6 +50,14 @@ html_baseurl = "https://docs.scaleoutsystems.com/en/stable/"
 html_theme_options = {
     "logo_only": True,
 }
+
+# SEO improvements
+html_use_index = True
+html_split_index = False
+
+# Allow search engines to index the documentation
+# Remove any robots restrictions
+html_extra_path = ["robots.txt"]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
