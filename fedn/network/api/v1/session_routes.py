@@ -1,13 +1,13 @@
-import threading
-
 from flask import Blueprint, jsonify, request
+from grpc import RpcError
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db, get_network
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.combiner.interfaces import CombinerUnavailableError
-from fedn.network.controller.control import Control
-from fedn.network.state import ReducerState
+from fedn.network.common.command import CommandType
+from fedn.network.common.state import ControllerState
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO, SessionDTO
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
 
@@ -87,7 +87,7 @@ def get_sessions():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -167,7 +167,7 @@ def list_sessions():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -217,7 +217,7 @@ def get_sessions_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.session_store.count(**kwargs)
         response = count
@@ -264,7 +264,7 @@ def sessions_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.session_store.count(**kwargs)
         response = count
@@ -309,7 +309,7 @@ def get_session(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         result = db.session_store.get(id)
         if result is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -353,7 +353,7 @@ def post():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
         session_config = SessionConfigDTO()
@@ -385,26 +385,6 @@ def post():
         return jsonify({"message": "An unexpected error occurred"}), 500
 
 
-def _get_number_of_available_clients(client_ids: list[str]):
-    control = Control.instance()
-
-    result = 0
-    active_clients = None
-    for combiner in control.network.get_combiners():
-        try:
-            active_clients = combiner.list_active_clients()
-            if active_clients is not None:
-                if client_ids is not None:
-                    filtered = [item for item in active_clients if item.client_id in client_ids]
-                    result += len(filtered)
-                else:
-                    result += len(active_clients)
-        except CombinerUnavailableError:
-            return 0
-
-    return result
-
-
 @bp.route("/start", methods=["POST"])
 @jwt_auth_required(role="admin")
 def start_session():
@@ -415,8 +395,9 @@ def start_session():
     type: rounds: int
     """
     try:
-        db = Control.instance().db
-        control = Control.instance()
+        db = get_db()
+        network = get_network()
+        control = network.get_control()
 
         data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
@@ -450,12 +431,12 @@ def start_session():
         model_id = session_config.model_id
         min_clients = session_config.clients_required
 
-        if control.state() == ReducerState.monitoring:
+        if control.get_state() != ControllerState.idle:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config.rounds
-        nr_available_clients = _get_number_of_available_clients(client_ids=client_ids)
+        nr_available_clients = network.get_number_of_available_clients(client_ids=client_ids)
 
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
@@ -464,7 +445,19 @@ def start_session():
         if model is None:
             return jsonify({"message": "Session seed model not found"}), 400
 
-        threading.Thread(target=control.start_session, args=(session_id, rounds, round_timeout, model_name_prefix, client_ids)).start()
+        parameters = {
+            "session_id": session_id,
+            "rounds": rounds,
+            "round_timeout": round_timeout,
+            "model_name_prefix": model_name_prefix,
+            "client_ids": client_ids,
+        }
+
+        try:
+            control.send_command(fedn.Command.START, CommandType.StandardSession.value, parameters)
+        except RpcError as e:
+            logger.error(f"Failed to send command to control: {e}")
+            return jsonify({"message": "Failed to start session"}), 500
 
         return jsonify({"message": "Session started"}), 200
     except Exception as e:
@@ -477,8 +470,9 @@ def start_session():
 def start_splitlearning_session():
     """Starts a new split learning session."""
     try:
-        db = Control.instance().db
-        control = Control.instance()
+        db = get_db()
+        network = get_network()
+        control = network.get_control()
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         session_id: str = data.get("session_id")
         rounds: int = data.get("rounds", "")
@@ -495,17 +489,22 @@ def start_splitlearning_session():
         session_config = session.session_config
         min_clients = session_config.clients_required
 
-        if control.state() == ReducerState.monitoring:
+        if control.get_state() != ControllerState.idle:
             return jsonify({"message": "A session is already running!"}), 400
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config.rounds
-        nr_available_clients = _get_number_of_available_clients()
+        nr_available_clients = network.get_number_of_available_clients()
 
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
 
-        threading.Thread(target=control.splitlearning_session, args=(session_id, rounds, round_timeout)).start()
+        parameters = {"session_id": session_id, "rounds": rounds, "round_timeout": round_timeout}
+        try:
+            control.send_command(fedn.Command.START, CommandType.SplitLearningSession.value, parameters)
+        except RpcError as e:
+            logger.error(f"Failed to send command to control: {e}")
+            return jsonify({"message": "Failed to start split learning session"}), 500
 
         return jsonify({"message": "Splitlearning session started"}), 200
     except Exception as e:
@@ -553,7 +552,7 @@ def patch_session(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         existing_session = db.session_store.get(id)
         if existing_session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -626,7 +625,7 @@ def put_session(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         session = db.session_store.get(id)
         if session is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404

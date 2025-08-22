@@ -63,6 +63,20 @@ def _test_nodes(n_nodes, node_type, reducer_host='localhost', reducer_port='8092
         _eprint(f'Request exception enconuntered: {e}.')
         return False
 
+def _test_controller(reducer_host='localhost', reducer_port='8092'):
+    try:
+        response = requests.get(
+            f'http://{reducer_host}:{reducer_port}/get_controller_status', verify=False)
+
+        if response.status_code == 200:
+            data = json.loads(response.content)
+            _eprint(f'Controller is running: {data}')
+            return True
+
+    except Exception as e:
+        _eprint(f'Request exception encountered: {e}.')
+        return False
+
 
 def rounds(n_rounds=3):
     assert (_retry(_test_rounds, n_rounds=n_rounds))
@@ -78,6 +92,9 @@ def combiners(n_combiners=1):
 
 def reducer():
     assert (_retry(_test_nodes, n_nodes=1, node_type='reducer'))
+
+def controller():
+    assert (_retry(_test_controller))
 
 
 if __name__ == '__main__':

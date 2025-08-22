@@ -7,7 +7,8 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
-from fedn.network.controller.control import Control
+from fedn.network.api.shared import ApplicationState
+from fedn.network.common.network import Network
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.dto.metric import MetricDTO
 
@@ -72,8 +73,10 @@ class NetworkAPITests(unittest.TestCase):
         import fedn.network.api.server
         self.app = fedn.network.api.server.app.test_client()
         self.db = MockDB()
-
-        Control.create_instance("test_network", None, self.db)
+        state = ApplicationState() 
+        state.db = self.db  # Set the global db variable to the mock db
+        state.network = Network(self.db, None)  # Mock Network object
+        
 
 
     def test_health(self):
@@ -89,12 +92,6 @@ class NetworkAPITests(unittest.TestCase):
         response = self.app.post('/add_combiner')
         
         self.assertEqual(response.status_code, 410)
-
-    def test_get_controller_status(self):
-        """ Test get_models endpoint. """
-        response = self.app.get('/get_controller_status')
-        # Assert response
-        self.assertEqual(response.status_code, 200)
 
     def test_get_single_endpoints(self):
         """ Test get single endpoints. """

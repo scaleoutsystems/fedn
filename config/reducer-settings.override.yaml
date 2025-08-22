@@ -6,4 +6,4 @@ services:
   reducer:
     volumes:
       - ${HOST_REPO_DIR:-.}:/app
-      - ${HOST_REPO_DIR:-.}/config/settings-reducer.yaml:/app/config/settings-reducer.yaml
+      - ${HOST_REPO_DIR:-.}/config/settings-api-server.yaml:/app/config/settings-api-server.yaml
