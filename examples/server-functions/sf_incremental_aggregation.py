@@ -5,6 +5,7 @@ from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctio
 # Example of fedavg using memory secure running aggregation with server functions.
 
 
+# Class must be named ServerFunctions
 class ServerFunctions(ServerFunctionsBase):
     def __init__(self) -> None:
         self.global_model = None
