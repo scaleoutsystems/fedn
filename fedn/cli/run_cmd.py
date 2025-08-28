@@ -11,7 +11,8 @@ from fedn.common.config import FEDN_OBJECT_STORAGE_TYPE, get_modelstorage_config
 from fedn.common.log_config import logger
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
-from fedn.utils.dispatcher import Dispatcher, _read_yaml_file
+from fedn.utils.dispatcher import Dispatcher
+from fedn.utils.yaml import read_yaml_file
 
 
 def get_statestore_config_from_file(init):
@@ -46,8 +47,8 @@ def check_yaml_exists(path):
     return yaml_file
 
 
-def delete_virtual_environment(dispatcher):
-    if dispatcher.python_env_path:
+def delete_virtual_environment(dispatcher: Dispatcher):
+    if dispatcher.python_env_path and os.path.exists(dispatcher.python_env_path):
         logger.info(f"Removing virtualenv {dispatcher.python_env_path}")
         shutil.rmtree(dispatcher.python_env_path)
     else:
@@ -77,14 +78,14 @@ def validate_cmd(ctx, path, input, output, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that validate is defined in fedn.yaml under entry_points
     if "validate" not in config["entry_points"]:
         logger.error("No validate command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
+    _ = dispatcher.get_or_create_python_env()
     dispatcher.run_cmd("validate {} {}".format(input, output))
     if not keep_venv:
         delete_virtual_environment(dispatcher)
@@ -106,14 +107,14 @@ def train_cmd(ctx, path, input, output, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that train is defined in fedn.yaml under entry_points
     if "train" not in config["entry_points"]:
         logger.error("No train command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
+    _ = dispatcher.get_or_create_python_env()
     dispatcher.run_cmd("train {} {}".format(input, output))
     if not keep_venv:
         delete_virtual_environment(dispatcher)
@@ -133,13 +134,13 @@ def startup_cmd(ctx, path, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that startup is defined in fedn.yaml under entry_points
     if "startup" not in config["entry_points"]:
         logger.error("No startup command defined in fedn.yaml")
         exit(-1)
     dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
+    _ = dispatcher.get_or_create_python_env()
     dispatcher.run_cmd("startup")
     if not keep_venv:
         delete_virtual_environment(dispatcher)
@@ -159,14 +160,14 @@ def build_cmd(ctx, path, keep_venv):
     path = os.path.abspath(path)
     yaml_file = check_yaml_exists(path)
 
-    config = _read_yaml_file(yaml_file)
+    config = read_yaml_file(yaml_file)
     # Check that build is defined in fedn.yaml under entry_points
     if "build" not in config["entry_points"]:
         logger.error("No build command defined in fedn.yaml")
         exit(-1)
 
     dispatcher = Dispatcher(config, path)
-    _ = dispatcher._get_or_create_python_env()
+    _ = dispatcher.get_or_create_python_env()
     dispatcher.run_cmd("build")
     if not keep_venv:
         delete_virtual_environment(dispatcher)

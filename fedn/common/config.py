@@ -18,6 +18,7 @@ FEDN_CONNECT_API_SECURE = os.environ.get("FEDN_CONNECT_API_SECURE", "true").lowe
 
 FEDN_PACKAGE_EXTRACT_DIR = os.environ.get("FEDN_PACKAGE_EXTRACT_DIR", "package")
 FEDN_COMPUTE_PACKAGE_DIR = os.environ.get("FEDN_COMPUTE_PACKAGE_DIR", "/app/client/package/")
+FEDN_ARCHIVE_DIR = os.environ.get("FEDN_ARCHIVE_DIR", ".fedn")
 
 FEDN_OBJECT_STORAGE_TYPE = os.environ.get("FEDN_OBJECT_STORAGE_TYPE", "BOTO3").upper()
 FEDN_OBJECT_MODEL_BUCKET = os.environ.get("FEDN_OBJECT_MODEL_BUCKET", "fedn-model")
