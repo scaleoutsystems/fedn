@@ -34,6 +34,7 @@ FEDN_OBJECT_STORAGE_BUCKETS = {
     "context": os.environ.get("FEDN_OBJECT_CONTEXT_BUCKET", "fedn-context"),
     "prediction": os.environ.get("FEDN_OBJECT_PREDICTION_BUCKET", "fedn-prediction"),
 }
+FEDN_COMBINER_CONFIG = os.environ.get("FEDN_COMBINER_CONFIG", os.path.join(os.path.expanduser("~"), ".fedn", "combiner.yaml"))
 
 
 def get_environment_config():
