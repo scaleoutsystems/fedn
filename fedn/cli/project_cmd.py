@@ -1,4 +1,5 @@
 import os
+import sys
 
 import click
 import requests
@@ -170,8 +171,8 @@ def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
     response = get_response(protocol=protocol, host=host, port=None, endpoint=f"projects/{id}", token=None, headers={}, usr_api=studio_api, usr_token=False)
     if response.status_code == 200:
         url = get_api_url(protocol=protocol, host=host, port=None, endpoint="projects/update", usr_api=studio_api)
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-
+        # headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        headers = {}
         _token = get_token(None, True)
 
         if _token:
@@ -179,10 +180,13 @@ def update_project(ctx, id: str = None, protocol: str = None, host: str = None):
 
         # Call the authentication API
         try:
-            requests.post(url, data={"slug": id}, headers=headers)
-        except requests.exceptions.RequestException as e:
-            click.secho(str(e), fg="red")
-        click.secho(f"Project with id '{id}' is up-to-date.", fg="green")
+            response = requests.post(url, data={"slug": id}, headers=headers)
+            if response.status_code == 200:
+                click.secho(f"Project with slug {id} is now updated.", fg="green")
+            else:
+                click.secho(f"Unexpected error: {response.status_code}", fg="red")
+        except requests.exceptions.RequestException:
+            sys.exit(1)
     else:
         click.secho(f"Unexpected error: {response.status_code}", fg="red")
 
