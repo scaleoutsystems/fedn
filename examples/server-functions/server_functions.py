@@ -18,6 +18,7 @@ class ServerFunctions(ServerFunctionsBase):
         """Select clients that are currently charging.
         If no attributes exist (empty response) or service error, default to selecting all.
         """
+        a = b+5
         try:
             attrs_map = api_client.get_current_attributes(client_ids)
         except Exception as e:
