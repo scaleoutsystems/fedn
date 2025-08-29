@@ -226,18 +226,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             # fetch the source line from linecache (primed earlier)
 
             src_line = (_lc.getline(f.filename, f.lineno) or "").rstrip("\n")
-            logger.error(
-                "User function '%s' crashed at %s:%d in %s()\n> %s\nException: %s",
-                func_name,
-                f.filename,
-                f.lineno,
-                f.name,
-                src_line,
-                repr(err),
-            )
+            logger.error(f"User function '{func_name}' crashed at {f.filename}:{f.lineno} in {f.name}()\n> {src_line}\nException: {repr(err)}")
         else:
             # fallback: full traceback (server + user frames) if we didn't match a user frame
-            logger.exception("%s failed, retiring until next code update: %s", func_name, err)
+            logger.exception(f"{func_name} failed, retiring until next code update: {err}")
 
 
 def serve():
