@@ -1,3 +1,4 @@
+import io
 import os
 import sys
 
@@ -10,7 +11,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
 
 
-def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1):
+def train(in_model_path, settings, data_path=None, batch_size=32, epochs=1):
     """Complete a model update.
 
     Load model paramters from in_model_path (managed by the FEDn client),
@@ -19,8 +20,8 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
 
     :param in_model_path: The path to the input model.
     :type in_model_path: str
-    :param out_model_path: The path to save the output model to.
-    :type out_model_path: str
+    :param settings: currently unused
+    :type settings: dict
     :param data_path: The path to the data file.
     :type data_path: str
     :param batch_size: The batch size to use.
@@ -45,11 +46,9 @@ def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1
         "epochs": epochs,
     }
 
-    # Save JSON metadata file (mandatory)
-    save_metadata(metadata, out_model_path)
-
     # Save model update (mandatory)
-    save_parameters(model, out_model_path)
+    upd_parameters = save_parameters(model, io.BytesIO())
+    return upd_parameters, {"training_metadata": metadata}
 
 
 if __name__ == "__main__":

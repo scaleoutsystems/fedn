@@ -42,8 +42,22 @@ Next, generate a seed model (the first model in a global model trail):
 
 This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
+Create distributed datasets:
+
+.. code-block::
+   
+   python client/data.py
+
+Add datapath:
+
+.. code-block::
+
+   export FEDN_DATA_PATH="data/clients/1/mnist.npz"
+
 Running the project on FEDn
 ----------------------------
+
+
 
 To learn how to set up your FEDn Studio project and connect clients, take the quickstart tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html. 
 

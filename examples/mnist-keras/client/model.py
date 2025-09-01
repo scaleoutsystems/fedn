@@ -40,7 +40,8 @@ def save_parameters(model, out_path):
     :type out_path: str
     """
     weights = model.get_weights()
-    helper.save(weights, out_path)
+    params = helper.save(weights, out_path)
+    return params
 
 
 def load_parameters(model_path):
