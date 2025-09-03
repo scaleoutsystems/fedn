@@ -21,11 +21,17 @@ Clone FEDn
 
     git clone https://github.com/scaleoutsystems/fedn.git
 
-Install FEDn
+Switch to the current branch
+.. code-block::
+
+    cd fedn
+    git checkout feature/SK-1689
+
+Install FEDn, standing in the root folder of FEDn
 
 .. code-block::
 
-    pip install fedn
+    pip install -e .
 
 Standing in the folder fedn/examples/async-clients
 
@@ -66,29 +72,8 @@ The file ``config.py`` contains all configuration settings for this example. The
 - Set ``USE_LOCAL = False`` in ``config.py``
 - Set up a project in Scaleout Studio
 - Update the ``DISCOVER_HOST`` in ``REMOTE_CONFIG`` with your API URL
-- Create a ``tokens.json`` file with the following structure:
+- Update the ``ADMIN_TOKEN`` and ``CLIENT_TOKEN`` in ``REMOTE_CONFIG`` with your tokens accessible from the Studio project page
 
-.. code-block::
-
-    {
-        "api.fedn.scaleoutsystems.com/your-project-name": {
-            "CLIENT_TOKEN": "your-client-token-here",
-            "ADMIN_TOKEN": "your-admin-token-here"
-        }
-    }
-
-Replace ``your-project-name``, ``your-client-token-here``, and ``your-admin-token-here`` with your actual values.
-
-Monitoring client status (optional)
-----------------------------------
-
-If you want to monitor client statuses, edit ``client_status.py`` and update the ``MACHINE_NAMES`` list with the names of the machines running your clients. Then run:
-
-.. code-block::
-
-    python client_status.py
-
-This will periodically check and record client statuses to a CSV file.
 
 Running clients and analyzing participation
 ------------------------------------------
@@ -99,7 +84,7 @@ Start simulating clients:
 
     python run_clients.py
 
-You can use the ``--intermittent`` flag to simulate clients that periodically disconnect and reconnect.
+In the config file you can set the number of clients to simulate with the ``N_CLIENTS`` parameter. You can also adjust the client behavior by modifying parameters such as ``CLIENTS_MAX_DELAY`` and ``CLIENTS_ONLINE_FOR_SECONDS`` to simulate different levels of client availability and reliability.
 
 Start the experiment / training sessions: 
 
@@ -109,12 +94,4 @@ Start the experiment / training sessions:
 
 You can adjust the number of sequential training sessions by modifying the ``N_SESSIONS`` parameter in ``config.py``. If you are using Scaleout Studio, you can also start a session directly through the Studio interface or use the APIClient.
 
-To analyze client participation and identify potential issues after a session has started:
-
-.. code-block::
-
-    python client_participation.py
-
-This will generate plots showing the number of aggregated models and validations per round, helping you understand client participation patterns and identify where things might be going wrong.
-
-Once global models start being produced, you can start analyzing results using API Client, refer to the notebook "Experiment.ipynb" for instructions.
+Once global models start being produced, you can start analyzing results using API Client, refer to the notebook "Experiment.ipynb" for instructions or simpy use the Studio interface to visualize results.

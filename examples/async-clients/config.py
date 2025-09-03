@@ -6,6 +6,7 @@ LOCAL_CONFIG = {
     "DISCOVER_HOST": "127.0.0.1",
     "DISCOVER_PORT": 8092,
     "IS_LOCAL": True,
+    "IS_REFERENCE": False,
     "SECURE": False,
     "VERIFY": False,
     "CLIENT_TOKEN": None,
@@ -17,10 +18,24 @@ REMOTE_CONFIG = {
     "NodeIP": "<your-node-ip>",
     "DISCOVER_PORT": "<your-discover-port>",
     "IS_LOCAL": False,
+    "IS_REFERENCE": False,
     "SECURE": True,
     "VERIFY": True,
     "CLIENT_TOKEN": "<your-client-token>",
     "ADMIN_TOKEN": "<your-admin-token>",
+}
+
+REFERENCE_CONFIG = {
+    "DISCOVER_HOST": "https://<your-discover-host>",
+    "NodeIP": "<your-node-ip>",
+    "DISCOVER_PORT": "<your-discover-port>",
+    "IS_LOCAL": False,
+    "IS_REFERENCE": True,
+    "SECURE": True,
+    "VERIFY": True,
+    "CLIENT_TOKEN": "<your-client-token>",
+    "ADMIN_TOKEN": "<your-admin-token>",
+    "COMBINER_PREFFERRED": "",
 }
 
 # Common settings that don't change between environments
@@ -32,6 +47,7 @@ COMMON_SETTINGS = {
     "N_CYCLES": 30,
     "CLIENTS_MAX_DELAY": 30,
     "CLIENTS_ONLINE_FOR_SECONDS": 120,
+    "ROUND_TIMEOUT": 90,
 }
 
 # Choose which environment to use

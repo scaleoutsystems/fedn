@@ -21,7 +21,7 @@ if __name__ == "__main__":
             "helper": "numpyhelper",
             "name": f"async-test-{s+1}-{str(uuid.uuid4())[:4]}",
             "aggregator": "fedavg",
-            "round_timeout": 90,
+            "round_timeout": settings["ROUND_TIMEOUT"],
             "rounds": settings["N_ROUNDS"],
             "validate": True,
             "model_id": active_model["model"],

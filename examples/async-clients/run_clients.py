@@ -129,19 +129,13 @@ def run_client(online_for=120, name="client", client_id=None):
         "name": fl_client.name,
         "client_id": fl_client.client_id,
         "package": "local",
-        "combiner_preferred": "asynctiotusen-jej-fedn8",
+        "combiner_preferred": settings["COMBINER_PREFFERRED"],
 
     }
     url = settings["DISCOVER_HOST"] + "/"
     print("Connecting to API at {}".format(url))
-    _, _ = fl_client.connect_to_api(url=url, token=settings["CLIENT_TOKEN"], json=controller_config)
-
-
-    for i in range(settings["N_CYCLES"]):
-        # Sample a delay until the client starts
-        t_start = np.random.randint(1, settings["CLIENTS_MAX_DELAY"])
-        time.sleep(t_start)
-
+    if settings["IS_REFERENCE"]:
+        _, _ = fl_client.connect_to_api(url=url, token=settings["CLIENT_TOKEN"], json=controller_config)
         # Create a SimpleNamespace object with structure that the combiner expects 
         combiner_config = SimpleNamespace(
             host   = settings["NodeIP"],        
@@ -152,6 +146,16 @@ def run_client(online_for=120, name="client", client_id=None):
             ip = "",
             helper_type = ""                      
         )
+    else:
+        result, combiner_config = fl_client.connect_to_api(url=url, token=settings["CLIENT_TOKEN"], json=controller_config)
+        if result != "Assigned":
+            print("Failed to connect to API, exiting.")
+            return
+
+    for i in range(settings["N_CYCLES"]):
+        # Sample a delay until the client starts
+        t_start = np.random.randint(1, settings["CLIENTS_MAX_DELAY"])
+        time.sleep(t_start)
 
         # print for debug
         print(
