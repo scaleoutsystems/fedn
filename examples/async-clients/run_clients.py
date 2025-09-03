@@ -148,9 +148,7 @@ def run_client(online_for=120, name="client", client_id=None):
         )
     else:
         result, combiner_config = fl_client.connect_to_api(url=url, token=settings["CLIENT_TOKEN"], json=controller_config)
-        if result != "Assigned":
-            print("Failed to connect to API, exiting.")
-            return
+
 
     for i in range(settings["N_CYCLES"]):
         # Sample a delay until the client starts
@@ -170,6 +168,7 @@ def run_client(online_for=120, name="client", client_id=None):
         threading.Thread(target=fl_client.run, daemon=True).start()
         time.sleep(online_for) # keep online for X seconds, then disconnect
         fl_client.grpc_handler._disconnect()
+        i = i + 1
 
 
 if __name__ == "__main__":
