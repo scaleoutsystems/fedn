@@ -74,6 +74,16 @@ The file ``config.py`` contains all configuration settings for this example. The
 - Update the ``DISCOVER_HOST`` in ``REMOTE_CONFIG`` with your API URL
 - Update the ``ADMIN_TOKEN`` and ``CLIENT_TOKEN`` in ``REMOTE_CONFIG`` with your tokens accessible from the Studio project page
 
+**For the 10k client reference deployment:**
+- Set ``USE_LOCAL = False`` in ``config.py``
+- Set ``USE_REFERENCE = True`` in ``config.py``
+- Create a Studio deployment of the current github branch (feature/SK-1689) using the studio branch (feature/SK-1667). 
+- Update the max_concurrent_clients in the configmap of the studio deployment to 10k+
+- Attach a Nodeport service to the combiners.
+- Set ``NodeIP = <your-node-ip>`` and ``DISCOVER_PORT = <your-NodePort>`` in ``REFERENCE_CONFIG`` in ``config.py``
+- Update the ``DISCOVER_HOST`` in ``REMOTE_CONFIG`` with your API URL accessible from the Studio project page
+- Update the ``ADMIN_TOKEN`` and ``CLIENT_TOKEN`` in ``REMOTE_CONFIG`` with your tokens accessible from the Studio project page
+
 
 Running clients and analyzing participation
 ------------------------------------------
