@@ -1,10 +1,10 @@
-import os
 import threading
 import time
 from io import BytesIO
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
+from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
 
@@ -18,16 +18,8 @@ class TempModelStorage:
     """
 
     def __init__(self):
-        self.default_dir = os.environ.get("FEDN_MODEL_DIR", "/tmp/models")  # set default to tmp
-        if not os.path.exists(self.default_dir):
-            os.makedirs(self.default_dir)
-
         self.models = {}
         self.access_lock = threading.RLock()
-
-    def _file_name(self, model_id):
-        """Get the file name for a model_id."""
-        return os.path.join(self.default_dir, str(model_id))
 
     def exist(self, model_id):
         if model_id in self.models.keys():
@@ -43,9 +35,9 @@ class TempModelStorage:
                 logger.warning("File not ready! Try again")
                 return None
             self.models[model_id]["accessed_at"] = time.time()
-            return open(self.models[model_id]["filename"], "rb")
+            return self.models[model_id]["model"]
 
-    def _get_new_file_hdl(self, model_id):
+    def _make_entry(self, model_id, model):
         """Returns a handle to a new model file.
 
 
@@ -59,43 +51,32 @@ class TempModelStorage:
             if model_id in self.models:
                 raise ValueError("Model with id {} already exists.".format(model_id))
             else:
-                filename = self._file_name(model_id)
                 self.models[model_id] = {
-                    "filename": filename,
+                    "model": model,
                     "state": fedn.ModelStatus.IN_PROGRESS,
-                    "checksum": None,
                     "auto_managed": False,
                     "accessed_at": now,
                 }
 
             self._invalidate_old_models()
-            return open(filename, "wb")
+            return model
 
-    def set_model(self, model_id: str, model_stream: BytesIO, checksum: str = None, auto_managed: bool = False):
-        """Set model in temp storage.
-
-        :param model_id: The id of the model.
-        :type model_id: str
-        :param model_stream: The model stream.
-        :type model_stream: BytesIO
-        """
+    def _set_model(self, model_id: str, model_lambda, checksum: str = None, auto_managed: bool = False):
+        if model_id in self.models:
+            raise ValueError("Model with id {} already exists.".format(model_id))
         with self.access_lock:
             try:
-                model_stream.seek(0, 0)
-                with self._get_new_file_hdl(model_id) as f:
-                    while True:
-                        chunk = model_stream.read(CHUNK_SIZE)
-                        if not chunk:
-                            break
-                        f.write(chunk)
+                self._make_entry(model_id, None)
             except Exception as e:
                 logger.error("TEMPMODELSTORAGE: Error writing model {} to disk: {}".format(model_id, e))
-                try:
-                    os.remove(self._file_name(model_id))
-                except FileNotFoundError:
-                    pass
                 return False
 
+        # Create the model using the provided lambda function
+        # Do this outside the lock to avoid blocking other threads
+        model = model_lambda()
+
+        with self.access_lock:
+            self.models[model_id]["model"] = model
             if self._finalize(model_id, checksum):
                 self.models[model_id]["auto_managed"] = auto_managed
                 logger.info("TEMPMODELSTORAGE: Model {} added.".format(model_id))
@@ -103,6 +84,26 @@ class TempModelStorage:
             else:
                 logger.error("TEMPMODELSTORAGE: Model {} failed.".format(model_id))
             return False
+
+    def set_model(self, model_id: str, model: FednModel, checksum: str = None, auto_managed: bool = False):
+        """Set model in temp storage.
+
+        :param model_id: The id of the model.
+        :type model_id: str
+        :param model: The model object.
+        :type model: FednModel
+        """
+        return self._set_model(model_id, lambda: model, checksum, auto_managed)
+
+    def set_model_from_stream(self, model_id: str, model_stream: BytesIO, checksum: str = None, auto_managed: bool = False):
+        """Set model in temp storage.
+
+        :param model_id: The id of the model.
+        :type model_id: str
+        :param model_stream: The model stream.
+        :type model_stream: BytesIO
+        """
+        return self._set_model(model_id, lambda: FednModel.from_stream(model_stream), checksum, auto_managed)
 
     def set_model_with_generator(self, model_id: str, chunk_generator, checksum: str = None, auto_managed: bool = False):
         """Set model in temp storage using a generator.
@@ -112,26 +113,7 @@ class TempModelStorage:
         :param chunk_generator: A generator that yields chunks of the model.
         :type chunk_generator: Generator[bytes, None, None]
         """
-        with self.access_lock:
-            try:
-                with self._get_new_file_hdl(model_id) as f:
-                    for chunk in chunk_generator:
-                        f.write(chunk)
-            except Exception as e:
-                logger.error("TEMPMODELSTORAGE: Error writing model {} to disk: {}".format(model_id, e))
-                try:
-                    os.remove(self._file_name(model_id))
-                except FileNotFoundError:
-                    pass
-                return False
-
-            if self._finalize(model_id, checksum):
-                self.models[model_id]["auto_managed"] = auto_managed
-                logger.info("TEMPMODELSTORAGE: Model {} added.".format(model_id))
-                return True
-            else:
-                logger.error("TEMPMODELSTORAGE: Model {} failed.".format(model_id))
-                return False
+        return self._set_model(model_id, lambda: FednModel.from_chunk_generator(chunk_generator), checksum, auto_managed)
 
     def _finalize(self, model_id, checksum):
         """Commit the model to disk.
@@ -141,32 +123,13 @@ class TempModelStorage:
         :param checksum: The checksum of the model.
         :type checksum: str
         """
-        downloaded_file_checksum = self.compute_checksum(model_id)
-        if checksum and downloaded_file_checksum != checksum:
+        model: FednModel = self.models[model_id]["model"]
+        if not model.verify_checksum(checksum):
             logger.error("TEMPMODELSTORAGE: Checksum failed! File is corrupted!")
             self.delete(model_id)
             return False
-        self.models[model_id]["checksum"] = downloaded_file_checksum
         self.models[model_id]["state"] = fedn.ModelStatus.OK
         return True
-
-    def compute_checksum(self, model_id):
-        """Compute checksum for model.
-
-        :param model_id: The id of the model.
-        :type model_id: str
-        :return: The checksum of the model.
-        :rtype: str
-        """
-        try:
-            logger.debug(f"TEMPMODELSTORAGE: Computing checksum for {model_id} is not implemented yet")
-            # with open(os.path.join(self.default_dir, str(model_id)), "rb") as f:
-            # checksum = fedn.compute_checksum(f)
-            checksum = None
-            return checksum
-        except FileNotFoundError:
-            logger.error("TEMPMODELSTORAGE: model_id {} does not exist".format(model_id))
-            return None
 
     def is_ready(self, model_id):
         """Check if model is ready.
@@ -184,11 +147,12 @@ class TempModelStorage:
 
     def get_checksum(self, model_id):
         try:
-            checksum = self.models[model_id]["checksum"]
+            model: FednModel = self.models[model_id]["model"]
         except KeyError:
             logger.error("TEMPMODELSTORAGE: model_id {} does not exist".format(model_id))
             return None
-        return checksum
+        with self.access_lock:
+            return model.checksum
 
     def _invalidate_old_models(self):
         """Remove cached models that have not been accessed for more than 1 hours."""
@@ -202,7 +166,6 @@ class TempModelStorage:
     def delete(self, model_id):
         with self.access_lock:
             try:
-                os.remove(self._file_name(model_id))
                 logger.info("TEMPMODELSTORAGE: Deleted model with id: {}".format(model_id))
                 # Delete id from metadata and models dict
                 del self.models[model_id]
@@ -214,10 +177,5 @@ class TempModelStorage:
     # Delete all models from disk
     def delete_all(self):
         with self.access_lock:
-            logger.info("TEMPMODELSTORAGE: Deleting all models from disk.")
-            # Delete all models from disk
-            for model_id in list(self.models.keys()):
-                self.delete(model_id)
-            # Clear the models dictionary
             self.models.clear()
         return True

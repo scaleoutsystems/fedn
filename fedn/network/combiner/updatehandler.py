@@ -3,11 +3,12 @@ import queue
 import threading
 import time
 import traceback
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import ModelService, load_model_from_bytes
+from fedn.network.combiner.modelservice import ModelService
+from fedn.utils.model import FednModel
 
 
 class ModelUpdateError(Exception):
@@ -126,7 +127,7 @@ class UpdateHandler:
         :rtype: tuple
         """
         model_id = model_update.model_update_id
-        model = self.load_model(helper, model_id)
+        model_params = self.load_model_params(helper, model_id)
         # Get relevant metadata
         metadata = json.loads(model_update.meta)
         if "config" in metadata.keys():
@@ -139,36 +140,9 @@ class UpdateHandler:
         if "round_id" in config:
             training_metadata["round_id"] = config["round_id"]
 
-        return model, training_metadata
+        return model_params, training_metadata
 
-    def load_model_update_byte(self, model_update: fedn.ModelUpdate):
-        """Load the memory representation of the model update.
-
-        Load the model update paramters and the
-        associate metadata into memory.
-
-        :param model_update: The model update.
-        :type model_update: fedn.network.grpc.fedn.proto.ModelUpdate
-        :return: A tuple of parameters(bytes), metadata
-        :rtype: tuple
-        """
-        model_id = model_update.model_update_id
-        model = self.load_model_update_bytesIO(model_id).getbuffer()
-        # Get relevant metadata
-        metadata = json.loads(model_update.meta)
-        if "config" in metadata.keys():
-            # Used in Python client
-            config = json.loads(metadata["config"])
-        else:
-            # Used in C++ client
-            config = json.loads(model_update.config)
-        training_metadata = metadata["training_metadata"]
-        if "round_id" in config:
-            training_metadata["round_id"] = config["round_id"]
-
-        return model, training_metadata
-
-    def load_model(self, helper, model_id):
+    def load_model_params(self, helper, model_id):
         """Load model update with id model_id into its memory representation.
 
         :param helper: An instance of :class: `fedn.utils.helpers.helpers.HelperBase`
@@ -176,10 +150,10 @@ class UpdateHandler:
         :param model_id: The ID of the model update, UUID in str format
         :type model_id: str
         """
-        model_bytesIO = self.load_model_update_bytesIO(model_id)
-        if model_bytesIO:
+        fedn_model = self.get_model(model_id)
+        if fedn_model:
             try:
-                model = load_model_from_bytes(model_bytesIO.getbuffer(), helper)
+                model = fedn_model.get_model_params(helper)
             except IOError:
                 logger.warning("UPDATE HANDLER: Failed to load model!")
         else:
@@ -187,8 +161,8 @@ class UpdateHandler:
 
         return model
 
-    def load_model_update_bytesIO(self, model_id):
-        """Load model update object and return it as BytesIO.
+    def get_model(self, model_id) -> FednModel:
+        """Load model update object and return it as FednModel.
 
         :param model_id: The ID of the model
         :type model_id: str
@@ -197,9 +171,7 @@ class UpdateHandler:
         :return: Updated model
         :rtype: class: `io.BytesIO`
         """
-        model_stream = self.modelservice.temp_model_storage.get(model_id)
-
-        return model_stream
+        return self.modelservice.get_model(model_id)
 
 
 class BackwardHandler:

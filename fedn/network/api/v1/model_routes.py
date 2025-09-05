@@ -9,6 +9,7 @@ from fedn.network.api.auth import jwt_auth_required
 from fedn.network.api.shared import get_db, get_network, get_repository
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
+from fedn.utils.model import FednModel
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -697,10 +698,8 @@ def download(id: str):
             model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
-            file = repository.get_model_stream(model.model_id)
-
-            return send_file(file, as_attachment=True, download_name=model.model_id)
+            fedn_model = repository.get_model(model.model_id)
+            return send_file(fedn_model.get_stream_unsafe(), as_attachment=True, download_name=model.model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
     except Exception as e:
@@ -753,15 +752,9 @@ def get_parameters(id: str):
             model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            fedn_model = repository.get_model(model.model_id)
 
-            file = repository.get_model_stream(model.model_id)
-
-            file_bytes = io.BytesIO()
-            for chunk in file.stream(32 * 1024):
-                file_bytes.write(chunk)
-            file_bytes.seek(0)  # Reset the pointer to the beginning of the byte array
-
-            a = np.load(file_bytes)
+            a = np.load(fedn_model.get_stream_unsafe())
 
             weights = []
             for i in range(len(a.files)):
@@ -809,15 +802,23 @@ def upload_model():
         name: str = data.get("name", None)
 
         try:
-            object = BytesIO()
-            object.seek(0, 0)
-            file.seek(0)
-            object.write(file.read())
-            helper = network.get_helper()
-            logger.info(f"Loading model from file using helper {helper.name}")
-            object.seek(0)
-            model = helper.load(object)
-            network.commit_model(model=model, name=name)
+            fedn_model = FednModel.from_stream(file)
+            fedn_model.helper = network.get_helper()
+            try:
+                _ = fedn_model.get_model_params()
+            except Exception as e:
+                logger.error(f"Failed to extract model parameters: {e}")
+                status_code = 400
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "message": "Failed to extract model parameters. Ensure that the model is compatible with the selected helper.",
+                        }
+                    ),
+                    status_code,
+                )
+            network.commit_model(model=fedn_model, name=name)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             status_code = 400

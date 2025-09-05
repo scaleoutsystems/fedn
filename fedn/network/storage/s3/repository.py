@@ -3,10 +3,12 @@
 import datetime
 import importlib
 import uuid
-from typing import Union
+from typing import IO, Union
 
 from fedn.common.config import FEDN_OBJECT_STORAGE_BUCKETS, FEDN_OBJECT_STORAGE_TYPE
 from fedn.common.log_config import logger
+from fedn.network.storage.s3.base import RepositoryBase
+from fedn.utils.model import FednModel
 
 
 class Repository:
@@ -31,7 +33,7 @@ class Repository:
 
         # Dynamically import the repository class based on storage_type
         storage_type = (storage_type or FEDN_OBJECT_STORAGE_TYPE).upper()
-        self.client = self._load_repository(storage_type, config)
+        self.client: RepositoryBase = self._load_repository(storage_type, config)
 
         if init_buckets:
             self.client.create_bucket(self.context_bucket)
@@ -70,7 +72,7 @@ class Repository:
             logger.error(f"Failed to load class {class_name} from module {module_path}. Error: {e}")
             raise AttributeError(f"Could not load repository class {class_name}.") from e
 
-    def get_model(self, model_id: str) -> bytes:
+    def get_model(self, model_id: str) -> FednModel:
         """Retrieve a model with id model_id.
 
         :param model_id: Unique identifier for model to retrieve.
@@ -79,7 +81,9 @@ class Repository:
         :rtype: bytes
         """
         logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
-        return self.client.get_artifact(model_id, self.model_bucket)
+        model_stream = self.client.get_artifact_stream(model_id, self.model_bucket)
+        fedn_model = FednModel.from_stream(model_stream)
+        return fedn_model
 
     def get_model_stream(self, model_id: str) -> bytes:
         """Retrieve a stream handle to model with id model_id.
@@ -92,7 +96,7 @@ class Repository:
         logger.info("Client {} trying to get model with id: {}".format(self.client.name, model_id))
         return self.client.get_artifact_stream(model_id, self.model_bucket)
 
-    def set_model(self, model: Union[bytes, str], is_file: bool = True) -> str:
+    def set_model(self, model: Union[IO, str], is_file: bool = True) -> str:
         """Upload model object.
 
         :param model: The model object
