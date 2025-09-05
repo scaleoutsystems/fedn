@@ -1,6 +1,3 @@
-import io
-from io import BytesIO
-
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 

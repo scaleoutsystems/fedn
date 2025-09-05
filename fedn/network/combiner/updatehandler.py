@@ -3,7 +3,7 @@ import queue
 import threading
 import time
 import traceback
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger

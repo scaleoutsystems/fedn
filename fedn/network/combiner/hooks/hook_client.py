@@ -7,7 +7,7 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_params_as_fednmodel, unpack_model
+from fedn.network.combiner.modelservice import bytesIO_request_generator, unpack_model
 from fedn.network.combiner.updatehandler import UpdateHandler
 from fedn.utils.model import FednModel
 
