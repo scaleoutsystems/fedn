@@ -34,8 +34,7 @@ class Helper(HelperBase):
         # Ensure all values are numpy arrays
         processed_dict = {str(k): np.array(v) for k, v in data_dict.items()}
 
-        with open(path, "wb") as f:
-            np.savez_compressed(f, **processed_dict)
+        np.savez_compressed(path, **processed_dict)
 
         return path
 

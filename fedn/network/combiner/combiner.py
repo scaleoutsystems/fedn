@@ -155,7 +155,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             grpc_server_config = ServerConfig(port=config["port"], secure=False)
 
         # Set up model service
-        modelservice = ModelService()
+        modelservice = ModelService(repository)
 
         # Create gRPC server
         self.server = Server(self, modelservice, grpc_server_config)

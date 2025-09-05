@@ -9,7 +9,7 @@ import numpy as np
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.network.combiner.hooks.hooks import FunctionServiceServicer
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctionsBase
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO
+from fedn.network.combiner.modelservice import bytesIO_request_generator, model_params_as_fednmodel
 
 
 def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: List[np.ndarray], client_metadata: Dict, rounds, num_clients):
@@ -32,17 +32,19 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
         response = function_service.HandleClientSelection(request, "")
         selected_clients = json.loads(response.client_ids)
         # see output from client config request
-        bytesio_model = model_as_bytesIO(parameters_np)
+        fedn_model = model_params_as_fednmodel(parameters_np)
         request_function = fedn.ClientConfigRequest
         args = {}
-        gen = bytesIO_request_generator(mdl=bytesio_model, request_function=request_function, args=args)
+        gen = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args=args)
         function_service.HandleClientConfig(gen, "")
         # see output from aggregate request
         request_function = fedn.StoreModelRequest
         args = {"id": "global_model"}
-        bytesio_model = model_as_bytesIO(parameters_np)
-        gen = bytesIO_request_generator(mdl=bytesio_model, request_function=request_function, args=args)
-        function_service.HandleStoreModel(gen, "")
+        fedn_model = model_params_as_fednmodel(parameters_np)
+        gen = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args=args)
+        context = object()
+        context.invocation_metadata = lambda: [("client_id", "global_model")]
+        function_service.HandleStoreModel(gen, context)
         for k in range(len(selected_clients)):
             # send metadata
             client_id = selected_clients[k]
@@ -50,9 +52,10 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
             function_service.HandleMetadata(request, "")
             request_function = fedn.StoreModelRequest
             args = {"id": client_id}
-            bytesio_model = model_as_bytesIO(parameters_np)
-            gen = bytesIO_request_generator(mdl=bytesio_model, request_function=request_function, args=args)
-            function_service.HandleStoreModel(gen, "")
+            fedn_model = model_params_as_fednmodel(parameters_np)
+            gen = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args=args)
+            context.invocation_metadata = lambda client_id=client_id: [("client_id", client_id)]
+            function_service.HandleStoreModel(gen, context)
         request = fedn.AggregationRequest(aggregate="aggregate")
         response_generator = function_service.HandleAggregation(request, "")
         for response in response_generator:

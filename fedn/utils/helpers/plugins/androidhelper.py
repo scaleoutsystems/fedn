@@ -70,8 +70,12 @@ class Helper(HelperBase):
             path = self.get_tmp_path()
 
         byte_array = struct.pack("f" * len(weights), *weights)
-        with open(path, "wb") as file:
-            file.write(byte_array)
+        if isinstance(path, str):
+            with open(path, "wb") as file:
+                file.write(byte_array)
+        else:
+            # If path is a file-like object, write to it directly
+            path.write(byte_array)
 
         return path
 

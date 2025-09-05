@@ -11,7 +11,7 @@ from fedn.common.log_config import logger
 # imports for user defined code
 from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
+from fedn.network.combiner.modelservice import bytesIO_request_generator, model_params_as_fednmodel, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
 CHUNK_SIZE = 1024 * 1024
@@ -47,7 +47,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         """
         try:
             logger.info("Received client config request.")
-            model, _ = unpack_model(request_iterator, self.helper)
+            model = unpack_model(request_iterator, self.helper)
             client_settings = self.server_functions.client_settings(global_model=model)
             logger.info(f"Client config response: {client_settings}")
             return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
@@ -96,8 +96,12 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
 
     def HandleStoreModel(self, request_iterator, context):
         try:
-            model, final_request = unpack_model(request_iterator, self.helper)
-            client_id = final_request.id
+            metadata = dict(context.invocation_metadata())
+            client_id = metadata.get("client-id")
+            if client_id is None:
+                logger.error("No client-id provided in metadata.")
+                grpc.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
+            model = unpack_model(request_iterator, self.helper)
             if client_id == "global_model":
                 logger.info("Received previous global model")
                 self.previous_global = model
@@ -138,11 +142,11 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             else:
                 aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
 
-            model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
+            fedn_model = model_params_as_fednmodel(aggregated_model, self.helper)
             request_function = fedn.AggregationResponse
             self.client_updates = {}
             logger.info("Returning aggregate model.")
-            response_generator = bytesIO_request_generator(mdl=model_bytesIO, request_function=request_function, args={})
+            response_generator = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args={})
             for response in response_generator:
                 yield response
         except Exception as e:

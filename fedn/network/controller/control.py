@@ -3,14 +3,13 @@ import datetime
 import json
 import signal
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import grpc
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import load_model_from_bytes
 from fedn.network.combiner.roundhandler import RoundConfig
 from fedn.network.common.command import CommandType
 from fedn.network.common.flow_controller import FlowController
@@ -24,6 +23,7 @@ from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto.run import RunDTO
 from fedn.network.storage.statestore.stores.dto.session import SessionConfigDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.utils.model import FednModel
 
 
 class UnsupportedStorageBackend(Exception):
@@ -477,7 +477,7 @@ class Control(ControlBase, rpc.ControlServicer):
         round_data = {}
         try:
             round = self.db.round_store.get(round_id)
-            model, data = self.reduce(round.combiners.to_dict())
+            fedn_model, data = self.reduce(round.combiners.to_dict())
             round_data["reduce"] = data
             logger.info("Done reducing models from combiners!")
         except Exception as e:
@@ -487,10 +487,10 @@ class Control(ControlBase, rpc.ControlServicer):
 
         # Commit the new global model to the model trail
         model_id: Optional[str] = None
-        if model is not None:
+        if fedn_model is not None:
             logger.info("Committing global model to model trail...")
             tic = time.time()
-            model_id = self.network.commit_model(model=model, session_id=session_id, name=model_name)
+            model_id = self.network.commit_model(model=fedn_model, session_id=session_id, name=model_name)
             round_data["time_commit"] = time.time() - tic
             logger.info("Done committing global model to model trail.")
         else:
@@ -670,7 +670,7 @@ class Control(ControlBase, rpc.ControlServicer):
         self.set_round_status(round_id, "Success")
         return model_id, self.db.round_store.get(round_id)
 
-    def reduce(self, combiners):
+    def reduce(self, combiners) -> Tuple[FednModel, dict]:
         """Combine updated models from Combiner nodes into one global model.
 
         : param combiners: dict of combiner names(key) and model IDs(value) to reduce
@@ -682,7 +682,9 @@ class Control(ControlBase, rpc.ControlServicer):
         meta["time_aggregate_model"] = 0.0
 
         i = 1
-        model = None
+        model_params_agg = None
+
+        helper = self.network.get_helper()
 
         for combiner in combiners:
             name = combiner["name"]
@@ -692,30 +694,34 @@ class Control(ControlBase, rpc.ControlServicer):
 
             try:
                 tic = time.time()
-                data = self.repository.get_model(model_id)
+                fedn_model = self.repository.get_model(model_id)
                 meta["time_fetch_model"] += time.time() - tic
             except Exception as e:
                 logger.error("Failed to fetch model from model repository {}: {}".format(name, e))
-                data = None
+                fedn_model = None
 
-            if data is not None:
+            if fedn_model is not None:
                 try:
                     tic = time.time()
-                    helper = self.network.get_helper()
-                    model_next = load_model_from_bytes(data, helper)
+
+                    model_params_next = fedn_model.get_model_params(helper)
                     meta["time_load_model"] += time.time() - tic
                     tic = time.time()
-                    model = helper.increment_average(model, model_next, 1.0, i)
+                    model_params_agg = helper.increment_average(model_params_agg, model_params_next, 1.0, i)
                     meta["time_aggregate_model"] += time.time() - tic
                 except Exception:
                     tic = time.time()
-                    model = load_model_from_bytes(data, helper)
+                    model_params_agg = fedn_model.get_model_params(helper)
                     meta["time_aggregate_model"] += time.time() - tic
                 i = i + 1
 
             self.repository.delete_model(model_id)
 
-        return model, meta
+        if model_params_agg is not None:
+            fedn_model = FednModel.from_model_params(model_params_agg, helper)
+            return fedn_model, meta
+        else:
+            return None, meta
 
     def predict_instruct(self, config):
         """Main entrypoint for executing the prediction compute plan.

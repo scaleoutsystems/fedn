@@ -10,6 +10,7 @@ from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
 from fedn.network.storage.statestore.stores.dto.model import ModelDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
+from fedn.utils.model import FednModel
 
 __all__ = ("Network",)
 
@@ -139,7 +140,7 @@ class Network:
             raise MisconfiguredHelper("Unsupported helper type {}, please configure compute_package.helper !".format(helper_type))
         return helper
 
-    def commit_model(self, model: dict = None, session_id: str = None, name: str = None) -> str:
+    def commit_model(self, model: FednModel = None, session_id: str = None, name: str = None) -> str:
         """Commit a model to the global model trail. The model commited becomes the lastest consensus model.
 
         :param model_id: Unique identifier for the model to commit.
@@ -149,15 +150,9 @@ class Network:
         :param session_id: Unique identifier for the session
         :type session_id: str
         """
-        helper = self.get_helper()
         if model is not None:
-            outfile_name = helper.save(model)
-            logger.info("Saving model file temporarily to {}".format(outfile_name))
-            logger.info("CONTROL: Uploading model to object store...")
-            model_id = self.repository.set_model(outfile_name, is_file=True)
-
-            logger.info("CONTROL: Deleting temporary model file...")
-            os.unlink(outfile_name)
+            model_id = self.repository.set_model(model.get_stream(), is_file=False)
+            model.model_id = model_id
 
         logger.info("Committing model {} to global model trail in statestore...".format(model_id))
 

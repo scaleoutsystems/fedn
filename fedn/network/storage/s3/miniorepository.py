@@ -60,7 +60,7 @@ class MINIORepository(RepositoryBase):
             if is_file:
                 self.client.fput_object(bucket, instance_name, instance)
             else:
-                self.client.put_object(bucket, instance_name, io.BytesIO(instance), len(instance))
+                self.client.put_object(bucket, instance_name, instance, part_size=10 * 1024 * 1024)
         except Exception as e:
             logger.error(f"Failed to upload artifact: {instance_name} to bucket: {bucket}. Error: {e}")
             raise Exception(f"Could not load data into bytes: {e}") from e

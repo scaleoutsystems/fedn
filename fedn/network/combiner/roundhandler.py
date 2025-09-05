@@ -10,11 +10,12 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
-from fedn.network.combiner.modelservice import ModelService, serialize_model_to_BytesIO
+from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.updatehandler import BackwardHandler, UpdateHandler
 from fedn.network.common.flow_controller import FlowController
 from fedn.network.storage.s3.repository import Repository
 from fedn.utils.helpers.helpers import get_helper
+from fedn.utils.model import FednModel
 from fedn.utils.parameters import Parameters
 
 # This if is needed to avoid circular imports but is crucial for type hints.
@@ -152,8 +153,8 @@ class RoundHandler:
         round_id = config["round_id"]
 
         if provided_functions.get("client_settings", False):
-            global_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-            client_settings = self.hook_interface.client_settings(global_model_bytes)
+            fedn_model = self.modelservice.get_model(model_id)
+            client_settings = self.hook_interface.client_settings(fedn_model)
             config["client_settings"] = client_settings
 
         # Request model updates from all active clients.
@@ -195,8 +196,8 @@ class RoundHandler:
                 else:
                     parameters = None
                 if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
-                    previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                    model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                    previous_model = self.modelservice.get_model(model_id)
+                    model, data = self.hook_interface.aggregate(session_id, previous_model, self.update_handler, helper, delete_models=delete_models)
                 else:
                     model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
             except Exception as e:
@@ -335,16 +336,18 @@ class RoundHandler:
         :type retry: int, optional
         """
         # If the model is already in memory at the server we do not need to do anything.
+        logger.info("Model Staging, fetching model from storage...")
+
         if self.modelservice.temp_model_storage.exist(model_id):
             logger.info("Model already exists in memory, skipping model staging.")
             return
-        logger.info("Model Staging, fetching model from storage...")
+
         # If not, download it and stage it in memory at the combiner.
         tries = 0
         while True:
             try:
-                model = self.storage.get_model_stream(model_id)
-                if model:
+                success = self.modelservice.fetch_model_from_repository(model_id, blocking=True)
+                if success:
                     break
             except Exception:
                 logger.warning("Could not fetch model from storage backend, retrying.")
@@ -353,8 +356,6 @@ class RoundHandler:
                 if tries > retry:
                     logger.error("Failed to stage model {} from storage backend!".format(model_id))
                     raise
-
-        self.modelservice.set_model(model, model_id)
 
     def _assign_round_clients(self, n: int, type: str = "trainers", selected_clients: list = None):
         """Obtain a list of clients(trainers or validators) to ask for updates in this round.
@@ -466,9 +467,8 @@ class RoundHandler:
 
         if model is not None:
             helper = get_helper(config["helper_type"])
-            a = serialize_model_to_BytesIO(model, helper)
-            model_id = self.storage.set_model(a.read(), is_file=False)
-            a.close()
+            fedn_model = FednModel.from_model_params(model, helper=helper)
+            model_id = self.storage.set_model(fedn_model.get_stream_unsafe(), is_file=False)
             data["model_id"] = model_id
 
             logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config["_job_id"]))
@@ -506,9 +506,8 @@ class RoundHandler:
         elif output["gradients"] is not None:
             gradients = output["gradients"]
             helper = get_helper(config["helper_type"])
-            a = serialize_model_to_BytesIO(gradients, helper)
-            gradient_id = self.storage.set_model(a.read(), is_file=False)  # uploads gradients to storage
-            a.close()
+            fedn_model = FednModel.from_model_params(gradients, helper=helper)
+            gradient_id = self.storage.set_model(fedn_model.get_stream_unsafe(), is_file=False)  # uploads gradients to storage
             data["model_id"] = gradient_id  # intended
 
             logger.info("FORWARD PASS COMPLETED. Aggregated model id: {}, Job id: {}".format(gradient_id, config["_job_id"]))
