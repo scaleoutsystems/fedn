@@ -15,6 +15,7 @@ on:
       - '.github/**'
     branches:
       - "**"
+  workflow_dispatch:
 
 jobs:
   integration-tests:

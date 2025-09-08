@@ -11,7 +11,7 @@ project = "FEDn"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
-release = "0.30.0"
+release = "0.32.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
@@ -27,6 +27,10 @@ extensions = [
     "sphinx_code_tabs",
     "sphinx_copybutton",
 ]
+
+# SEO configuration
+html_title = "FEDn Documentation - Scalable Federated Learning Framework"
+html_short_title = "FEDn Docs"
 
 # The master toctree document.
 master_doc = "index"
@@ -47,6 +51,14 @@ html_theme_options = {
     "logo_only": True,
 }
 
+# SEO improvements
+html_use_index = True
+html_split_index = False
+
+# Allow search engines to index the documentation
+# Remove any robots restrictions
+html_extra_path = ["robots.txt"]
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -65,6 +77,21 @@ html_favicon = "favicon.png"
 html_css_files = [
     "css/elements.css",
     "css/text.css",
+]
+
+html_js_files = [
+    (
+        "https://scripts.simpleanalyticscdn.com/sri/v11.js",
+        {
+            "async": "async",
+            "crossorigin": "anonymous",
+            "integrity": (
+                "sha256-hkUzQr3zWmSDnmhw95ZmQSZ949upqD+ML9ejiN0UIIE= "
+                "sha384-rfv15RJy1bBYZ1Mf4xizO26jorXb2myipCvHXy4rkG0SuEET96S+m0sTzu5vfbSI "
+                "sha512-lQzjzTbOxHLwkZGDVMf4V0sm8v2Mrqm73IvKcXBftJ/MSZKQC4/jwKFToxT+3IVAVWQzLplSNHH8gM5d7b1BSg=="
+            ),
+        },
+    ),
 ]
 
 # LaTeX elements
