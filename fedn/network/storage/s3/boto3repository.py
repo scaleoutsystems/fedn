@@ -14,31 +14,32 @@ class Boto3Repository(RepositoryBase):
     """Class implementing Repository for Amazon S3 using boto3."""
 
     def __init__(self, config: dict) -> None:
-        """Initialize object.
-
-        :param config: Dictionary containing configuration for credentials and bucket names.
-        :type config: dict
-        """
+        """Initialize object."""
         super().__init__()
         self.name = "Boto3Repository"
 
         common_config = {
-            "region_name": config.get("storage_region", "eu-west-1"),
-            "endpoint_url": config.get("storage_endpoint", "http://minio:9000"),
             "use_ssl": config.get("storage_secure_mode", True),
             "verify": config.get("storage_verify_ssl", True),
         }
 
-        if "storage_access_key" in config and "storage_secret_key" in config:
+        access_key = config.get("storage_access_key")
+        secret_key = config.get("storage_secret_key")
+
+        if access_key and secret_key:
             self.s3_client = boto3.client(
                 "s3",
-                aws_access_key_id=config["storage_access_key"],
-                aws_secret_access_key=config["storage_secret_key"],
+                aws_access_key_id=access_key,
+                aws_secret_access_key=secret_key,
+                region_name=config.get("storage_region", "eu-west-1"),
+                endpoint_url=config.get("storage_endpoint", "http://minio:9000"),
                 **common_config,
             )
         else:
-            # Use default credentials (e.g., from a service account or environment variables)
+            # Use default credentials (IAM role via service account, environment variables, etc.)
+
             self.s3_client = boto3.client("s3", **common_config)
+
         logger.info(f"Using {self.name} for S3 storage.")
 
     def set_artifact(self, instance_name: str, instance: IO, bucket: str, is_file: bool = False) -> bool:

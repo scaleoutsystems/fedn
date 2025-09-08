@@ -12,6 +12,10 @@ from fedn.network.combiner.updatehandler import UpdateHandler
 from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
+# for quick functions
+TIMEOUT_SHORT = 120
+# for functions which might take longer such as aggregation
+TIMEOUT_LONG = 600
 
 
 class CombinerHookInterface:
@@ -44,7 +48,7 @@ class CombinerHookInterface:
         try:
             request = fedn.ProvidedFunctionsRequest(function_code=server_functions)
 
-            response = self.stub.HandleProvidedFunctions(request)
+            response = self.stub.HandleProvidedFunctions(request, timeout=TIMEOUT_SHORT)
             return response.available_functions
         except grpc.RpcError as rpc_error:
             if rpc_error.code() == grpc.StatusCode.UNAVAILABLE:
@@ -66,7 +70,9 @@ class CombinerHookInterface:
         """
         request_function = fedn.ClientConfigRequest
         args = {}
-        response = self.stub.HandleClientConfig(bytesIO_request_generator(mdl=global_model.get_stream(), request_function=request_function, args=args))
+        response = self.stub.HandleClientConfig(
+            bytesIO_request_generator(mdl=global_model.get_stream(), request_function=request_function, args=args), timeout=TIMEOUT_SHORT
+        )
         return json.loads(response.client_settings)
 
     def client_selection(self, clients: list) -> list:
@@ -89,7 +95,9 @@ class CombinerHookInterface:
         request_function = fedn.StoreModelRequest
         args = {"id": "global_model"}
         response = self.stub.HandleStoreModel(
-            bytesIO_request_generator(mdl=previous_global.get_stream(), request_function=request_function, args=args), metadata=[("client_id", "global_model")]
+            bytesIO_request_generator(mdl=previous_global.get_stream(), request_function=request_function, args=args),
+            timeout=TIMEOUT_SHORT,
+            metadata=[("client_id", "global_model")],
         )
         logger.info(f"Store model response: {response.status}")
         # send client models and metadata
@@ -105,12 +113,14 @@ class CombinerHookInterface:
             # send metadata
             client_id = update.sender.client_id
             request = fedn.ClientMetaRequest(metadata=json.dumps(metadata), client_id=client_id)
-            response = self.stub.HandleMetadata(request)
+            response = self.stub.HandleMetadata(request, timeout=TIMEOUT_SHORT)
             # send client model
             args = {"id": client_id}
             request_function = fedn.StoreModelRequest
             response = self.stub.HandleStoreModel(
-                bytesIO_request_generator(mdl=model.get_stream(), request_function=request_function, args=args), metadata=[("client_id", client_id)]
+                bytesIO_request_generator(mdl=model.get_stream(), request_function=request_function, args=args),
+                timeout=TIMEOUT_SHORT,
+                metadata=[("client_id", client_id)],
             )
             logger.info(f"Store model response: {response.status}")
             nr_updates += 1
@@ -119,7 +129,7 @@ class CombinerHookInterface:
                 update_handler.delete_model(model_update=update)
         # ask for aggregation
         request = fedn.AggregationRequest(aggregate="aggregate")
-        response_generator = self.stub.HandleAggregation(request)
+        response_generator = self.stub.HandleAggregation(request, timeout=TIMEOUT_LONG)
         data["nr_aggregated_models"] = nr_updates
         model = unpack_model(response_generator, helper)
         return model, data

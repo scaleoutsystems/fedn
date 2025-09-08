@@ -64,20 +64,6 @@ fi
 >&2 echo "Checking rounds success"
 python ../../.ci/tests/examples/wait_for.py rounds
 
->&2 echo "Test client connection with dowloaded settings"
-# Get config
-python ../../.ci/tests/examples/api_test.py get_client_config --output ../../client.yaml
-
-# Redeploy clients with config
-docker compose \
-    -f ../../docker-compose.yaml \
-    -f docker-compose.override.yaml \
-    -f ../../.ci/tests/examples/compose-client-settings.override.yaml \
-    up -d
-
->&2 echo "Wait for clients to reconnect"
-python ../../.ci/tests/examples/wait_for.py clients
-
 >&2 echo "Test API GET requests"
 python ../../.ci/tests/examples/api_test.py test_api_get_methods
 

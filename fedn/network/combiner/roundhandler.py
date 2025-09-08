@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, TypedDict
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import get_aggregator
+from fedn.network.combiner.hooks.grpc_wrappers import call_with_fallback
 from fedn.network.combiner.hooks.hook_client import CombinerHookInterface
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctions
 from fedn.network.combiner.modelservice import ModelService
@@ -154,8 +155,15 @@ class RoundHandler:
 
         if provided_functions.get("client_settings", False):
             fedn_model = self.modelservice.get_model(model_id)
-            client_settings = self.hook_interface.client_settings(fedn_model)
-            config["client_settings"] = client_settings
+
+            def _rpc():
+                return self.hook_interface.client_settings(fedn_model)
+
+            def _fallback():
+                return {}
+
+            client_settings = call_with_fallback("client_settings", _rpc, fallback_fn=_fallback) or {}
+            config["client_settings"] = {**config.get("client_settings", {}), **client_settings}
 
         # Request model updates from all active clients.
         requests = self.server.create_requests(fedn.StatusType.MODEL_UPDATE, session_id, model_id, config, clients)
@@ -196,8 +204,8 @@ class RoundHandler:
                 else:
                     parameters = None
                 if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
-                    previous_model = self.modelservice.get_model(model_id)
-                    model, data = self.hook_interface.aggregate(session_id, previous_model, self.update_handler, helper, delete_models=delete_models)
+                    previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
+                    model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
                 else:
                     model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
             except Exception as e:
@@ -444,17 +452,25 @@ class RoundHandler:
         self.stage_model(config["model_id"])
 
         # dictionary to which functions are provided
-        provided_functions = self.hook_interface.provided_functions(self.server_functions)
+        try:
+            provided_functions = self.hook_interface.provided_functions(self.server_functions)
+        except Exception:
+            provided_functions = {"client_selection": False, "client_settings": False, "aggregate": False, "incremental_aggregate": False}
 
         if provided_functions.get("client_selection", False):
-            selected = 0
-            while not selected:
-                clients = self.hook_interface.client_selection(clients=self.server.get_active_trainers())
-                selected = len(clients)
-                if not selected:
-                    logger.info("No clients selected based on custom client selection implementation. Trying again in 15 seconds.")
-                    time.sleep(15)
 
+            def _rpc():
+                return self.hook_interface.client_selection(clients=self.server.get_active_trainers())
+
+            def _fallback():
+                selected_clients = config["selected_clients"] if "selected_clients" in config and len(config["selected_clients"]) > 0 else None
+
+                return self._assign_round_clients(n=self.server.max_clients, type="trainers", selected_clients=selected_clients)
+
+            clients = call_with_fallback("client_selection", _rpc, fallback_fn=_fallback)
+            if not clients:
+                # Empty selection => fallback immediately (don't spin forever)
+                clients = _fallback()
         else:
             selected_clients = config["selected_clients"] if "selected_clients" in config and len(config["selected_clients"]) > 0 else None
 
