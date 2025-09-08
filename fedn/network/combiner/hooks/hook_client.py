@@ -97,7 +97,7 @@ class CombinerHookInterface:
         response = self.stub.HandleStoreModel(
             bytesIO_request_generator(mdl=previous_global.get_stream(), request_function=request_function, args=args),
             timeout=TIMEOUT_SHORT,
-            metadata=[("client_id", "global_model")],
+            metadata=[("client-id", "global_model")],
         )
         logger.info(f"Store model response: {response.status}")
         # send client models and metadata
@@ -120,7 +120,7 @@ class CombinerHookInterface:
             response = self.stub.HandleStoreModel(
                 bytesIO_request_generator(mdl=model.get_stream(), request_function=request_function, args=args),
                 timeout=TIMEOUT_SHORT,
-                metadata=[("client_id", client_id)],
+                metadata=[("client-id", client_id)],
             )
             logger.info(f"Store model response: {response.status}")
             nr_updates += 1

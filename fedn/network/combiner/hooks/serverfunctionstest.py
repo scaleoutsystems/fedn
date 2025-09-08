@@ -43,7 +43,7 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
         fedn_model = model_params_as_fednmodel(parameters_np)
         gen = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args=args)
         context = object()
-        context.invocation_metadata = lambda: [("client_id", "global_model")]
+        context.invocation_metadata = lambda: [("client-id", "global_model")]
         function_service.HandleStoreModel(gen, context)
         for k in range(len(selected_clients)):
             # send metadata
@@ -54,7 +54,7 @@ def test_server_functions(server_functions: ServerFunctionsBase, parameters_np: 
             args = {"id": client_id}
             fedn_model = model_params_as_fednmodel(parameters_np)
             gen = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args=args)
-            context.invocation_metadata = lambda client_id=client_id: [("client_id", client_id)]
+            context.invocation_metadata = lambda client_id=client_id: [("client-id", client_id)]
             function_service.HandleStoreModel(gen, context)
         request = fedn.AggregationRequest(aggregate="aggregate")
         response_generator = function_service.HandleAggregation(request, "")
