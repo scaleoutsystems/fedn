@@ -204,8 +204,15 @@ class RoundHandler:
                 else:
                     parameters = None
                 if provided_functions.get("aggregate", False) or provided_functions.get("incremental_aggregate", False):
-                    previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
-                    model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
+                    previous_model = self.modelservice.get_model(model_id)
+
+                    def _rpc():
+                        return self.hook_interface.aggregate(session_id, previous_model, self.update_handler, helper, delete_models=delete_models)
+
+                    def _fallback():
+                        return self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+
+                    model, data = call_with_fallback("aggregate", _rpc, fallback_fn=_fallback)
                 else:
                     model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
             except Exception as e:
