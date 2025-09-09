@@ -142,7 +142,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         request_function = fedn.AggregationResponse
         self.client_updates = {}
         logger.info("Returning aggregate model.")
-        response_generator = bytesIO_request_generator(mdl=fedn_model.get_stream(), request_function=request_function, args={})
+        response_generator = bytesIO_request_generator(mdl=fedn_model.get_stream_unsafe(), request_function=request_function, args={})
         for response in response_generator:
             yield response
 

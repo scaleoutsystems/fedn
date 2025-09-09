@@ -56,13 +56,17 @@ def bytesIO_request_generator(mdl, request_function, args):
             break
 
 
-def model_params_as_fednmodel(model, helper=None):
-    if isinstance(model, list):
-        model = FednModel()
-        model_dict = {str(i): w for i, w in enumerate(model)}
-        np.savez_compressed(model.data, **model_dict)
-        model.data.seek(0)
-        return model
+def model_params_as_fednmodel(model_params, helper=None):
+    if isinstance(model_params, list):
+        if helper is None:
+            return FednModel.from_model_params(model_params, helper=helper)
+        else:
+            model = FednModel()
+            model_dict = {str(i): w for i, w in enumerate(model_params)}
+            np.savez_compressed(model._data, **model_dict)
+            return model
+    elif not isinstance(model_params, FednModel):
+        raise ValueError("model_params must be a list of numpy arrays or a FednModel instance.")
     return model
 
 
