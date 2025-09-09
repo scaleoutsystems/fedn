@@ -33,6 +33,12 @@ if [ "$service" == "controller" ]; then
     exit 0
 fi
 
+if [ "$service" == "hooks" ]; then
+    echo "Hooks logs"
+    docker logs "$(basename $PWD)-hooks-1"
+    exit 0
+fi
+
 if [ "$service" == "client" ]; then
     echo "Client 0 logs"
     if [ "$example" == "mnist-keras" ]; then

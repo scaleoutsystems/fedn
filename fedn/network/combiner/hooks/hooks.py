@@ -94,25 +94,21 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
 
     @safe_unary("store_model", lambda: fedn.StoreModelResponse(status="ERROR"))
     def HandleStoreModel(self, request_iterator, context):
-        try:
-            metadata = dict(context.invocation_metadata())
-            client_id = metadata.get("client-id")
-            if client_id is None:
-                logger.error("No client-id provided in metadata.")
-                grpc.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
-            model = unpack_model(request_iterator, self.helper)
-            if client_id == "global_model":
-                logger.info("Received previous global model")
-                self.previous_global = model
-            else:
-                logger.info(f"Received client model from client {client_id}")
-                # dictionary contains: [model, client_metadata] in that order for each key
-                self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
-            self.check_incremental_aggregate(client_id)
-            return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
-        except Exception as e:
-            logger.error(f"Error handling store model request: {e}")
-            return fedn.StoreModelResponse(status="ERROR")
+        metadata = dict(context.invocation_metadata())
+        client_id = metadata.get("client-id")
+        if client_id is None:
+            logger.error("No client-id provided in metadata.")
+            grpc.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
+        model = unpack_model(request_iterator, self.helper)
+        if client_id == "global_model":
+            logger.info("Received previous global model")
+            self.previous_global = model
+        else:
+            logger.info(f"Received client model from client {client_id}")
+            # dictionary contains: [model, client_metadata] in that order for each key
+            self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
+        self.check_incremental_aggregate(client_id)
+        return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
 
     def check_incremental_aggregate(self, client_id):
         # incremental aggregation (memory secure)
