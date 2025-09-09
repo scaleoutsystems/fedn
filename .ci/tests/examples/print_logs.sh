@@ -35,7 +35,7 @@ fi
 
 if [ "$service" == "hooks" ]; then
     echo "Hooks logs"
-    docker logs "$(basename $PWD)-hooks-1"
+    docker logs "hook"
     exit 0
 fi
 
