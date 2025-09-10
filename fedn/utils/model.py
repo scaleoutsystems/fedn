@@ -19,8 +19,8 @@ class FednModel:
     def __init__(self):
         """Initializes a FednModel object."""
         # Using SpooledTemporaryFile to handle large model data efficiently
-        # It will automatically store on disk if the data exceeds the specified size (10 MB in this case)
-        self._data = tempfile.SpooledTemporaryFile(SPOOLED_MAX_SIZE)  # 10 MB temporary file
+        # It will automatically store on disk if the data exceeds the specified size
+        self._data = tempfile.SpooledTemporaryFile(SPOOLED_MAX_SIZE)
         self._data_lock = threading.RLock()
         self.model_id = None
         self.helper = None

@@ -40,14 +40,6 @@ class TempModelStorage:
             return self.models[model_id]["model"]
 
     def _make_entry(self, model_id, model):
-        """Returns a handle to a new model file.
-
-
-        User is responsible for closing the file.
-        :param model_id:
-        :return: handle to the model file
-        :rtype: file
-        """
         with self.access_lock:
             now = time.time()
             if model_id in self.models:
@@ -64,9 +56,6 @@ class TempModelStorage:
             return model
 
     def _set_model(self, model_id: str, model_lambda, checksum: str = None, auto_managed: bool = False):
-        # First check without lock, race conditions here only occur if the model is deleted which is ok
-        if model_id in self.models:
-            raise ValueError("Model with id {} already exists.".format(model_id))
         with self.access_lock:
             try:
                 self._make_entry(model_id, None)
