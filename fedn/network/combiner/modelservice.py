@@ -225,7 +225,7 @@ class ModelService(rpc.ModelServiceServicer):
                     logger.error(f"ModelServicer: Model file does not exist: {request.model_id}.")
                     context.abort(grpc.StatusCode.UNAVAILABLE, "Model file does not exist. ")
                 else:
-                    logger.error(f"ModelServicer: Caching started: {request.model_id}.")
+                    logger.info(f"ModelServicer: Caching started: {request.model_id}.")
                     context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model file is not ready. Starting automatic caching.")
 
         try:
