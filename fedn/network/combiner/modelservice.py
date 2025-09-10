@@ -221,7 +221,7 @@ class ModelService(rpc.ModelServiceServicer):
             else:
                 logger.error(f"ModelServicer: Model file does not exist: {request.model_id}. Trying to start automatic caching")
                 file_is_downloading = self.fetch_model_from_repository(request.model_id)
-                if file_is_downloading:
+                if not file_is_downloading:
                     logger.error(f"ModelServicer: Model file does not exist: {request.model_id}.")
                     context.abort(grpc.StatusCode.UNAVAILABLE, "Model file does not exist. ")
                 else:
