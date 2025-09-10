@@ -98,7 +98,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         client_id = metadata.get("client-id")
         if client_id is None:
             logger.error("No client-id provided in metadata.")
-            grpc.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
         model = unpack_model(request_iterator, self.helper)
         if client_id == "global_model":
             logger.info("Received previous global model")
