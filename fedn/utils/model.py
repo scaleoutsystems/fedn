@@ -33,7 +33,10 @@ class FednModel:
         return self._checksum
 
     def verify_checksum(self, checksum: str) -> bool:
-        """Verifies the checksum of the model data."""
+        """Verifies the checksum of the model data.
+
+        If no checksum is provided, it returns True.
+        """
         return checksum is None or self.checksum == checksum
 
     def get_stream(self):
