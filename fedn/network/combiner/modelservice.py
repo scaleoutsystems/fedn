@@ -88,19 +88,6 @@ def get_tmp_path():
     return path
 
 
-def serialize_model_to_BytesIO(model, helper):
-    """Serialize a model to a BytesIO object.
-
-    :param model: The model object.
-    :type model: return type of helper.load
-    :param helper: The helper object for the model.
-    :type helper: :class:`fedn.utils.helperbase.HelperBase`
-    :return: A BytesIO object containing the model.
-    :rtype: :class:`io.BytesIO`
-    """
-    return FednModel.from_model_params(model, helper=helper)
-
-
 class ModelService(rpc.ModelServiceServicer):
     """Service for handling download and upload of models to the server."""
 
@@ -136,17 +123,6 @@ class ModelService(rpc.ModelServiceServicer):
         :return: True if the model is ready, else False.
         """
         return self.temp_model_storage.is_ready(model_id)
-
-    def set_model(self, model, model_id):
-        """Upload model to server.
-
-        :param model: A model object (BytesIO)
-        :type model: :class:`io.BytesIO`
-        :param id: The model id.
-        :type id: str
-        """
-        fedn_model = model_params_as_fednmodel(model)
-        self.temp_model_storage.set_model(model_id, fedn_model)
 
     def fetch_model_from_repository(self, model_id, blocking: bool = False):
         """Fetch model from the repository and store it in the temporary model storage.

@@ -8,6 +8,8 @@ from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
 
+CACHEOUT_TIME = 3600  # 1 hour
+
 
 class TempModelStorage:
     """Class for managing local temporary models on file on combiners.
@@ -158,7 +160,7 @@ class TempModelStorage:
         """Remove cached models that have not been accessed for more than 1 hour."""
         now = time.time()
         for model_id, model_info in list(self.models.items()):
-            if now - model_info["accessed_at"] > 3600 and model_info["auto_managed"]:
+            if now - model_info["accessed_at"] > CACHEOUT_TIME and model_info["auto_managed"]:
                 logger.info("TEMPMODELSTORAGE: Invalidating model {} due to inactivity.".format(model_id))
                 self.delete(model_id)
 
