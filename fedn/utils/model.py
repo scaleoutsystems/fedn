@@ -7,8 +7,8 @@ CHUNK_SIZE = 8192  # 8 KB chunk size for reading/writing files
 
 
 class FednModel:
-    """The FednMode class is the primary model representation in the FEDn framework.
-    A FednMode object contains a data object (tempfile.SpooledTemporaryFile) that holds the model parameters.
+    """The FednModel class is the primary model representation in the FEDn framework.
+    A FednModel object contains a data object (tempfile.SpooledTemporaryFile) that holds the model parameters.
     The a model parameters dict can be extracted from the data object or be used to create a model object.
     Unpacking of the model parameters is done by the helper which needs to be provided either to the the class or
     to the method
