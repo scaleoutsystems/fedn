@@ -114,7 +114,12 @@ class ModelService(rpc.ModelServiceServicer):
         if not self.temp_model_storage.exist(model_id):
             logger.error(f"ModelServicer: Model {model_id} does not exist.")
             raise ValueError(f"Model {model_id} does not exist in temporary storage.")
-        return self.temp_model_storage.get(model_id)
+        model = self.temp_model_storage.get(model_id)
+        if model is None:
+            # This should only occur if the model was deleted between the exist and get calls
+            logger.error(f"ModelServicer: Model {model_id} could not be retrieved.")
+            raise ValueError(f"Model {model_id} could not be retrieved.")
+        return model
 
     def model_ready(self, model_id):
         """Check if a model is ready on the server.

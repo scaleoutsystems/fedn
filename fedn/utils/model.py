@@ -5,6 +5,7 @@ from fedn.utils.checksum import compute_checksum_from_stream
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
 CHUNK_SIZE = 8192  # 8 KB chunk size for reading/writing files
+SPOOLED_MAX_SIZE = 10 * 1024 * 1024  # 10 MB max size for spooled temporary files
 
 
 class FednModel:
@@ -19,7 +20,7 @@ class FednModel:
         """Initializes a FednModel object."""
         # Using SpooledTemporaryFile to handle large model data efficiently
         # It will automatically store on disk if the data exceeds the specified size (10 MB in this case)
-        self._data = tempfile.SpooledTemporaryFile(10 * 1024 * 1024)  # 10 MB temporary file
+        self._data = tempfile.SpooledTemporaryFile(SPOOLED_MAX_SIZE)  # 10 MB temporary file
         self._data_lock = threading.RLock()
         self.model_id = None
         self.helper = None
@@ -46,7 +47,7 @@ class FednModel:
         """
         with self._data_lock:
             self._data.seek(0)
-            new_stream = tempfile.SpooledTemporaryFile(max_size=self._data._max_size)
+            new_stream = tempfile.SpooledTemporaryFile(SPOOLED_MAX_SIZE)
             while chunk := self._data.read(CHUNK_SIZE):
                 new_stream.write(chunk)
             new_stream.seek(0)
@@ -58,9 +59,8 @@ class FednModel:
 
         This method is not thread-safe and should be used with caution.
         """
-        with self._data_lock:
-            self._data.seek(0)
-            return self._data
+        self._data.seek(0)
+        return self._data
 
     def get_model_params(self, helper=None):
         """Returns the model parameters as a dictionary."""

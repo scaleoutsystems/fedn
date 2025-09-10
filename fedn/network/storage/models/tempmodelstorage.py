@@ -64,6 +64,7 @@ class TempModelStorage:
             return model
 
     def _set_model(self, model_id: str, model_lambda, checksum: str = None, auto_managed: bool = False):
+        # First check without lock, race conditions here only occur if the model is deleted which is ok
         if model_id in self.models:
             raise ValueError("Model with id {} already exists.".format(model_id))
         with self.access_lock:
