@@ -169,7 +169,7 @@ class ModelService(rpc.ModelServiceServicer):
                 if blocking:
                     return self.temp_model_storage.set_model_from_stream(model_id, model, auto_managed=True)
                 else:
-                    threading.Thread(target=lambda: self.temp_model_storage.set_model_from_stream(model_id, model, auto_managed=True)).run()
+                    threading.Thread(target=lambda: self.temp_model_storage.set_model_from_stream(model_id, model, auto_managed=True)).start()
                     return True
             else:
                 logger.error(f"Model {model_id} not found in repository.")
