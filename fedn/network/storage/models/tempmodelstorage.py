@@ -155,7 +155,7 @@ class TempModelStorage:
             return model.checksum
 
     def _invalidate_old_models(self):
-        """Remove cached models that have not been accessed for more than 1 hours."""
+        """Remove cached models that have not been accessed for more than 1 hour."""
         now = time.time()
         for model_id, model_info in list(self.models.items()):
             if now - model_info["accessed_at"] > 3600 and model_info["auto_managed"]:
