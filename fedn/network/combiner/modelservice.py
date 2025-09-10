@@ -5,7 +5,6 @@ from io import BytesIO
 from typing import Generator
 
 import grpc
-import numpy as np
 
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
