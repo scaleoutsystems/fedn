@@ -2,6 +2,7 @@ import tempfile
 import threading
 
 from fedn.utils.checksum import compute_checksum_from_stream
+from fedn.utils.helpers.plugins.numpyhelper import Helper
 
 CHUNK_SIZE = 8192  # 8 KB chunk size for reading/writing files
 
@@ -79,7 +80,8 @@ class FednModel:
         model_reference = FednModel()
         model_reference.helper = helper
         if helper is None:
-            raise ValueError("No helper provided to pack model parameters.")
+            # No helper provided, using numpy helper as default
+            helper = Helper()
         helper.save(model_params, model_reference._data)
         model_reference._data.seek(0)
         return model_reference
