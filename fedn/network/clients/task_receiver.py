@@ -16,6 +16,7 @@ class StoppedException(Exception):
 class Task:
     def __init__(self, request: fedn.TaskRequest):
         self.request = request
+        self.runner_thread = None
         self.lock = threading.Lock()
         self.status = fedn.TaskStatus.TASK_PENDING
         self.response = None
@@ -39,6 +40,20 @@ class TaskReceiver:
             daemon=True,
         )
         self._task_manager_thread.start()
+
+    def check_abort(self):
+        """Check if the current task has been aborted.
+
+        This function should be called periodically from the task callback to ensure
+        that the task can be interrupted if needed.
+        If called from another thread, this function is a no-op.
+        """
+        if self.current_task.runner_thread == threading.current_thread():
+            with self.current_task.lock:
+                if self.current_task.status == fedn.TaskStatus.TASK_INTERRUPTED:
+                    raise StoppedException("Task was interrupted by the server.")
+                if self.current_task.status == fedn.TaskStatus.TASK_TIMEOUT:
+                    raise StoppedException("Task was timed out by the server.")
 
     def run_task_polling(self):
         while True:
@@ -66,14 +81,36 @@ class TaskReceiver:
                 logger.debug("TaskReciever: Polling for task")
             else:
                 logger.debug("TaskReciever: Task status %s", fedn.TaskStatus.Name(report.status))
+
             task_request: fedn.TaskRequest = self.client.grpc_handler.PollAndReport(report)
 
             if task_request.correlation_id:
-                logger.info("TaskReciever: Got task %s", task_request.correlation_id)
-                self.current_task = Task(task_request)
+                if self.current_task is not None:
+                    if self.current_task.correlation_id == task_request.correlation_id:
+                        # Recieved update to current task
+                        if task_request.task_status == fedn.TaskStatus.TASK_INTERRUPTED:
+                            with self.current_task.lock:
+                                self.current_task.status = fedn.TaskStatus.TASK_INTERRUPTED
+                            logger.info("TaskReciever: Recieved interupt message for task %s.", self.current_task.correlation_id)
+                        elif task_request.task_status == fedn.TaskStatus.TASK_TIMEOUT:
+                            with self.current_task.lock:
+                                self.current_task.status = fedn.TaskStatus.TASK_TIMEOUT
+                            logger.info("TaskReciever: Recieved timeout message for task %s.", self.current_task.correlation_id)
+                        else:
+                            logger.debug("TaskReciever: Received unknown update for task %s.", self.current_task.correlation_id)
+                    else:
+                        logger.warning(
+                            "TaskReciever: Received new task %s while processing task %s. Ignoring new task.",
+                            task_request.correlation_id,
+                            self.current_task.correlation_id,
+                        )
+                else:
+                    # New task
+                    logger.info("TaskReciever: Got task %s", task_request.correlation_id)
+                    self.current_task = Task(task_request)
 
-                # Run the task in a separate thread
-                threading.Thread(target=self._run_task, args=(self.current_task,)).start()
+                    # Run the task in a separate thread
+                    threading.Thread(target=self._run_task, args=(self.current_task,)).start()
 
             # Wait for next polling interval
             toc = time.time()
@@ -82,6 +119,7 @@ class TaskReceiver:
 
     def _run_task(self, task: Task):
         with task.lock:
+            task.runner_thread = threading.current_thread()
             task.status = fedn.TaskStatus.TASK_RUNNING
         try:
             response = self.task_callback(task.request)

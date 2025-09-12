@@ -67,6 +67,7 @@ message TaskRequest {
   StatusType type = 9;
   string round_id = 10;
   string task_type = 11;
+  TaskStatus task_status = 12;
 }
 
 message ModelUpdate {
@@ -159,6 +160,7 @@ enum TaskStatus {
     TASK_FAILED = 4;
     TASK_INTERRUPTED = 5;
     TASK_REQUEST_NEW = 6;
+    TASK_TIMEOUT = 7;
 }
 
 message ActivityReport {

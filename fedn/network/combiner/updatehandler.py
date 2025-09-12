@@ -173,6 +173,16 @@ class UpdateHandler:
         """
         return self.modelservice.get_model(model_id)
 
+    def flush_session(self, session_id):
+        """Flush the session queue for the given session ID.
+
+        :param session_id: The session ID
+        :type session_id: str
+        """
+        if session_id in self.session_queue:
+            logger.info("UPDATE HANDLER: Flushing update queue for session {}".format(session_id))
+            self.session_queue[session_id].flush_session()
+
 
 class BackwardHandler:
     """Backward handler.
@@ -313,6 +323,18 @@ class SessionQueue:
             while not self.model_update_stragglers.empty():
                 model_update = self.model_update_stragglers.get()
                 logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to session end.")
+                self.handle_ignored_model_update(model_update)
+
+    def flush_session(self):
+        """Flush the session queue."""
+        with self.lock:
+            self.expected_correlation_ids = []
+            self.straggler_correlation_ids = []
+            while not self.model_update.empty():
+                model_update = self.model_update.get()
+                self.handle_ignored_model_update(model_update)
+            while not self.model_update_stragglers.empty():
+                model_update = self.model_update_stragglers.get()
                 self.handle_ignored_model_update(model_update)
 
     def next_model_update(self):

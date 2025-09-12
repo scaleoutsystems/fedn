@@ -106,6 +106,7 @@ class _TaskStatusEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._Enu
     TASK_FAILED: _TaskStatus.ValueType  # 4
     TASK_INTERRUPTED: _TaskStatus.ValueType  # 5
     TASK_REQUEST_NEW: _TaskStatus.ValueType  # 6
+    TASK_TIMEOUT: _TaskStatus.ValueType  # 7
 
 class TaskStatus(_TaskStatus, metaclass=_TaskStatusEnumTypeWrapper): ...
 
@@ -116,6 +117,7 @@ TASK_COMPLETED: TaskStatus.ValueType  # 3
 TASK_FAILED: TaskStatus.ValueType  # 4
 TASK_INTERRUPTED: TaskStatus.ValueType  # 5
 TASK_REQUEST_NEW: TaskStatus.ValueType  # 6
+TASK_TIMEOUT: TaskStatus.ValueType  # 7
 global___TaskStatus = TaskStatus
 
 class _ModelStatus:
@@ -275,6 +277,7 @@ class TaskRequest(google.protobuf.message.Message):
     TYPE_FIELD_NUMBER: builtins.int
     ROUND_ID_FIELD_NUMBER: builtins.int
     TASK_TYPE_FIELD_NUMBER: builtins.int
+    TASK_STATUS_FIELD_NUMBER: builtins.int
     model_id: builtins.str
     data: builtins.str
     """data is round_config when type is MODEL_UPDATE"""
@@ -285,6 +288,7 @@ class TaskRequest(google.protobuf.message.Message):
     type: global___StatusType.ValueType
     round_id: builtins.str
     task_type: builtins.str
+    task_status: global___TaskStatus.ValueType
     @property
     def sender(self) -> global___Client: ...
     @property
@@ -303,9 +307,10 @@ class TaskRequest(google.protobuf.message.Message):
         type: global___StatusType.ValueType = ...,
         round_id: builtins.str = ...,
         task_type: builtins.str = ...,
+        task_status: global___TaskStatus.ValueType = ...,
     ) -> None: ...
     def HasField(self, field_name: typing.Literal["receiver", b"receiver", "sender", b"sender"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "task_type", b"task_type", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
+    def ClearField(self, field_name: typing.Literal["correlation_id", b"correlation_id", "data", b"data", "meta", b"meta", "model_id", b"model_id", "receiver", b"receiver", "round_id", b"round_id", "sender", b"sender", "session_id", b"session_id", "task_status", b"task_status", "task_type", b"task_type", "timestamp", b"timestamp", "type", b"type"]) -> None: ...
 
 global___TaskRequest = TaskRequest
 
