@@ -25,13 +25,14 @@ class Boto3Repository(RepositoryBase):
 
         access_key = config.get("storage_access_key")
         secret_key = config.get("storage_secret_key")
+        storage_region = config.get("storage_region", "eu-west-1")
 
         if access_key and secret_key:
             self.s3_client = boto3.client(
                 "s3",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
-                region_name=config.get("storage_region", "eu-west-1"),
+                region_name=storage_region,
                 endpoint_url=config.get("storage_endpoint", "http://minio:9000"),
                 **common_config,
             )
@@ -137,13 +138,18 @@ class Boto3Repository(RepositoryBase):
         :param bucket_name: The name of the bucket
         :type bucket_name: str
         """
-        try:
-            self.s3_client.create_bucket(Bucket=bucket_name)
-            logger.info(f"Bucket {bucket_name} created successfully.")
-        except self.s3_client.exceptions.BucketAlreadyExists:
-            logger.info(f"Bucket {bucket_name} already exists. No new bucket was created.")
-        except self.s3_client.exceptions.BucketAlreadyOwnedByYou:
-            logger.info(f"Bucket {bucket_name} already owned by you. No new bucket was created.")
-        except (BotoCoreError, ClientError) as e:
-            logger.error(f"Failed to create bucket: {bucket_name}. Error: {e}")
-            raise Exception(f"Could not create bucket: {e}") from e
+        pass
+        # try:
+        #     self.s3_client.create_bucket(Bucket=bucket_name,
+        #                                  CreateBucketConfiguration={
+        #                                      'LocationConstraint': self.storage_region
+        #                                      },
+        #                                  )
+        #     logger.info(f"Bucket {bucket_name} created successfully.")
+        # except self.s3_client.exceptions.BucketAlreadyExists:
+        #     logger.info(f"Bucket {bucket_name} already exists. No new bucket was created.")
+        # except self.s3_client.exceptions.BucketAlreadyOwnedByYou:
+        #     logger.info(f"Bucket {bucket_name} already owned by you. No new bucket was created.")
+        # except (BotoCoreError, ClientError) as e:
+        #     logger.error(f"Failed to create bucket: {bucket_name}. Error: {e}")
+        #     raise Exception(f"Could not create bucket: {e}") from e
