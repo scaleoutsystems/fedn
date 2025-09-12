@@ -103,7 +103,7 @@ class TaskReceiver:
                                     with self.current_task.lock:
                                         self.current_task.interrupted = True
                                         self.current_task.interrupted_reason = "Aborted by server"
-                                    logger.info("TaskReceiver: Received interupt message for task %s.", self.current_task.correlation_id)
+                                    logger.info("TaskReceiver: Received interrupt message for task %s.", self.current_task.correlation_id)
                             elif task_request.task_status == fedn.TaskStatus.TASK_TIMEOUT:
                                 if not self.current_task.interrupted:
                                     with self.current_task.lock:
@@ -144,7 +144,7 @@ class TaskReceiver:
                 task.status = fedn.TaskStatus.TASK_COMPLETED
         except StoppedException as e:
             with task.lock:
-                logger.info("TaskReceiver: Task interupted: %s", e)
+                logger.info("TaskReceiver: Task interrupted: %s", e)
                 task.status = fedn.TaskStatus.TASK_INTERRUPTED
                 task.response = {"msg": str(e)}
         except Exception as e:
