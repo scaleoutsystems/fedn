@@ -103,13 +103,13 @@ class TaskReceiver:
                                     with self.current_task.lock:
                                         self.current_task.interrupted = True
                                         self.current_task.interrupted_reason = "Aborted by server"
-                                    logger.info("TaskReceiver: Recieved interupt message for task %s.", self.current_task.correlation_id)
+                                    logger.info("TaskReceiver: Received interupt message for task %s.", self.current_task.correlation_id)
                             elif task_request.task_status == fedn.TaskStatus.TASK_TIMEOUT:
                                 if not self.current_task.interrupted:
                                     with self.current_task.lock:
                                         self.current_task.interrupted = True
                                         self.current_task.interrupted_reason = "Timeout by server"
-                                    logger.info("TaskReceiver: Recieved timeout message for task %s.", self.current_task.correlation_id)
+                                    logger.info("TaskReceiver: Received timeout message for task %s.", self.current_task.correlation_id)
                         else:
                             logger.warning(
                                 "TaskReceiver: Received new task %s while processing task %s. Ignoring new task.",
