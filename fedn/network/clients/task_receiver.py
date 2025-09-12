@@ -75,8 +75,7 @@ class TaskReceiver:
                 report.sender.name = self.client.name
                 report.sender.role = fedn.Role.CLIENT
                 if self.current_task is None:
-                    report.status = fedn.TaskStatus.TASK_REQUEST_NEW
-
+                    report.status = fedn.TaskStatus.TASK_NONE
                 else:
                     with self.current_task.lock:
                         report.status = self.current_task.status
@@ -87,7 +86,7 @@ class TaskReceiver:
                         if self.current_task.done:
                             self.current_task = None
 
-                if report.status == fedn.TaskStatus.TASK_REQUEST_NEW:
+                if report.status == fedn.TaskStatus.TASK_NONE:
                     logger.debug("TaskReceiver: Reporting: Polling for task")
                 else:
                     logger.debug("TaskReceiver: Reporting: Task status %s", fedn.TaskStatus.Name(report.status))

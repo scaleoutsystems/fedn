@@ -293,6 +293,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
             request.task_type = fedn.StatusType.Name(request_type)
+            request.task_status = fedn.TaskStatus.TASK_NEW
 
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:

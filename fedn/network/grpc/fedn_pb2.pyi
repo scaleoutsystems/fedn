@@ -99,24 +99,24 @@ class _TaskStatus:
 
 class _TaskStatusEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_TaskStatus.ValueType], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
-    TASK_NO_TASK: _TaskStatus.ValueType  # 0
+    TASK_NONE: _TaskStatus.ValueType  # 0
     TASK_PENDING: _TaskStatus.ValueType  # 1
     TASK_RUNNING: _TaskStatus.ValueType  # 2
     TASK_COMPLETED: _TaskStatus.ValueType  # 3
     TASK_FAILED: _TaskStatus.ValueType  # 4
     TASK_INTERRUPTED: _TaskStatus.ValueType  # 5
-    TASK_REQUEST_NEW: _TaskStatus.ValueType  # 6
+    TASK_NEW: _TaskStatus.ValueType  # 6
     TASK_TIMEOUT: _TaskStatus.ValueType  # 7
 
 class TaskStatus(_TaskStatus, metaclass=_TaskStatusEnumTypeWrapper): ...
 
-TASK_NO_TASK: TaskStatus.ValueType  # 0
+TASK_NONE: TaskStatus.ValueType  # 0
 TASK_PENDING: TaskStatus.ValueType  # 1
 TASK_RUNNING: TaskStatus.ValueType  # 2
 TASK_COMPLETED: TaskStatus.ValueType  # 3
 TASK_FAILED: TaskStatus.ValueType  # 4
 TASK_INTERRUPTED: TaskStatus.ValueType  # 5
-TASK_REQUEST_NEW: TaskStatus.ValueType  # 6
+TASK_NEW: TaskStatus.ValueType  # 6
 TASK_TIMEOUT: TaskStatus.ValueType  # 7
 global___TaskStatus = TaskStatus
 

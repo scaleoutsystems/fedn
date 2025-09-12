@@ -85,7 +85,7 @@ class ClientManager:
             request = self._task_update(report)
             return request
 
-        if report.status == fedn.TaskStatus.TASK_REQUEST_NEW or report.done:
+        if report.status == fedn.TaskStatus.TASK_NONE or report.done:
             try:
                 return self._poll_task(report.sender.client_id)
             except queue.Empty:

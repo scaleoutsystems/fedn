@@ -153,13 +153,13 @@ message TelemetryElem {
 }
 
 enum TaskStatus {
-    TASK_NO_TASK = 0;
+    TASK_NONE = 0;
     TASK_PENDING = 1;
     TASK_RUNNING = 2;
     TASK_COMPLETED = 3;
     TASK_FAILED = 4;
     TASK_INTERRUPTED = 5;
-    TASK_REQUEST_NEW = 6;
+    TASK_NEW = 6;
     TASK_TIMEOUT = 7;
 }
 
