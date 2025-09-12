@@ -45,6 +45,8 @@ class ClientManager:
         return list(updated_clients)
 
     def cancel_tasks(self, correlation_ids: list[str]):
+        if not correlation_ids:
+            return
         for client in self.client_interfaces.values():
             if client.current_task and client.current_task.correlation_id in correlation_ids:
                 logger.debug("ClientManager: cancel_tasks: Cancelling task %s for client %s", client.current_task.correlation_id, client.client_id)
@@ -59,6 +61,23 @@ class ClientManager:
                     logger.debug("ClientManager: cancel_tasks: Removing task %s from queue for client %s", task.correlation_id, client.client_id)
             client.task_queue = new_queue
 
+    def timeout_tasks(self, correlation_ids: list[str]):
+        if not correlation_ids:
+            return
+        for client in self.client_interfaces.values():
+            if client.current_task and client.current_task.correlation_id in correlation_ids:
+                logger.debug("ClientManager: timeout_tasks: Timing out task %s for client %s", client.current_task.correlation_id, client.client_id)
+                client.current_task.timeout = True
+            # Remove from task queue
+            new_queue = queue.Queue()
+            while not client.task_queue.empty():
+                task = client.task_queue.get()
+                if task.correlation_id not in correlation_ids:
+                    new_queue.put(task)
+                else:
+                    logger.debug("ClientManager: timeout_tasks: Removing task %s from queue for client %s", task.correlation_id, client.client_id)
+            client.task_queue = new_queue
+
     def PollAndReport(self, report: fedn.ActivityReport) -> fedn.TaskRequest:
         if report.done:
             self._task_finished(report)
@@ -71,7 +90,7 @@ class ClientManager:
                 return self._poll_task(report.sender.client_id)
             except queue.Empty:
                 pass
-        return None
+        return fedn.TaskRequest()
 
     def _poll_task(self, client_id: str) -> fedn.TaskRequest:
         client = self.client_interfaces[client_id]
@@ -87,6 +106,8 @@ class ClientManager:
                 )
             client.current_task = ClientTask(client_id, request.correlation_id)
             logger.debug("ClientManager: PollAndReport: Sending %s to %s", request.correlation_id, client_id)
+        else:
+            request = fedn.TaskRequest()
         return request
 
     def pop_task(self, client_id: str) -> fedn.TaskRequest:

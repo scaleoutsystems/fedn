@@ -215,12 +215,18 @@ class RoundHandler:
                     fedn_model, data = call_with_fallback("aggregate", _rpc, fallback_fn=_fallback)
                 else:
                     fedn_model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+
+                if not config["accept_stragglers"]:
+                    self.server.client_manager.timeout_tasks(session_queue.get_all_outstanding_correlation_ids())
+
             except Exception as e:
                 logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
                 fedn_model = None
                 data = None
         else:
+            self.server.client_manager.cancel_tasks(session_queue.get_all_outstanding_correlation_ids())
             logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
+
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
         return fedn_model, meta

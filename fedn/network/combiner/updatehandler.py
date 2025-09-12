@@ -270,6 +270,15 @@ class SessionQueue:
                 self.handle_invalid_model_update(model_update)
         return False
 
+    def get_all_outstanding_correlation_ids(self) -> List[str]:
+        """Get all outstanding correlation IDs.
+
+        :return: List of outstanding correlation IDs.
+        :rtype: List[str]
+        """
+        with self.lock:
+            return self.expected_correlation_ids + self.straggler_correlation_ids
+
     def handle_invalid_model_update(self, model_update: fedn.ModelUpdate):
         """Handle invalid model update.
 
