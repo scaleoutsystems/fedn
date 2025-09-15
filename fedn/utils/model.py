@@ -3,7 +3,6 @@ import threading
 from typing import BinaryIO, Iterable
 
 import fedn.network.grpc.fedn_pb2 as fedn
-from fedn.common.log_config import logger
 from fedn.utils.checksum import compute_checksum_from_stream
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
