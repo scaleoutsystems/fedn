@@ -9,7 +9,6 @@ import numpy as np
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.network.combiner.hooks.hooks import FunctionServiceServicer
 from fedn.network.combiner.hooks.serverfunctionsbase import ServerFunctionsBase
-from fedn.network.combiner.modelservice import bytesIO_request_generator
 from fedn.utils.model import FednModel
 
 
