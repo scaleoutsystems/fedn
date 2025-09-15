@@ -142,7 +142,10 @@ class Boto3Repository(RepositoryBase):
         :type bucket_name: str
         """
         try:
-            self.s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={"LocationConstraint": self.region})
+            if self.region == "us-east-1":
+                self.s3_client.create_bucket(Bucket=bucket_name)
+            else:
+                self.s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={"LocationConstraint": self.region})
             logger.info(f"Bucket {bucket_name} created successfully.")
         except self.s3_client.exceptions.BucketAlreadyExists:
             logger.info(f"Bucket {bucket_name} already exists. No new bucket was created.")
