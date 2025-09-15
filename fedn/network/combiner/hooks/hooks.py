@@ -40,11 +40,11 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         logger.info("Server Functions initialized.")
 
     @safe_unary("client_settings", lambda: fedn.ClientConfigResponse(client_settings=json.dumps({})))
-    def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
+    def HandleClientConfig(self, request_iterator: fedn.FileChunk, context):
         """Distribute client configs to clients from user defined code.
 
-        :param request_iterator: the client config request
-        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ClientConfigRequest`
+        :param request_iterator: the global model
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the client config response
