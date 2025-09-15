@@ -19,7 +19,6 @@ class Boto3Repository(RepositoryBase):
         super().__init__()
         self.name = "Boto3Repository"
 
-        # Set region: first check config, then environment variables, finally default to eu-west-1
         self.region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or config.get("storage_region") or "eu-west-1"
 
         common_config = {
