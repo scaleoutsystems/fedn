@@ -3,6 +3,7 @@ import threading
 from typing import BinaryIO, Iterable
 
 import fedn.network.grpc.fedn_pb2 as fedn
+from fedn.common.log_config import logger
 from fedn.utils.checksum import compute_checksum_from_stream
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
@@ -83,7 +84,7 @@ class FednModel:
         """Returns a generator that yields chunks of the model data."""
         stream = self.get_stream()
         while chunk := stream.read(chunk_size):
-            yield fedn.FileChunk(chunk)
+            yield fedn.FileChunk(data=chunk)
 
     @staticmethod
     def from_model_params(model_params: dict, helper=None) -> "FednModel":
@@ -113,19 +114,11 @@ class FednModel:
         return model_reference
 
     @staticmethod
-    def from_chunk_generator(chunk_generator: Iterable[bytes]) -> "FednModel":
-        """Creates a FednModel from a chunk generator."""
-        model_reference = FednModel()
-        for chunk in chunk_generator:
-            model_reference._data.write(chunk)
-        model_reference._data.seek(0)
-        return model_reference
-
-    @staticmethod
     def from_filechunk_stream(filechunk_stream: Iterable[fedn.FileChunk]) -> "FednModel":
         """Creates a FednModel from a filechunk stream."""
         model_reference = FednModel()
         for chunk in filechunk_stream:
-            model_reference._data.write(chunk.data)
+            if chunk.data:
+                model_reference._data.write(chunk.data)
         model_reference._data.seek(0)
         return model_reference

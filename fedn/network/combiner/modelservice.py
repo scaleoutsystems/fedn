@@ -125,8 +125,7 @@ class ModelService(rpc.ModelServiceServicer):
             logger.error("ModelServicer: Model ID not provided.")
             context.abort(grpc.StatusCode.FAILED_PRECONDITION, "Model ID not provided.")
 
-        model_chunks = (chunk.data for chunk in filechunk_iterator if chunk.data)
-        result = self.temp_model_storage.set_model_with_generator(model_id, model_chunks, checksum)
+        result = self.temp_model_storage.set_model_with_filechunk_stream(model_id, filechunk_iterator, checksum)
         if result:
             return fedn.ModelResponse(status=fedn.ModelStatus.OK, message="Got model successfully.")
         else:

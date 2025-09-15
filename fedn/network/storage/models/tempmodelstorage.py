@@ -1,6 +1,7 @@
 import threading
 import time
 from io import BytesIO
+from typing import Iterator
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
@@ -97,15 +98,15 @@ class TempModelStorage:
         """
         return self._set_model(model_id, lambda: FednModel.from_stream(model_stream), checksum, auto_managed)
 
-    def set_model_with_generator(self, model_id: str, chunk_generator, checksum: str = None, auto_managed: bool = False):
+    def set_model_with_filechunk_stream(self, model_id: str, filechunk_stream: Iterator[fedn.FileChunk], checksum: str = None, auto_managed: bool = False):
         """Set model in temp storage using a generator.
 
         :param model_id: The id of the model.
         :type model_id: str
-        :param chunk_generator: A generator that yields chunks of the model.
-        :type chunk_generator: Generator[bytes, None, None]
+        :param filechunk_stream: An grpc stream of fedn.FileChunk
+        :type filechunk_stream: Generator[bytes, None, None]
         """
-        return self._set_model(model_id, lambda: FednModel.from_chunk_generator(chunk_generator), checksum, auto_managed)
+        return self._set_model(model_id, lambda: FednModel.from_filechunk_stream(filechunk_stream), checksum, auto_managed)
 
     def _finalize(self, model_id, checksum):
         """Commit the model to disk.
