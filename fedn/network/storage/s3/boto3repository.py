@@ -1,6 +1,7 @@
 """Module implementing Repository for Amazon S3 using boto3."""
 
 import io
+import os
 from typing import IO, List
 
 import boto3
@@ -18,6 +19,9 @@ class Boto3Repository(RepositoryBase):
         super().__init__()
         self.name = "Boto3Repository"
 
+        # Set region: first check config, then environment variables, finally default to eu-west-1
+        self.region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or config.get("storage_region") or "eu-west-1"
+
         common_config = {
             "use_ssl": config.get("storage_secure_mode", True),
             "verify": config.get("storage_verify_ssl", True),
@@ -31,14 +35,14 @@ class Boto3Repository(RepositoryBase):
                 "s3",
                 aws_access_key_id=access_key,
                 aws_secret_access_key=secret_key,
-                region_name=config.get("storage_region", "eu-west-1"),
+                region_name=self.region,
                 endpoint_url=config.get("storage_endpoint", "http://minio:9000"),
                 **common_config,
             )
         else:
             # Use default credentials (IAM role via service account, environment variables, etc.)
 
-            self.s3_client = boto3.client("s3", **common_config)
+            self.s3_client = boto3.client("s3", region_name=self.region, **common_config)
 
         logger.info(f"Using {self.name} for S3 storage.")
 
@@ -138,7 +142,7 @@ class Boto3Repository(RepositoryBase):
         :type bucket_name: str
         """
         try:
-            self.s3_client.create_bucket(Bucket=bucket_name)
+            self.s3_client.create_bucket(Bucket=bucket_name, CreateBucketConfiguration={"LocationConstraint": self.region})
             logger.info(f"Bucket {bucket_name} created successfully.")
         except self.s3_client.exceptions.BucketAlreadyExists:
             logger.info(f"Bucket {bucket_name} already exists. No new bucket was created.")
