@@ -124,4 +124,8 @@ class FednModel:
     @staticmethod
     def from_filechunk_stream(filechunk_stream: Iterable[fedn.FileChunk]) -> "FednModel":
         """Creates a FednModel from a filechunk stream."""
-        return FednModel.from_chunk_generator(filechunk.data for filechunk in filechunk_stream if filechunk.data)
+        model_reference = FednModel()
+        for chunk in filechunk_stream:
+            model_reference._data.write(chunk.data)
+        model_reference._data.seek(0)
+        return model_reference
