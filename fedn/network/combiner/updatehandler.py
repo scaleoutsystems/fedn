@@ -7,6 +7,7 @@ from typing import Dict, List
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
+from fedn.network.combiner.clientmanager import ClientManager
 from fedn.network.combiner.modelservice import ModelService
 from fedn.utils.model import FednModel
 
@@ -24,8 +25,9 @@ class UpdateHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, modelservice: ModelService) -> None:
+    def __init__(self, modelservice: ModelService, client_manager: ClientManager) -> None:
         self.modelservice = modelservice
+        self.client_manager = client_manager
 
         self.session_queue: Dict[str, SessionQueue] = {}
 
@@ -337,6 +339,9 @@ class SessionQueue:
     def flush_session(self):
         """Flush the session queue."""
         with self.lock:
+            corr_ids = self.get_all_outstanding_correlation_ids()
+            self.update_handler.client_manager.cancel_tasks(corr_ids)
+
             self.expected_correlation_ids = []
             self.straggler_correlation_ids = []
             while not self.model_update.empty():

@@ -106,7 +106,7 @@ class RoundHandler:
         self.server = server
         self.modelservice = modelservice
         self.server_functions = inspect.getsource(ServerFunctions)
-        self.update_handler = UpdateHandler(modelservice=modelservice)
+        self.update_handler = UpdateHandler(modelservice=modelservice, client_manager=server.client_manager)
         self.backward_handler = BackwardHandler()
         self.hook_interface = CombinerHookInterface()
 

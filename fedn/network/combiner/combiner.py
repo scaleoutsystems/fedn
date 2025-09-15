@@ -158,6 +158,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set up model service
         modelservice = ModelService(repository)
+        self.client_manager = ClientManager(self)
 
         # Create gRPC server
         self.server = Server(self, modelservice, grpc_server_config)
@@ -170,8 +171,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
-
-        self.client_manager = ClientManager(self)
 
         # Start the gRPC server
         self.server.start()
