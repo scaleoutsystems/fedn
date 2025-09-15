@@ -7,7 +7,6 @@ import grpc
 import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.log_config import logger
-from fedn.network.combiner.modelservice import bytesIO_request_generator, unpack_model
 from fedn.network.combiner.updatehandler import UpdateHandler
 from fedn.utils.model import FednModel
 
@@ -68,11 +67,7 @@ class CombinerHookInterface:
         :return: config that will be distributed to clients.
         :rtype: dict
         """
-        request_function = fedn.ClientConfigRequest
-        args = {}
-        response = self.stub.HandleClientConfig(
-            bytesIO_request_generator(mdl=global_model.get_stream(), request_function=request_function, args=args), timeout=TIMEOUT_SHORT
-        )
+        response = self.stub.HandleClientConfig(global_model.get_filechunk_stream(), timeout=TIMEOUT_SHORT)
         return json.loads(response.client_settings)
 
     def client_selection(self, clients: list) -> list:
@@ -92,10 +87,9 @@ class CombinerHookInterface:
         data["time_model_load"] = 0.0
         data["time_model_aggregation"] = 0.0
         # send previous global
-        request_function = fedn.StoreModelRequest
-        args = {"id": "global_model"}
+
         response = self.stub.HandleStoreModel(
-            bytesIO_request_generator(mdl=previous_global.get_stream(), request_function=request_function, args=args),
+            previous_global.get_filechunk_stream(),
             timeout=TIMEOUT_SHORT,
             metadata=[("client-id", "global_model")],
         )
@@ -115,10 +109,8 @@ class CombinerHookInterface:
             request = fedn.ClientMetaRequest(metadata=json.dumps(metadata), client_id=client_id)
             response = self.stub.HandleMetadata(request, timeout=TIMEOUT_SHORT)
             # send client model
-            args = {"id": client_id}
-            request_function = fedn.StoreModelRequest
             response = self.stub.HandleStoreModel(
-                bytesIO_request_generator(mdl=model.get_stream(), request_function=request_function, args=args),
+                model.get_filechunk_stream(),
                 timeout=TIMEOUT_SHORT,
                 metadata=[("client-id", client_id)],
             )
@@ -131,5 +123,5 @@ class CombinerHookInterface:
         request = fedn.AggregationRequest(aggregate="aggregate")
         response_generator = self.stub.HandleAggregation(request, timeout=TIMEOUT_LONG)
         data["nr_aggregated_models"] = nr_updates
-        model = unpack_model(response_generator, helper)
-        return model, data
+        fedn_model = FednModel.from_filechunk_stream(response_generator)
+        return fedn_model, data

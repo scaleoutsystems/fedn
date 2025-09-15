@@ -186,7 +186,7 @@ class RoundHandler:
         reason = self.flow_controller.wait_until_true(lambda: session_queue.aggregation_condition(buffer_size), timeout=float(config["round_timeout"]))
 
         tic = time.time()
-        model = None
+        fedn_model = None
         data = None
         if reason != FlowController.Reason.STOP:
             try:
@@ -212,18 +212,18 @@ class RoundHandler:
                     def _fallback():
                         return self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
 
-                    model, data = call_with_fallback("aggregate", _rpc, fallback_fn=_fallback)
+                    fedn_model, data = call_with_fallback("aggregate", _rpc, fallback_fn=_fallback)
                 else:
-                    model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+                    fedn_model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
             except Exception as e:
                 logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
-                model = None
+                fedn_model = None
                 data = None
         else:
             logger.warning("ROUNDHANDLER: Training round terminated early, no model aggregation performed.")
         meta["time_combination"] = time.time() - tic
         meta["aggregation_time"] = data
-        return model, meta
+        return fedn_model, meta
 
     def _validation_round(self, session_id, model_id, clients):
         """Send model validation requests to clients.
@@ -482,16 +482,14 @@ class RoundHandler:
             selected_clients = config["selected_clients"] if "selected_clients" in config and len(config["selected_clients"]) > 0 else None
 
             clients = self._assign_round_clients(n=self.server.max_clients, type="trainers", selected_clients=selected_clients)
-        model, meta = self._training_round(config, clients, provided_functions)
+        fedn_model, meta = self._training_round(config, clients, provided_functions)
         data["data"] = meta
 
-        if model is None:
+        if fedn_model is None:
             logger.warning("\t Failed to update global model in round {0}!".format(config["round_id"]))
 
-        if model is not None:
-            helper = get_helper(config["helper_type"])
-            fedn_model = FednModel.from_model_params(model, helper=helper)
-            model_id = self.storage.set_model(fedn_model.get_stream_unsafe(), is_file=False)
+        if fedn_model is not None:
+            model_id = self.storage.set_model(fedn_model.get_stream(), is_file=False)
             data["model_id"] = model_id
 
             logger.info("TRAINING ROUND COMPLETED. Aggregated model id: {}, Job id: {}".format(model_id, config["_job_id"]))

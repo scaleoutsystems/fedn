@@ -15,8 +15,8 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
 from fedn.network.combiner.hooks.grpc_wrappers import safe_streaming, safe_unary
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_params_as_fednmodel, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
+from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -51,7 +51,8 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
         logger.info("Received client config request.")
-        model = unpack_model(request_iterator, self.helper)
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
         client_settings = self.server_functions.client_settings(global_model=model)
         logger.info(f"Client config response: {client_settings}")
         return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
@@ -100,7 +101,8 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             logger.error("No client-id provided in metadata.")
             context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
             return fedn.StoreModelResponse(status="Error: No client-id provided in metadata.")
-        model = unpack_model(request_iterator, self.helper)
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
         if client_id == "global_model":
             logger.info("Received previous global model")
             self.previous_global = model
@@ -139,11 +141,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         else:
             aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
 
-        fedn_model = model_params_as_fednmodel(aggregated_model, self.helper)
-        request_function = fedn.AggregationResponse
+        fedn_model = FednModel.from_model_params(aggregated_model, self.helper)
         self.client_updates = {}
         logger.info("Returning aggregate model.")
-        response_generator = bytesIO_request_generator(mdl=fedn_model.get_stream_unsafe(), request_function=request_function, args={})
+        response_generator = fedn_model.get_filechunk_stream()
         for response in response_generator:
             yield response
 

@@ -1310,7 +1310,7 @@ class FunctionServiceStub(object):
                 _registered_method=True)
         self.HandleClientConfig = channel.stream_unary(
                 '/fedn.FunctionService/HandleClientConfig',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
                 _registered_method=True)
         self.HandleClientSelection = channel.unary_unary(
@@ -1325,13 +1325,13 @@ class FunctionServiceStub(object):
                 _registered_method=True)
         self.HandleStoreModel = channel.stream_unary(
                 '/fedn.FunctionService/HandleStoreModel',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
                 _registered_method=True)
         self.HandleAggregation = channel.unary_stream(
                 '/fedn.FunctionService/HandleAggregation',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                 _registered_method=True)
 
 
@@ -1384,7 +1384,7 @@ def add_FunctionServiceServicer_to_server(servicer, server):
             ),
             'HandleClientConfig': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleClientConfig,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.SerializeToString,
             ),
             'HandleClientSelection': grpc.unary_unary_rpc_method_handler(
@@ -1399,13 +1399,13 @@ def add_FunctionServiceServicer_to_server(servicer, server):
             ),
             'HandleStoreModel': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleStoreModel,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.SerializeToString,
             ),
             'HandleAggregation': grpc.unary_stream_rpc_method_handler(
                     servicer.HandleAggregation,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.SerializeToString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1460,7 +1460,7 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleClientConfig',
-            network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
             options,
             channel_credentials,
@@ -1541,7 +1541,7 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleStoreModel',
-            network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
             options,
             channel_credentials,
@@ -1569,7 +1569,7 @@ class FunctionService(object):
             target,
             '/fedn.FunctionService/HandleAggregation',
             network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
             options,
             channel_credentials,
             insecure,

@@ -32,55 +32,6 @@ def upload_request_generator(model_stream: BytesIO):
             break
 
 
-def bytesIO_request_generator(mdl, request_function, args):
-    """Generator function for model upload requests.
-
-    :param mdl: The model update object.
-    :type mdl: BytesIO
-    :param request_function: Function for sending requests.
-    :type request_function: Function
-    :param args: request arguments, excluding data argument.
-    :type args: dict
-    :return: Yields grpc request for streaming.
-    :rtype: grpc request generator.
-    """
-    while True:
-        b = mdl.read(CHUNK_SIZE)
-        if b:
-            result = request_function(data=b, **args)
-        else:
-            result = request_function(data=None, **args)
-        yield result
-        if not b:
-            break
-
-
-def model_params_as_fednmodel(model_params, helper=None):
-    if isinstance(model_params, list):
-        return FednModel.from_model_params(model_params, helper=helper)
-    elif not isinstance(model_params, FednModel):
-        raise ValueError("model_params must be a list of numpy arrays or a FednModel instance.")
-    return model_params
-
-
-def unpack_model(request_iterator, helper):
-    """Unpack an incoming model sent in chunks from a request iterator.
-
-    :param request_iterator: A streaming iterator from an gRPC service.
-    :return: The reconstructed model parameters.
-    """
-    try:
-        model = FednModel.from_chunk_generator(request.data for request in request_iterator if request.data)
-    except MemoryError as e:
-        logger.error(f"Memory error occured when loading model, reach out to the FEDn team if you need a solution to this. {e}")
-        raise
-    except Exception as e:
-        logger.error(f"Exception occured during model loading: {e}")
-        raise
-
-    return model.get_model_params(helper)
-
-
 def get_tmp_path():
     """Return a temporary output path compatible with save_model, load_model."""
     fd, path = tempfile.mkstemp()
@@ -165,6 +116,7 @@ class ModelService(rpc.ModelServiceServicer):
         """
         logger.debug("grpc.ModelService.Upload: Called")
 
+        # Note: Do not use underscore "_" in metadata keys, use dash "-" instead.
         metadata = dict(context.invocation_metadata())
         model_id = metadata.get("model-id")
         checksum = metadata.get("checksum")

@@ -1,10 +1,12 @@
 import tempfile
 import threading
+from typing import BinaryIO, Iterable
 
+import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.utils.checksum import compute_checksum_from_stream
 from fedn.utils.helpers.plugins.numpyhelper import Helper
 
-CHUNK_SIZE = 8192  # 8 KB chunk size for reading/writing files
+CHUNK_SIZE = 1 * 1024 * 1024  # 8 KB chunk size for reading/writing files
 SPOOLED_MAX_SIZE = 10 * 1024 * 1024  # 10 MB max size for spooled temporary files
 
 
@@ -77,6 +79,12 @@ class FednModel:
             while chunk := stream.read(CHUNK_SIZE):
                 file.write(chunk)
 
+    def get_filechunk_stream(self, chunk_size=CHUNK_SIZE):
+        """Returns a generator that yields chunks of the model data."""
+        stream = self.get_stream()
+        while chunk := stream.read(chunk_size):
+            yield fedn.FileChunk(chunk)
+
     @staticmethod
     def from_model_params(model_params: dict, helper=None) -> "FednModel":
         """Creates a FednModel from model parameters."""
@@ -96,7 +104,7 @@ class FednModel:
             return FednModel.from_stream(file)
 
     @staticmethod
-    def from_stream(stream) -> "FednModel":
+    def from_stream(stream: BinaryIO) -> "FednModel":
         """Creates a FednModel from a stream."""
         model_reference = FednModel()
         while chunk := stream.read(CHUNK_SIZE):
@@ -105,10 +113,15 @@ class FednModel:
         return model_reference
 
     @staticmethod
-    def from_chunk_generator(chunk_generator) -> "FednModel":
+    def from_chunk_generator(chunk_generator: Iterable[bytes]) -> "FednModel":
         """Creates a FednModel from a chunk generator."""
         model_reference = FednModel()
         for chunk in chunk_generator:
             model_reference._data.write(chunk)
         model_reference._data.seek(0)
         return model_reference
+
+    @staticmethod
+    def from_filechunk_stream(filechunk_stream: Iterable[fedn.FileChunk]) -> "FednModel":
+        """Creates a FednModel from a filechunk stream."""
+        return FednModel.from_chunk_generator(filechunk.data for filechunk in filechunk_stream if filechunk.data)

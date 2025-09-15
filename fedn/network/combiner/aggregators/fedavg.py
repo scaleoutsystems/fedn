@@ -4,6 +4,7 @@ import traceback
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
+from fedn.utils.model import FednModel
 
 
 class Aggregator(AggregatorBase):
@@ -81,6 +82,6 @@ class Aggregator(AggregatorBase):
                 logger.error(tb)
 
         data["nr_aggregated_models"] = nr_aggregated_models
-
+        fedn_model = FednModel.from_model_params(model)
         logger.info("AGGREGATOR({}): Aggregation completed, aggregated {} models.".format(self.name, nr_aggregated_models))
-        return model, data
+        return fedn_model, data
