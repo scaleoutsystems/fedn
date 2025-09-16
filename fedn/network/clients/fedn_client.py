@@ -252,6 +252,12 @@ class FednClient:
                 sender_name=self.name,
             )
 
+    def check_task_abort(self) -> None:
+        # Check if the current task has been aborted
+        # To be implemented
+        """Raises an exception if the current task has been aborted. Does nothing for now."""
+        pass
+
     def validate_global_model(self, request: fedn.TaskRequest) -> None:
         """Validate the global model."""
         with self.logging_context(LoggingContext(request=request)):
