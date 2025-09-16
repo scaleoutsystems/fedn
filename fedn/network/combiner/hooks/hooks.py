@@ -15,8 +15,8 @@ from fedn.common.log_config import logger
 from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
 from fedn.network.combiner.hooks.grpc_wrappers import safe_streaming, safe_unary
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
 from fedn.utils.helpers.plugins.numpyhelper import Helper
+from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -40,18 +40,19 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         logger.info("Server Functions initialized.")
 
     @safe_unary("client_settings", lambda: fedn.ClientConfigResponse(client_settings=json.dumps({})))
-    def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
+    def HandleClientConfig(self, request_iterator: fedn.FileChunk, context):
         """Distribute client configs to clients from user defined code.
 
-        :param request_iterator: the client config request
-        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ClientConfigRequest`
+        :param request_iterator: the global model
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the client config response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
         logger.info("Received client config request.")
-        model, _ = unpack_model(request_iterator, self.helper)
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
         client_settings = self.server_functions.client_settings(global_model=model)
         logger.info(f"Client config response: {client_settings}")
         return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
@@ -94,8 +95,14 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
 
     @safe_unary("store_model", lambda: fedn.StoreModelResponse(status="ERROR"))
     def HandleStoreModel(self, request_iterator, context):
-        model, final_request = unpack_model(request_iterator, self.helper)
-        client_id = final_request.id
+        metadata = dict(context.invocation_metadata())
+        client_id = metadata.get("client-id")
+        if client_id is None:
+            logger.error("No client-id provided in metadata.")
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
+            return fedn.StoreModelResponse(status="Error: No client-id provided in metadata.")
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
         if client_id == "global_model":
             logger.info("Received previous global model")
             self.previous_global = model
@@ -134,11 +141,10 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         else:
             aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
 
-        model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
-        request_function = fedn.AggregationResponse
+        fedn_model = FednModel.from_model_params(aggregated_model, self.helper)
         self.client_updates = {}
         logger.info("Returning aggregate model.")
-        response_generator = bytesIO_request_generator(mdl=model_bytesIO, request_function=request_function, args={})
+        response_generator = fedn_model.get_filechunk_stream()
         for response in response_generator:
             yield response
 

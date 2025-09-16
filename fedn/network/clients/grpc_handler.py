@@ -17,6 +17,7 @@ import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.config import FEDN_AUTH_SCHEME
 from fedn.common.log_config import logger
 from fedn.network.combiner.modelservice import upload_request_generator
+from fedn.utils.checksum import compute_checksum_from_stream
 
 # Keepalive settings: these help keep the connection open for long-lived clients
 
@@ -127,7 +128,7 @@ def grpc_retry(
     return decorator
 
 
-def compute_checksum(model: BytesIO) -> str:
+def compute_checksum(model_stream: BytesIO) -> str:
     """Compute the checksum of a model.
 
     :param model: The model to compute the checksum for.
@@ -135,8 +136,7 @@ def compute_checksum(model: BytesIO) -> str:
     :return: The checksum of the model.
     :rtype: str
     """
-    # Placeholder for actual checksum computation
-    return None
+    return compute_checksum_from_stream(model_stream)
 
 
 class GrpcHandler:

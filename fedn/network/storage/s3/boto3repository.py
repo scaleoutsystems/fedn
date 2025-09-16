@@ -97,7 +97,7 @@ class Boto3Repository(RepositoryBase):
         """
         try:
             response = self.s3_client.get_object(Bucket=bucket, Key=instance_name)
-            return io.BytesIO(response["Body"].read())
+            return response["Body"]
         except (BotoCoreError, ClientError) as e:
             logger.error(f"Failed to fetch artifact stream: {instance_name} from bucket: {bucket}. Error: {e}")
             raise Exception(f"Could not fetch artifact stream: {e}") from e

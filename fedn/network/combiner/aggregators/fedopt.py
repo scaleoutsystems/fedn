@@ -8,6 +8,7 @@ from fedn.common.exceptions import InvalidParameterError
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 from fedn.utils.helpers.helperbase import HelperBase
+from fedn.utils.model import FednModel
 from fedn.utils.parameters import Parameters
 
 
@@ -91,7 +92,7 @@ class Aggregator(AggregatorBase):
 
                 tic = time.time()
                 if nr_aggregated_models == 0:
-                    model_old = self.update_handler.load_model(helper, model_update.model_id)
+                    model_old = self.update_handler.load_model_params(helper, model_update.model_id)
                     pseudo_gradient = helper.subtract(model_next, model_old)
                 else:
                     pseudo_gradient_next = helper.subtract(model_next, model_old)
@@ -122,7 +123,10 @@ class Aggregator(AggregatorBase):
             return None, data
 
         logger.info(f"Aggregator {self.name} completed. Aggregated {nr_aggregated_models} models.")
-        return model, data
+        if model is None:
+            return None, data
+        fedn_model = FednModel.from_model_params(model, helper)
+        return fedn_model, data
 
     def _validate_and_merge_parameters(self, parameters: Optional[Parameters], default_parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and merge default parameters."""

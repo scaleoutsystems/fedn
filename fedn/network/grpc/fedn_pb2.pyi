@@ -1070,21 +1070,6 @@ class ProvidedFunctionsResponse(google.protobuf.message.Message):
 global___ProvidedFunctionsResponse = ProvidedFunctionsResponse
 
 @typing.final
-class ClientConfigRequest(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    DATA_FIELD_NUMBER: builtins.int
-    data: builtins.bytes
-    def __init__(
-        self,
-        *,
-        data: builtins.bytes = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data"]) -> None: ...
-
-global___ClientConfigRequest = ClientConfigRequest
-
-@typing.final
 class ClientConfigResponse(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -1163,24 +1148,6 @@ class ClientMetaResponse(google.protobuf.message.Message):
 global___ClientMetaResponse = ClientMetaResponse
 
 @typing.final
-class StoreModelRequest(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    DATA_FIELD_NUMBER: builtins.int
-    ID_FIELD_NUMBER: builtins.int
-    data: builtins.bytes
-    id: builtins.str
-    def __init__(
-        self,
-        *,
-        data: builtins.bytes = ...,
-        id: builtins.str = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data", "id", b"id"]) -> None: ...
-
-global___StoreModelRequest = StoreModelRequest
-
-@typing.final
 class StoreModelResponse(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
@@ -1209,18 +1176,3 @@ class AggregationRequest(google.protobuf.message.Message):
     def ClearField(self, field_name: typing.Literal["aggregate", b"aggregate"]) -> None: ...
 
 global___AggregationRequest = AggregationRequest
-
-@typing.final
-class AggregationResponse(google.protobuf.message.Message):
-    DESCRIPTOR: google.protobuf.descriptor.Descriptor
-
-    DATA_FIELD_NUMBER: builtins.int
-    data: builtins.bytes
-    def __init__(
-        self,
-        *,
-        data: builtins.bytes = ...,
-    ) -> None: ...
-    def ClearField(self, field_name: typing.Literal["data", b"data"]) -> None: ...
-
-global___AggregationResponse = AggregationResponse
