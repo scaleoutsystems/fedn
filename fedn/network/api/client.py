@@ -951,13 +951,13 @@ class APIClient:
         _params = {}
 
         if session_id:
-            _params["sessionId"] = session_id
+            _params["session_id"] = session_id
 
         if model_id:
-            _params["modelId"] = model_id
+            _params["model_id"] = model_id
 
         if correlation_id:
-            _params["correlationId"] = correlation_id
+            _params["correlation_id"] = correlation_id
 
         if sender_name:
             _params["sender.name"] = sender_name
@@ -1028,10 +1028,10 @@ class APIClient:
         _params = {}
 
         if model_id:
-            _params["modelId"] = model_id
+            _params["model_id"] = model_id
 
         if correlation_id:
-            _params["correlationId"] = correlation_id
+            _params["correlation_id"] = correlation_id
 
         if sender_name:
             _params["sender.name"] = sender_name
