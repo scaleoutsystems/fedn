@@ -7,6 +7,7 @@ from typing import Dict, List
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
+from fedn.network.combiner.clientmanager import ClientManager
 from fedn.network.combiner.modelservice import ModelService
 from fedn.utils.model import FednModel
 
@@ -24,8 +25,9 @@ class UpdateHandler:
     :type modelservice: class: `fedn.network.combiner.modelservice.ModelService`
     """
 
-    def __init__(self, modelservice: ModelService) -> None:
+    def __init__(self, modelservice: ModelService, client_manager: ClientManager) -> None:
         self.modelservice = modelservice
+        self.client_manager = client_manager
 
         self.session_queue: Dict[str, SessionQueue] = {}
 
@@ -173,6 +175,16 @@ class UpdateHandler:
         """
         return self.modelservice.get_model(model_id)
 
+    def flush_session(self, session_id):
+        """Flush the session queue for the given session ID.
+
+        :param session_id: The session ID
+        :type session_id: str
+        """
+        if session_id in self.session_queue:
+            logger.info("UPDATE HANDLER: Flushing update queue for session {}".format(session_id))
+            self.session_queue[session_id].flush_session()
+
 
 class BackwardHandler:
     """Backward handler.
@@ -260,6 +272,15 @@ class SessionQueue:
                 self.handle_invalid_model_update(model_update)
         return False
 
+    def get_all_outstanding_correlation_ids(self) -> List[str]:
+        """Get all outstanding correlation IDs.
+
+        :return: List of outstanding correlation IDs.
+        :rtype: List[str]
+        """
+        with self.lock:
+            return self.expected_correlation_ids + self.straggler_correlation_ids
+
     def handle_invalid_model_update(self, model_update: fedn.ModelUpdate):
         """Handle invalid model update.
 
@@ -313,6 +334,21 @@ class SessionQueue:
             while not self.model_update_stragglers.empty():
                 model_update = self.model_update_stragglers.get()
                 logger.warning(f"UPDATE HANDLER: Model update {model_update.model_update_id} is ignored due to session end.")
+                self.handle_ignored_model_update(model_update)
+
+    def flush_session(self):
+        """Flush the session queue."""
+        with self.lock:
+            corr_ids = self.get_all_outstanding_correlation_ids()
+            self.update_handler.client_manager.cancel_tasks(corr_ids)
+
+            self.expected_correlation_ids = []
+            self.straggler_correlation_ids = []
+            while not self.model_update.empty():
+                model_update = self.model_update.get()
+                self.handle_ignored_model_update(model_update)
+            while not self.model_update_stragglers.empty():
+                model_update = self.model_update_stragglers.get()
                 self.handle_ignored_model_update(model_update)
 
     def next_model_update(self):

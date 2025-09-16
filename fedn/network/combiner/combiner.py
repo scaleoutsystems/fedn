@@ -15,9 +15,9 @@ import fedn.network.grpc.fedn_pb2 as fedn
 import fedn.network.grpc.fedn_pb2_grpc as rpc
 from fedn.common.certificate.certificate import Certificate
 from fedn.common.log_config import logger, set_log_level_from_string, set_log_stream
+from fedn.network.combiner.clientmanager import ClientInterface, ClientManager
 from fedn.network.combiner.modelservice import ModelService
 from fedn.network.combiner.roundhandler import RoundConfig, RoundHandler
-from fedn.network.combiner.task_sender import TaskSender
 from fedn.network.grpc.server import Server, ServerConfig
 from fedn.network.storage.dbconnection import DatabaseConnection
 from fedn.network.storage.s3.repository import Repository
@@ -32,6 +32,8 @@ from fedn.network.storage.statestore.stores.dto.validation import ValidationDTO
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
+
+OFFLINE_CLIENT_TIMEOUT = 30  # seconds
 
 
 class Role(Enum):
@@ -156,6 +158,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Set up model service
         modelservice = ModelService(repository)
+        self.client_manager = ClientManager(self)
 
         # Create gRPC server
         self.server = Server(self, modelservice, grpc_server_config)
@@ -168,8 +171,6 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         # Start thread for client status updates: TODO: Should be configurable
         threading.Thread(target=self._deamon_thread_client_status, daemon=True).start()
-
-        self.task_sender = TaskSender(self)
 
         # Start the gRPC server
         self.server.start()
@@ -196,14 +197,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :param queue_name: the name of the queue to send the requests to
         :type queue_name: str
         """
-        clients = []
-        for request in requests:
-            try:
-                self._put_request_to_client_queue(request, fedn.Queue.TASK_QUEUE)
-            except Exception:  # noqa: S112
-                # Exception already logged in _put_request_to_client_queue
-                continue
-            clients.append(request.receiver.client_id)
+        clients = self.client_manager.add_tasks(requests)
         return clients
 
     def request_model_validation(self, session_id, model_id, clients=[]):
@@ -298,6 +292,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
             request.receiver.client_id = client
             request.receiver.role = fedn.CLIENT
             request.task_type = fedn.StatusType.Name(request_type)
+            request.task_status = fedn.TaskStatus.TASK_NEW
 
             # Set the request data, not used in validation
             if request_type == fedn.StatusType.MODEL_PREDICTION:
@@ -316,7 +311,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the list of active trainers
         :rtype: list
         """
-        trainers = self._list_active_clients(fedn.Queue.TASK_QUEUE)
+        trainers = self._list_active_clients()
         return trainers
 
     def get_active_validators(self):
@@ -325,7 +320,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: the list of active validators
         :rtype: list
         """
-        validators = self._list_active_clients(fedn.Queue.TASK_QUEUE)
+        validators = self._list_active_clients()
         return validators
 
     def nr_active_trainers(self):
@@ -338,60 +333,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
     ####################################################################################################################
 
-    def __join_client(self, client):
-        """Add a client to the list of active clients.
-
-        :param client: the client to add
-        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
-        """
-        if client.client_id not in self.clients.keys():
-            # The status is set to offline by default, and will be updated once _list_active_clients is called.
-            self.clients[client.client_id] = {"last_seen": datetime.now(), "status": "offline"}
-
-    def _subscribe_client_to_queue(self, client, queue_name):
-        """Subscribe a client to the queue.
-
-        :param client: the client to subscribe
-        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
-        :param queue_name: the name of the queue to subscribe to
-        :type queue_name: str
-        """
-        self.__join_client(client)
-        if queue_name not in self.clients[client.client_id].keys():
-            self.clients[client.client_id][queue_name] = queue.Queue()
-
-    def __get_queue(self, client, queue_name):
-        """Get the queue for a client.
-
-        :param client: the client to get the queue for
-        :type client: :class:`fedn.network.grpc.fedn_pb2.Client`
-        :param queue_name: the name of the queue to get
-        :type queue_name: str
-        :return: the queue
-        :rtype: :class:`queue.Queue`
-
-        :raises KeyError: if the queue does not exist
-        """
-        try:
-            return self.clients[client.client_id][queue_name]
-        except KeyError:
-            raise
-
-    def _list_subscribed_clients(self, queue_name):
-        """List all clients subscribed to a queue.
-
-        :param queue_name: the name of the queue
-        :type queue_name: str
-        :return: a list of client names
-        :rtype: list
-        """
-        subscribed_clients = []
-        for name, client in self.clients.items():
-            if queue_name in client.keys():
-                subscribed_clients.append(name)
-        return subscribed_clients
-
-    def _list_active_clients(self, channel):
+    def _list_active_clients(self):
         """List all clients that have sent a status message in the last 10 seconds.
 
         :param channel: the name of the channel
@@ -399,63 +341,34 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :return: a list of client names
         :rtype: list
         """
-        # Temporary dict to store client status
-        clients = {
-            "active_clients": [],
-            "update_active_clients": [],
-            "update_offline_clients": [],
-        }
-        for client in self._list_subscribed_clients(channel):
-            status = self.clients[client]["status"]
+        clients_to_update: List[ClientInterface] = []
+        active_clients: List[ClientInterface] = []
+        for client in self.client_manager.get_clients():
             now = datetime.now()
-            then = self.clients[client]["last_seen"]
-            if (now - then) < timedelta(seconds=10):
-                clients["active_clients"].append(client)
+            if (now - client.last_seen) < timedelta(seconds=OFFLINE_CLIENT_TIMEOUT):
+                active_clients.append(client)
                 # If client has changed status, update client queue
-                if status != "online":
-                    self.clients[client]["status"] = "online"
-                    clients["update_active_clients"].append(client)
-            elif status != "offline":
-                self.clients[client]["status"] = "offline"
-                clients["update_offline_clients"].append(client)
+                if client.status != "online":
+                    client.status = "online"
+                    clients_to_update.append(client)
+            elif client.status != "offline":
+                client.status = "offline"
+                clients_to_update.append(client)
         # Update statestore with client status
-        if len(clients["update_active_clients"]) > 0:
-            for client in clients["update_active_clients"]:
-                client_to_update = self.db.client_store.get(client)
-                client_to_update.last_seen = self.clients[client]["last_seen"]
-                client_to_update.status = "online"
-                self.db.client_store.update(client_to_update)
-        if len(clients["update_offline_clients"]) > 0:
-            for client in clients["update_offline_clients"]:
-                client_to_update = self.db.client_store.get(client)
-                client_to_update.last_seen = self.clients[client]["last_seen"]
-                client_to_update.status = "offline"
-                self.db.client_store.update(client_to_update)
+        for client in clients_to_update:
+            client_to_update = self.db.client_store.get(client.client_id)
+            client_to_update.last_seen = client.last_seen
+            client_to_update.status = client.status
+            self.db.client_store.update(client_to_update)
 
-        return clients["active_clients"]
+        return [client.client_id for client in active_clients]
 
     def _deamon_thread_client_status(self, timeout=5):
         """Deamon thread that checks for inactive clients and updates statestore."""
         while True:
             time.sleep(timeout)
             # TODO: Also update validation clients
-            self._list_active_clients(fedn.Queue.TASK_QUEUE)
-
-    def _put_request_to_client_queue(self, request, queue_name):
-        """Get a client specific queue and add a request to it.
-        The client is identified by the request.receiver.
-
-        :param request: the request to send
-        :type request: :class:`fedn.network.grpc.fedn_pb2.Request`
-        :param queue_name: the name of the queue to send the request to
-        :type queue_name: str
-        """
-        try:
-            q = self.__get_queue(request.receiver, queue_name)
-            q.put(request)
-        except Exception as e:
-            logger.error("Failed to put request to client queue {} for client {}: {}".format(queue_name, request.receiver.name, str(e)))
-            raise
+            self._list_active_clients()
 
     def _send_status(self, status):
         """Report a status to backend db.
@@ -467,17 +380,13 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         status = StatusDTO().populate_with(data)
         self.db.status_store.add(status)
 
-    def _flush_model_update_queue(self):
+    def _flush_model_update_queue(self, session_id: str):
         """Clear the model update queue (aggregator).
 
         :return: True if successful, else False
         """
-        q = self.round_handler.aggregator.model_updates
         try:
-            with q.mutex:
-                q.queue.clear()
-                q.all_tasks_done.notify_all()
-                q.unfinished_tasks = 0
+            self.round_handler.update_handler.flush_session(session_id)
             return True
         except Exception as e:
             logger.error("Failed to flush model update queue: %s", str(e))
@@ -581,7 +490,17 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ControlResponse`
         """
         logger.debug("grpc.Combiner.FlushAggregationQueue: Called")
-        status = self._flush_model_update_queue()
+        session_id = None
+        for parameter in control.parameter:
+            if parameter.key == "session_id":
+                session_id = parameter.value
+        if session_id is None:
+            logger.error("grpc.Combiner.FlushAggregationQueue: session_id not provided")
+            response = fedn.ControlResponse()
+            response.message = "Failed: session_id not provided"
+            return response
+
+        status = self._flush_model_update_queue(session_id)
 
         response = fedn.ControlResponse()
         if status:
@@ -639,7 +558,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientList`
         """
         clients = fedn.ClientList()
-        active_clients = self._list_active_clients(request.channel)
+        active_clients = self._list_active_clients()
         nr_active_clients = len(active_clients)
         if nr_active_clients < 20:
             logger.info("grpc.Combiner.ListActiveClients:  Active clients: {}".format(active_clients))
@@ -662,7 +581,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ConnectionResponse`
         """
         response = fedn.ConnectionResponse()
-        active_clients = self._list_active_clients(fedn.Queue.TASK_QUEUE)
+        active_clients = self._list_active_clients()
 
         try:
             requested = int(self.max_clients)
@@ -694,8 +613,7 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         logger.debug("GRPC: Received heartbeat from {}".format(heartbeat.sender.name))
         # Update the clients dict with the last seen timestamp.
         client = heartbeat.sender
-        self.__join_client(client)
-        self.clients[client.client_id]["last_seen"] = datetime.now()
+        self.client_manager.update_client(client.client_id)
 
         response = fedn.Response()
         response.sender.name = heartbeat.sender.name
@@ -725,14 +643,12 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
 
         self.__whoami(status.sender, self)
 
-        # Subscribe client, this also adds the client to self.clients
-        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
-        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
-
         self._send_status(status)
 
         # Set client status to online
-        self.clients[client.client_id]["status"] = "online"
+        self.client_manager.update_client(client.client_id)
+        client = self.client_manager.get_client(client.client_id)
+        client.status = "online"
         try:
             # If the client is already in the client store, update the status
             client_to_update = self.db.client_store.get(client.client_id)
@@ -752,15 +668,20 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
         while context.is_active():
             # Check if the context has been active for more than 10 seconds
             if time.time() - start_time > 10:
-                self.clients[client.client_id]["last_seen"] = datetime.now()
+                self.client_manager.update_client(client.client_id)
                 # Reset the start time
                 start_time = time.time()
             try:
-                yield q.get(timeout=1.0)
+                request = self.client_manager.pop_task(client.client_id)
+                if request is not None:
+                    yield request
+                else:
+                    time.sleep(1.0)
             except queue.Empty:
                 pass
             except Exception as e:
                 logger.error("Error in ModelUpdateRequestStream: {}".format(e))
+
         logger.warning("Client {} disconnected from TaskStream".format(client.name))
         status = fedn.Status(status="Client {} disconnected from TaskStream.".format(client.name))
         status.log_level = fedn.LogLevel.INFO
@@ -772,12 +693,9 @@ class Combiner(rpc.CombinerServicer, rpc.ReducerServicer, rpc.ConnectorServicer,
     def PollAndReport(self, report: fedn.ActivityReport, context):
         # Subscribe client, this also adds the client to self.clients
         client = report.sender
-        self._subscribe_client_to_queue(client, fedn.Queue.TASK_QUEUE)
         # Update last_seen
-        self.clients[client.client_id]["last_seen"] = datetime.now()
-
-        q = self.__get_queue(client, fedn.Queue.TASK_QUEUE)
-        return self.task_sender.PollAndReport(q, report)
+        self.client_manager.update_client(client.client_id)
+        return self.client_manager.PollAndReport(report)
 
     def SendModelUpdate(self, request, context):
         """Send a model update response.
