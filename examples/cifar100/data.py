@@ -7,6 +7,8 @@ from scipy.stats import dirichlet
 from torch.utils.data import DataLoader, Dataset, Subset
 from torchvision import datasets, transforms
 
+from config import settings
+
 # Set a fixed random seed for reproducibility
 RANDOM_SEED = 42
 np.random.seed(RANDOM_SEED)
@@ -154,10 +156,13 @@ class CIFAR100Federated:
         """
         config_key = f"splits_{num_splits}_bal_{balanced}_iid_{iid}"
 
-        if iid:
-            indices = self._create_iid_splits(num_splits, balanced)
-        else:
-            indices = self._create_non_iid_splits(num_splits, balanced)
+        if settings.get("MISSING_LABELS", False):
+            indices = self._create_splits_with_missing_labels(num_splits, balanced, iid)
+        else:    
+            if iid:
+                indices = self._create_iid_splits(num_splits, balanced)
+            else:
+                indices = self._create_non_iid_splits(num_splits, balanced)
 
         # Save splits
         for i, split_indices in enumerate(indices):
@@ -258,6 +263,35 @@ class CIFAR100Federated:
             indices_per_split.append(np.array(split_indices))
 
         return indices_per_split
+    
+    def _create_splits_with_missing_labels(self, num_splits: int, balanced: bool, iid: bool,
+                                        missing_label_fraction: float = 0.2, seed: int = 0):
+        indices = self._create_iid_splits(num_splits, balanced)
+        fine_labels = np.array(self.trainset.targets)
+        coarse_labels = fine_to_coarse_labels(fine_labels)
+        rng = np.random.default_rng(seed)
+
+        print(f"Creating splits with missing labels, removing {missing_label_fraction*100}% of coarse labels from each split except the first half")
+
+        for i in range(num_splits):
+            # keep first half intact, remove labels in second half
+            if i < num_splits // 2:
+                continue
+
+            split_idx = np.array(indices[i])
+            present = np.unique(coarse_labels[split_idx])
+            K = len(present)
+            # round instead of floor; never remove all classes
+            num_to_remove = int(round(K * missing_label_fraction))
+            num_to_remove = max(0, min(num_to_remove, K - 1))
+            if num_to_remove == 0:
+                continue
+
+            remove = set(rng.choice(present, size=num_to_remove, replace=False))
+            mask = np.array([coarse_labels[j] not in remove for j in split_idx], dtype=bool)
+            indices[i] = split_idx[mask]
+
+        return indices
 
     def _renormalize(self, probs: np.ndarray, removed_idx: int) -> np.ndarray:
         """Implementation of Algorithm 8 from the paper"""
@@ -290,7 +324,7 @@ class CIFAR100Federated:
         return Subset(self.trainset, indices)
 
 
-def get_data_loader(num_splits: int = 5, balanced: bool = True, iid: bool = True, batch_size: int = 100, is_train: bool = True):
+def get_data_loader(num_splits: int = 5, balanced: bool = True, iid: bool = True, batch_size: int = 100, is_train: bool = True, split_id: int = 0) -> DataLoader:
     """Get a data loader for the CIFAR-100 dataset
     :param num_splits: Number of splits to create
     :param balanced: Whether splits are balanced
@@ -302,7 +336,6 @@ def get_data_loader(num_splits: int = 5, balanced: bool = True, iid: bool = True
     cifar_data = CIFAR100Federated()
 
     if is_train:
-        split_id = os.environ.get("FEDN_DATA_SPLIT_ID", 0)
         dataset = cifar_data.get_split(split_id=split_id, num_splits=num_splits, balanced=balanced, iid=iid)
         print(f"Getting data loader for split {split_id} of trainset (size: {len(dataset)})")
     else:

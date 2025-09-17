@@ -1,6 +1,6 @@
 settings = {
     "N_SPLITS": 20,
-    "DISCOVER_HOST": "api-server",
+    "DISCOVER_HOST": "localhost",
     "DISCOVER_PORT": 8092,
     "SECURE": False,
     "VERIFY": False,
@@ -10,4 +10,5 @@ settings = {
     "EPOCHS": 1,
     "BALANCED": True,
     "IID": True,
+    "MISSING_LABELS": True,
 }

@@ -1,10 +1,17 @@
 import queue
 import time
 import traceback
+import math
+from typing import Callable, Optional
 
 from fedn.common.log_config import logger
 from fedn.network.combiner.aggregators.aggregatorbase import AggregatorBase
 
+
+def exp_decay(a: int, beta: float = 0.5, hinge: int = 0, smin: float = 0.0, smax: float = 1.0) -> float:
+    a_eff = max(0, a - hinge)
+    w = math.exp(-beta * a_eff)
+    return max(smin, min(smax, w))
 
 class Aggregator(AggregatorBase):
     """Local SGD / Federated Averaging (FedAvg) aggregator. Computes a weighted mean
@@ -19,8 +26,11 @@ class Aggregator(AggregatorBase):
         super().__init__(update_handler)
 
         self.name = "fedavg"
+        self.staleness_weight_fn: Optional[Callable[[int], float]] = (
+            lambda a: exp_decay(a, beta=0.5, hinge=0, smin=0.05, smax=1.0)
+        )
 
-    def combine_models(self, session_id, helper=None, delete_models=True, parameters=None):
+    def combine_models(self, session_id, helper=None, delete_models=True, parameters=None, round_id=None):
         """Aggregate all model updates in the queue by computing an incremental
         weighted average of model parameters.
 
@@ -61,8 +71,15 @@ class Aggregator(AggregatorBase):
 
                 logger.info("AGGREGATOR({}): Processing model update {}, metadata: {}  ".format(self.name, model_update.model_update_id, metadata))
 
-                # Increment total number of examples
-                total_examples += metadata["num_examples"]
+                # age of the model in number of rounds
+                age = int(round_id) - int(metadata.get("round_id", round_id))
+                if self.staleness_weight_fn is not None and age > 0:   
+                    w = self.staleness_weight_fn(age)
+                    logger.info(f"AGGREGATOR({self.name}): Applying staleness weight {w} for model {model_update.model_update_id} with age {age}")
+                    weighted_num_examples = int(w * int(metadata["num_examples"]))
+                    total_examples += weighted_num_examples
+                else:
+                    total_examples += metadata["num_examples"]
 
                 tic = time.time()
                 if nr_aggregated_models == 0:

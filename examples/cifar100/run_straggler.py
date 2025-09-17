@@ -2,6 +2,7 @@ import argparse
 import io
 import os
 import uuid
+import time
 
 import torch
 from data import get_data_loader
@@ -15,6 +16,7 @@ from fedn.utils.helpers.helpers import get_helper
 
 helper = get_helper("numpyhelper")
 
+ROUND_NO = 0
 
 def get_api_url(api_url: str, api_port: int, secure: bool = False):
     if secure:
@@ -28,6 +30,10 @@ def get_api_url(api_url: str, api_port: int, secure: bool = False):
 
 def on_train(in_model, client_settings):
     # Save model to temp file
+
+    global ROUND_NO
+    ROUND_NO += 1
+
     inpath = helper.get_tmp_path()
     with open(inpath, "wb") as fh:
         fh.write(in_model.getbuffer())
@@ -54,7 +60,7 @@ def on_train(in_model, client_settings):
         iid=settings["IID"],
         is_train=True,
         batch_size=settings["BATCH_SIZE"],
-        split_id=12, 
+        split_id=1,
     )
 
     # Calculate number of batches
@@ -94,6 +100,10 @@ def on_train(in_model, client_settings):
         "lr": learning_rate,
     }
     metadata = {"training_metadata": training_metadata}
+    if ROUND_NO % 2 == 0:
+        print(f"Simulating straggler client, sleeping for 60 seconds,{ROUND_NO}")
+        time.sleep(100)  # Simulate some delay to show straggler effect
+    
     return out_model, metadata
 
 

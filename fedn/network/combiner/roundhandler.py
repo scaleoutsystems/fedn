@@ -209,7 +209,7 @@ class RoundHandler:
                     previous_model_bytes = self.modelservice.temp_model_storage.get(model_id)
                     model, data = self.hook_interface.aggregate(session_id, previous_model_bytes, self.update_handler, helper, delete_models=delete_models)
                 else:
-                    model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters)
+                    model, data = self.aggregator.combine_models(session_id=session_id, helper=helper, delete_models=delete_models, parameters=parameters, round_id=round_id)
             except Exception as e:
                 logger.warning("AGGREGATION FAILED AT COMBINER! {}".format(e))
                 model = None

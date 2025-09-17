@@ -4,6 +4,8 @@ import threading
 import time
 import traceback
 from typing import Dict, List
+from dataclasses import dataclass
+
 
 import fedn.network.grpc.fedn_pb2 as fedn
 from fedn.common.log_config import logger
@@ -12,6 +14,12 @@ from fedn.network.combiner.modelservice import ModelService, load_model_from_byt
 
 class ModelUpdateError(Exception):
     pass
+
+
+@dataclass(frozen=True)
+class FetchedUpdate:
+    current_round: str    # the current round of the combiner
+    update: "fedn.ModelUpdate"
 
 
 class UpdateHandler:

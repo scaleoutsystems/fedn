@@ -820,7 +820,7 @@ class Control(ControlBase, rpc.ControlServicer):
 
         return round_data
 
-    def save_model_path(data):
+    def save_model_path(self, data):
         fd, temp_path = tempfile.mkstemp()
         os.close(fd)
         with open(temp_path, "wb") as f:

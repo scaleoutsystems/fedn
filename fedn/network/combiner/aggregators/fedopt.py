@@ -39,7 +39,7 @@ class Aggregator(AggregatorBase):
         self.m = None
 
     def combine_models(
-        self, session_id, helper: Optional[HelperBase] = None, delete_models: bool = True, parameters: Optional[Parameters] = None
+        self, session_id, helper: Optional[HelperBase] = None, delete_models: bool = True, parameters: Optional[Parameters] = None, round_id: Optional[str] = None
     ) -> Tuple[Optional[Any], Dict[str, float]]:
         """Compute pseudo gradients using model updates in the queue.
 

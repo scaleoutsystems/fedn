@@ -20,7 +20,7 @@ class AggregatorBase(ABC):
         self.update_handler = update_handler
 
     @abstractmethod
-    def combine_models(self, session_id, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True, parameters=None):
+    def combine_models(self, session_id, nr_expected_models=None, nr_required_models=1, helper=None, timeout=180, delete_models=True, parameters=None, round_id=None):
         """Routine for combining model updates. Implemented in subclass.
 
         :param session_id: The id of the session.
