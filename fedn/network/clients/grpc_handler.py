@@ -144,6 +144,8 @@ class GrpcHandler:
 
     def __init__(self, host: str, port: int, name: str, token: str, combiner_name: str) -> None:
         """Initialize the GrpcHandler."""
+        os.environ["GRPC_ENABLE_FORK_SUPPORT"] = "false"  # Actively disable fork support in GRPC
+
         self.metadata = [
             ("client", name),
             ("grpc-server", combiner_name),
@@ -545,3 +547,30 @@ class GrpcHandler:
         self._init_channel(self.host, self.port, self.token)
         self._init_stubs()
         logger.debug("GRPC channel reconnected.")
+
+
+class GrpcConnectionOptions:
+    """Options for configuring the GRPC connection."""
+
+    def __init__(self, host: str, port: int, status: str = "", fqdn: str = "", package: str = "", ip: str = "", helper_type: str = "") -> None:
+        """Initialize GrpcConnectionOptions."""
+        self.status = status
+        self.host = host
+        self.fqdn = fqdn
+        self.package = package
+        self.ip = ip
+        self.port = port
+        self.helper_type = helper_type
+
+    @classmethod
+    def from_dict(cls, config: dict) -> "GrpcConnectionOptions":
+        """Create a GrpcConnectionOptions instance from a JSON string."""
+        return cls(
+            status=config.get("status", ""),
+            host=config.get("host", ""),
+            fqdn=config.get("fqdn", ""),
+            package=config.get("package", ""),
+            ip=config.get("ip", ""),
+            port=config.get("port", 0),
+            helper_type=config.get("helper_type", ""),
+        )

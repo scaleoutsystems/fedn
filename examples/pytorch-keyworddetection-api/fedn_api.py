@@ -40,7 +40,8 @@ def main():
 
     if args.upload_seed:
         init_seedmodel()
-        api_client.set_active_model("seed.npz")
+        response = api_client.set_active_model("seed.npz")
+        print(response)
     elif args.start_session:
         # Depending on the computer hosting the clients this round_timeout might need to increase
         response = api_client.start_session(name="Training", round_timeout=1200)
