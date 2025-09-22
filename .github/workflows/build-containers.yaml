@@ -1,22 +1,26 @@
-name: "build containers"
+name: build containers
 
 on:
   workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: "Extra image tag to add (e.g. torchimage)"
+        required: false
+        default: ""
+      extra_pip_packages:
+        description: "Space-separated pip packages to add (e.g. numpy==1.26.4 uvicorn)"
+        required: false
+        default: ""
   push:
-    branches:
-      - master
-      - develop
+    branches: [ master, develop ]
   pull_request:
-    branches:
-      - develop
-      - master
+    branches: [ develop, master ]
   release:
     types: [published]
 
 jobs:
   build-containers:
     runs-on: ubuntu-latest
-
     permissions:
       packages: write
       contents: read
@@ -43,6 +47,7 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
+            type=raw,value=${{ inputs.custom_tag }},enable=${{ inputs.custom_tag != '' }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -50,7 +55,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
 
       - name: Build and push
         uses: docker/build-push-action@v6
@@ -60,3 +64,5 @@ jobs:
           tags: ${{ steps.meta1.outputs.tags }}
           labels: ${{ steps.meta1.outputs.labels }}
           file: Dockerfile
+          build-args: |
+            EXTRA_PIP_PACKAGES=${{ inputs.extra_pip_packages }}

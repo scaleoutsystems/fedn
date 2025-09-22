@@ -1,6 +1,6 @@
 import graphene
 
-from fedn.network.controller.control import Control
+from fedn.network.api.shared import get_db
 from fedn.network.storage.statestore.stores.shared import SortOrder
 
 
@@ -31,7 +31,7 @@ class StatusType(graphene.ObjectType):
     session = graphene.Field(lambda: SessionType)
 
     def resolve_session(self, info):
-        db = Control.instance().db
+        db = get_db()
         session = db.session_store.get(self["session_id"])
         if session:
             return session.to_dict()
@@ -56,7 +56,7 @@ class ValidationType(graphene.ObjectType):
         return self["sender"]
 
     def resolve_session(self, info):
-        db = Control.instance().db
+        db = get_db()
         session = db.session_store.get(self["session_id"])
         if session:
             return session.to_dict()
@@ -79,7 +79,7 @@ class ModelType(graphene.ObjectType):
     session = graphene.Field(lambda: SessionType)
 
     def resolve_validations(self, info, limit=0, skip=0, sort_key="committed_at", sort_order="desc"):
-        db = Control.instance().db
+        db = get_db()
         kwargs = {"model_id": self["model_id"]}
         sort_order = get_sort_order_from_string(sort_order)
 
@@ -88,7 +88,7 @@ class ModelType(graphene.ObjectType):
         return result
 
     def resolve_session(self, info):
-        db = Control.instance().db
+        db = get_db()
         session = db.session_store.get(self["session_id"])
         if session:
             return session.to_dict()
@@ -139,7 +139,7 @@ class SessionType(graphene.ObjectType):
         return self["session_config"]
 
     def resolve_models(self, info, limit=0, skip=0, sort_key="committed_at", sort_order="desc"):
-        db = Control.instance().db
+        db = get_db()
 
         kwargs = {"session_id": self["session_id"]}
         sort_order = get_sort_order_from_string(sort_order)
@@ -150,7 +150,7 @@ class SessionType(graphene.ObjectType):
         return result
 
     def resolve_validations(self, info, limit=0, skip=0, sort_key="committed_at", sort_order="desc"):
-        db = Control.instance().db
+        db = get_db()
 
         kwargs = {"session_id": self["session_id"]}
         sort_order = get_sort_order_from_string(sort_order)
@@ -161,7 +161,7 @@ class SessionType(graphene.ObjectType):
         return result
 
     def resolve_statuses(self, info, limit=0, skip=0, sort_key="committed_at", sort_order="desc"):
-        db = Control.instance().db
+        db = get_db()
 
         kwargs = {"session_id": self["session_id"]}
         sort_order = get_sort_order_from_string(sort_order)
@@ -229,13 +229,13 @@ class Query(graphene.ObjectType):
     )
 
     def resolve_session(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.session_store.get(id)
 
         return result.to_dict()
 
     def resolve_sessions(root, info, name: str = None, limit: int = 25, skip: int = 0, sort_key: str = "committed_at", sort_order: str = "desc"):
-        db = Control.instance().db
+        db = get_db()
         if name:
             kwargs = {"name": name}
         else:
@@ -249,13 +249,13 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_model(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.model_store.get(id).to_dict()
 
         return result
 
     def resolve_models(root, info, session_id: str = None, limit: int = 25, skip: int = 0, sort_key: str = "committed_at", sort_order: str = "desc"):
-        db = Control.instance().db
+        db = get_db()
         if session_id:
             kwargs = {"session_id": session_id}
         else:
@@ -269,13 +269,13 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_validation(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.validation_store.get(id).to_dict()
 
         return result
 
     def resolve_validations(root, info, session_id: str = None, limit: int = 25, skip: int = 0, sort_key: str = "committed_at", sort_order: str = "desc"):
-        db = Control.instance().db
+        db = get_db()
 
         if session_id:
             kwargs = {"session_id": session_id}
@@ -290,13 +290,13 @@ class Query(graphene.ObjectType):
         return result
 
     def resolve_status(root, info, id: str = None):
-        db = Control.instance().db
+        db = get_db()
         result = db.status_store.get(id).to_dict()
 
         return result
 
     def resolve_statuses(root, info, session_id: str = None, limit: int = 25, skip: int = 0, sort_key: str = "committed_at", sort_order: str = "desc"):
-        db = Control.instance().db
+        db = get_db()
 
         if session_id:
             kwargs = {"session_id": session_id}

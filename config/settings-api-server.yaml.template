@@ -1,0 +1,34 @@
+network_id: fedn-network
+api:
+  host: api-server
+  port: 8092
+  debug: True
+
+controller:
+  host: controller
+  port: 12090
+
+statestore:
+  # Available DB types are MongoDB, PostgreSQL, SQLite
+  type: MongoDB
+  mongo_config:
+    username: fedn_admin
+    password: password
+    host: mongo
+    port: 6534
+  postgres_config:
+    username: fedn_admin
+    password: password
+    host: fedn_postgres
+    port: 5432
+
+storage:
+  storage_type: BOTO3
+  storage_config:
+    storage_endpoint_url: http://minio:9000
+    storage_access_key: fedn_admin
+    storage_secret_key: password
+    storage_bucket: fedn-models
+    context_bucket: fedn-context
+    storage_secure_mode: False
+    storage_verify_ssl: False

@@ -1,5 +1,8 @@
 import ast
 import json
+import linecache
+import linecache as _lc
+import traceback
 from concurrent import futures
 
 import grpc
@@ -11,8 +14,9 @@ from fedn.common.log_config import logger
 # imports for user defined code
 from fedn.network.combiner.hooks.allowed_import import *  # noqa: F403
 from fedn.network.combiner.hooks.allowed_import import ServerFunctionsBase
-from fedn.network.combiner.modelservice import bytesIO_request_generator, model_as_bytesIO, unpack_model
+from fedn.network.combiner.hooks.grpc_wrappers import safe_streaming, safe_unary
 from fedn.utils.helpers.plugins.numpyhelper import Helper
+from fedn.utils.model import FednModel
 
 CHUNK_SIZE = 1024 * 1024
 VALID_NAME_REGEX = "^[a-zA-Z0-9_-]*$"
@@ -35,25 +39,25 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         self.implemented_functions = {}
         logger.info("Server Functions initialized.")
 
-    def HandleClientConfig(self, request_iterator: fedn.ClientConfigRequest, context):
+    @safe_unary("client_settings", lambda: fedn.ClientConfigResponse(client_settings=json.dumps({})))
+    def HandleClientConfig(self, request_iterator: fedn.FileChunk, context):
         """Distribute client configs to clients from user defined code.
 
-        :param request_iterator: the client config request
-        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.ClientConfigRequest`
+        :param request_iterator: the global model
+        :type request_iterator: :class:`fedn.network.grpc.fedn_pb2.FileChunk`
         :param context: the context (unused)
         :type context: :class:`grpc._server._Context`
         :return: the client config response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientConfigResponse`
         """
-        try:
-            logger.info("Received client config request.")
-            model, _ = unpack_model(request_iterator, self.helper)
-            client_settings = self.server_functions.client_settings(global_model=model)
-            logger.info(f"Client config response: {client_settings}")
-            return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
-        except Exception as e:
-            logger.error(f"Error handling client config request: {e}")
+        logger.info("Received client config request.")
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
+        client_settings = self.server_functions.client_settings(global_model=model)
+        logger.info(f"Client config response: {client_settings}")
+        return fedn.ClientConfigResponse(client_settings=json.dumps(client_settings))
 
+    @safe_unary("client_selection", lambda: fedn.ClientSelectionResponse(client_ids=json.dumps([])))
     def HandleClientSelection(self, request: fedn.ClientSelectionRequest, context):
         """Handle client selection from user defined code.
 
@@ -64,15 +68,13 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client selection response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientSelectionResponse`
         """
-        try:
-            logger.info("Received client selection request.")
-            client_ids = json.loads(request.client_ids)
-            client_ids = self.server_functions.client_selection(client_ids)
-            logger.info(f"Clients selected: {client_ids}")
-            return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
-        except Exception as e:
-            logger.error(f"Error handling client selection request: {e}")
+        logger.info("Received client selection request.")
+        client_ids = json.loads(request.client_ids)
+        client_ids = self.server_functions.client_selection(client_ids)
+        logger.info(f"Clients selected: {client_ids}")
+        return fedn.ClientSelectionResponse(client_ids=json.dumps(client_ids))
 
+    @safe_unary("store_metadata", lambda: fedn.ClientMetaResponse(status="ERROR"))
     def HandleMetadata(self, request: fedn.ClientMetaRequest, context):
         """Store client metadata from a request.
 
@@ -83,32 +85,33 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the client meta response
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ClientMetaResponse`
         """
-        try:
-            logger.info("Received metadata")
-            client_id = request.client_id
-            metadata = json.loads(request.metadata)
-            # dictionary contains: [model, client_metadata] in that order for each key
-            self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
-            self.check_incremental_aggregate(client_id)
-            return fedn.ClientMetaResponse(status="Metadata stored")
-        except Exception as e:
-            logger.error(f"Error handling store metadata request: {e}")
+        logger.info("Received metadata")
+        client_id = request.client_id
+        metadata = json.loads(request.metadata)
+        # dictionary contains: [model, client_metadata] in that order for each key
+        self.client_updates[client_id] = self.client_updates.get(client_id, []) + [metadata]
+        self.check_incremental_aggregate(client_id)
+        return fedn.ClientMetaResponse(status="Metadata stored")
 
+    @safe_unary("store_model", lambda: fedn.StoreModelResponse(status="ERROR"))
     def HandleStoreModel(self, request_iterator, context):
-        try:
-            model, final_request = unpack_model(request_iterator, self.helper)
-            client_id = final_request.id
-            if client_id == "global_model":
-                logger.info("Received previous global model")
-                self.previous_global = model
-            else:
-                logger.info(f"Received client model from client {client_id}")
-                # dictionary contains: [model, client_metadata] in that order for each key
-                self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
-            self.check_incremental_aggregate(client_id)
-            return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
-        except Exception as e:
-            logger.error(f"Error handling store model request: {e}")
+        metadata = dict(context.invocation_metadata())
+        client_id = metadata.get("client-id")
+        if client_id is None:
+            logger.error("No client-id provided in metadata.")
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "No client-id provided in metadata.")
+            return fedn.StoreModelResponse(status="Error: No client-id provided in metadata.")
+        fedn_model = FednModel.from_filechunk_stream(request_iterator)
+        model = fedn_model.get_model_params(self.helper)
+        if client_id == "global_model":
+            logger.info("Received previous global model")
+            self.previous_global = model
+        else:
+            logger.info(f"Received client model from client {client_id}")
+            # dictionary contains: [model, client_metadata] in that order for each key
+            self.client_updates[client_id] = [model] + self.client_updates.get(client_id, [])
+        self.check_incremental_aggregate(client_id)
+        return fedn.StoreModelResponse(status=f"Received model originating from {client_id}")
 
     def check_incremental_aggregate(self, client_id):
         # incremental aggregation (memory secure)
@@ -121,6 +124,7 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
             self.server_functions.incremental_aggregate(client_id, client_model, client_metadata, self.previous_global)
             del self.client_updates[client_id]
 
+    @safe_streaming("aggregate")
     def HandleAggregation(self, request, context):
         """Receive and store models and aggregate based on user-defined code when specified in the request.
 
@@ -131,22 +135,18 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: the aggregation response (aggregated model or None)
         :rtype: :class:`fedn.network.grpc.fedn_pb2.AggregationResponse`
         """
-        try:
-            logger.info(f"Receieved aggregation request: {request.aggregate}")
-            if self.implemented_functions["incremental_aggregate"]:
-                aggregated_model = self.server_functions.get_incremental_aggregate_model()
-            else:
-                aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
+        logger.info(f"Receieved aggregation request: {request.aggregate}")
+        if self.implemented_functions["incremental_aggregate"]:
+            aggregated_model = self.server_functions.get_incremental_aggregate_model()
+        else:
+            aggregated_model = self.server_functions.aggregate(self.previous_global, self.client_updates)
 
-            model_bytesIO = model_as_bytesIO(aggregated_model, self.helper)
-            request_function = fedn.AggregationResponse
-            self.client_updates = {}
-            logger.info("Returning aggregate model.")
-            response_generator = bytesIO_request_generator(mdl=model_bytesIO, request_function=request_function, args={})
-            for response in response_generator:
-                yield response
-        except Exception as e:
-            logger.error(f"Error handling aggregation request: {e}")
+        fedn_model = FednModel.from_model_params(aggregated_model, self.helper)
+        self.client_updates = {}
+        logger.info("Returning aggregate model.")
+        response_generator = fedn_model.get_filechunk_stream()
+        for response in response_generator:
+            yield response
 
     def HandleProvidedFunctions(self, request: fedn.ProvidedFunctionsResponse, context):
         """Handles the 'provided_functions' request. Sends back which functions are available.
@@ -158,18 +158,19 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
         :return: dict with str -> bool for which functions are available
         :rtype: :class:`fedn.network.grpc.fedn_pb2.ProvidedFunctionsResponse`
         """
-        try:
-            logger.info("Receieved provided functions request.")
-            server_functions_code = request.function_code
-            # if no new code return previous
-            if server_functions_code == self.server_functions_code:
-                logger.info("No new server function code provided.")
-                logger.info(f"Provided functions: {self.implemented_functions}")
-                return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
+        logger.info("Receieved provided functions request.")
+        server_functions_code = request.function_code
+        # if no new code return previous
+        if server_functions_code == self.server_functions_code:
+            logger.info("No new server function code provided.")
+            logger.info(f"Provided functions: {self.implemented_functions}")
+            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
 
-            self.server_functions_code = server_functions_code
-            self.implemented_functions = {}
-            self._instansiate_server_functions_code()
+        self.server_functions_code = server_functions_code
+        self.implemented_functions = {}
+        self._instansiate_server_functions_code()
+
+        if self.implemented_functions == {}:  # not defaultet due to error
             functions = ["client_selection", "client_settings", "aggregate", "incremental_aggregate"]
             # parse the entire code string into an AST
             tree = ast.parse(server_functions_code)
@@ -185,20 +186,56 @@ class FunctionServiceServicer(rpc.FunctionServiceServicer):
                 else:
                     print(f"Function '{func}' not found.")
                     self.implemented_functions[func] = False
-            logger.info(f"Provided function: {self.implemented_functions}")
-            return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
-        except Exception as e:
-            logger.error(f"Error handling provided functions request: {e}")
+
+        logger.info(f"Provided function: {self.implemented_functions}")
+        return fedn.ProvidedFunctionsResponse(available_functions=self.implemented_functions)
 
     def _instansiate_server_functions_code(self):
-        # this will create a new user defined instance of the ServerFunctions class.
         try:
             namespace = {}
-            exec(self.server_functions_code, globals(), namespace)  # noqa: S102
+            # create a stable synthetic filename to appear in tracebacks
+            self._server_code_filename = f"server_functions:{hash(self.server_functions_code)}"
+            code_obj = compile(self.server_functions_code, self._server_code_filename, "exec")
+
+            # prime linecache so traceback can show source lines
+            linecache.cache[self._server_code_filename] = (
+                len(self.server_functions_code),
+                None,
+                [ln if ln.endswith("\n") else ln + "\n" for ln in self.server_functions_code.splitlines()],
+                self._server_code_filename,
+            )
+
+            exec(code_obj, globals(), namespace)  # noqa: S102
             exec("server_functions = ServerFunctions()", globals(), namespace)  # noqa: S102
             self.server_functions = namespace.get("server_functions")
         except Exception as e:
-            logger.error(f"Exec failed with error: {str(e)}")
+            logger.error(f"Exec failed: {e}")
+            self.server_functions = None
+            self.implemented_functions = dict.fromkeys(["client_selection", "client_settings", "aggregate", "incremental_aggregate"], False)
+
+    def _retire_and_log(self, func_name: str, err: Exception):
+        # retire the function immediately
+        if func_name in self.implemented_functions:
+            self.implemented_functions[func_name] = False
+
+        # try to find frames that originate from the compiled user code
+        tb = traceback.extract_tb(err.__traceback__)
+        user_frames = []
+        filename = getattr(self, "_server_code_filename", None)
+        for frame in tb:
+            if filename and frame.filename == filename:
+                user_frames.append(frame)
+
+        if user_frames:
+            # deepest frame in user code (where it actually failed)
+            f = user_frames[-1]
+            # fetch the source line from linecache (primed earlier)
+
+            src_line = (_lc.getline(f.filename, f.lineno) or "").rstrip("\n")
+            logger.error(f"User function '{func_name}' crashed at {f.filename}:{f.lineno} in {f.name}()\n> {src_line}\nException: {repr(err)}")
+        else:
+            # fallback: full traceback (server + user frames) if we didn't match a user frame
+            logger.exception(f"{func_name} failed, retiring until next code update: {err}")
 
 
 def serve():

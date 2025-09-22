@@ -7,11 +7,16 @@ build:
   jobs:
     pre_build:
      - sphinx-apidoc --ext-autodoc --module-first -o docs fedn ./*tests* ./fedn/cli* ./fedn/common* ./fedn/network/api/v1* ./fedn/network/grpc/fedn_pb2.py ./fedn/network/grpc/fedn_pb2_grpc.py  ./fedn/network/api/server.py ./fedn/network/controller/controlbase.py
+
 sphinx:
    configuration: docs/conf.py
+   fail_on_warning: false
 
 python:
   install:
     - method: pip
       path: .
     - requirements: docs/requirements.txt
+
+# Ensure documentation is publicly accessible
+# Make sure this is not set to private in RTD settings

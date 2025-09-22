@@ -15,6 +15,7 @@ on:
       - '.github/**'
     branches:
       - "**"
+  workflow_dispatch:
 
 jobs:
   integration-tests:
@@ -50,7 +51,15 @@ jobs:
       - name: print logs combiner
         if: failure()
         run: .ci/tests/examples/print_logs.sh combiner ${{ matrix.to_test }}
+
+      - name: print logs controller
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh controller ${{ matrix.to_test }}
       
+      - name: print logs hooks
+        if: failure()
+        run: .ci/tests/examples/print_logs.sh hooks ${{ matrix.to_test }} 
+
       - name: print logs client
         if: failure()
         run: .ci/tests/examples/print_logs.sh client ${{ matrix.to_test }}
@@ -62,3 +71,5 @@ jobs:
       - name: print logs minio
         if: failure()
         run: .ci/tests/examples/print_logs.sh minio ${{ matrix.to_test }}
+
+      

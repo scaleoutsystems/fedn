@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.attribute import AttributeDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
@@ -14,7 +14,7 @@ bp = Blueprint("attribute", __name__, url_prefix=f"/api/{api_version}/attributes
 @jwt_auth_required(role="admin")
 def get_attributes():
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -32,7 +32,7 @@ def get_attributes():
 @jwt_auth_required(role="admin")
 def list_attributes():
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -50,7 +50,7 @@ def list_attributes():
 @jwt_auth_required(role="admin")
 def get_attributes_count():
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.attribute_store.count(**kwargs)
         response = count
@@ -64,7 +64,7 @@ def get_attributes_count():
 @jwt_auth_required(role="admin")
 def attributes_count():
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
         count = db.attribute_store.count(**kwargs)
         response = count
@@ -78,7 +78,7 @@ def attributes_count():
 @jwt_auth_required(role="admin")
 def get_attribute(id: str):
     try:
-        db = Control.instance().db
+        db = get_db()
         attribute = db.attribute_store.get(id)
         if attribute is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -94,7 +94,7 @@ def get_attribute(id: str):
 @jwt_auth_required(role="admin")
 def add_attributes():
     try:
-        db = Control.instance().db
+        db = get_db()
         data = request.json if request.headers["Content-Type"] == "application/json" else request.form.to_dict()
 
         attribute = AttributeDTO().patch_with(data)
@@ -158,7 +158,7 @@ def get_client_current_attributes():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         json_data = request.get_json()
         client_ids = json_data.get("client_ids")
         if not client_ids:
