@@ -32,7 +32,7 @@ dependencies = [
   "urllib3>=1.26.4",
   "gunicorn>=20.0.4",
   "boto3==1.38.42",
-  "grpcio>=1.68.1,<=1.70",
+  "grpcio>=1.68.1,<=1.75.0",
   "grpcio-tools>=1.68.1,<=1.70",
   "numpy>=1.21.6",
   "protobuf>=5.0.0,<6.31.0",
