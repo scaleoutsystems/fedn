@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 
 bp = Blueprint("round", __name__, url_prefix=f"/api/{api_version}/rounds")
 
@@ -88,7 +88,7 @@ def get_rounds():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = request.args.to_dict()
@@ -167,7 +167,7 @@ def list_rounds():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
 
         kwargs = get_post_data_to_kwargs(request)
@@ -215,7 +215,7 @@ def get_rounds_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.round_store.count(**kwargs)
         response = count
@@ -262,7 +262,7 @@ def rounds_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.round_store.count(**kwargs)
         response = count
@@ -307,7 +307,7 @@ def get_round(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         round = db.round_store.get(id)
         if round is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404

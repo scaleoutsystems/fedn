@@ -13,7 +13,7 @@ services:
       service: combiner
     build:
       args:
-        INSTALL_TORCH: "1"
+        EXTRA_PIP_PACKAGES: "torch"
     environment:
       <<: *defaults
       FEDN_LABELS_PATH: /app/data/clients/labels.pt

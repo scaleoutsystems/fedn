@@ -22,8 +22,20 @@ if [ "$service" == "api-server" ]; then
 fi
 
 if [ "$service" == "combiner" ]; then
-    echo "Reducer logs"
+    echo "Combiner logs"
     docker logs "$(basename $PWD)-combiner-1"
+    exit 0
+fi
+
+if [ "$service" == "controller" ]; then
+    echo "Controller logs"
+    docker logs "$(basename $PWD)-controller-1"
+    exit 0
+fi
+
+if [ "$service" == "hooks" ]; then
+    echo "Hooks logs"
+    docker logs "hook"
     exit 0
 fi
 

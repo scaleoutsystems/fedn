@@ -1,14 +1,12 @@
-import io
-from io import BytesIO
-
 import numpy as np
 from flask import Blueprint, jsonify, request, send_file
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db, get_network, get_repository
 from fedn.network.api.v1.shared import api_version, get_limit, get_post_data_to_kwargs, get_reverse, get_typed_list_headers
-from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.shared import EntityNotFound, MissingFieldError, ValidationError
+from fedn.utils.model import FednModel
 
 bp = Blueprint("model", __name__, url_prefix=f"/api/{api_version}/models")
 
@@ -100,7 +98,7 @@ def get_models():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -186,7 +184,7 @@ def list_models():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -241,7 +239,7 @@ def get_models_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.model_store.count(**kwargs)
         response = count
@@ -295,7 +293,7 @@ def models_count():
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.model_store.count(**kwargs)
         response = count
@@ -340,7 +338,7 @@ def get_model(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         model = db.model_store.get(id)
 
         if model is None:
@@ -393,7 +391,7 @@ def patch_model(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         existing_model = db.model_store.get(id)
         if existing_model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -466,7 +464,7 @@ def put_model(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         model = db.model_store.get(id)
         if model is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -537,7 +535,7 @@ def get_descendants(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit = get_limit(request.headers)
 
         descendants = db.model_store.list_descendants(id, limit or 10)
@@ -605,7 +603,7 @@ def get_ancestors(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit = get_limit(request.headers)
         reverse = get_reverse(request.headers)
         include_self_param: str = request.args.get("include_self")
@@ -648,7 +646,7 @@ def get_leaf_nodes():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         leaf_nodes = db.model_store.get_leaf_nodes()
         response = [model.to_dict() for model in leaf_nodes]
         return jsonify(response), 200
@@ -691,16 +689,14 @@ def download(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
-        repository = Control.instance().repository
+        db = get_db()
+        repository = get_repository()
         if repository is not None:
             model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
-
-            file = repository.get_model_stream(model.model_id)
-
-            return send_file(file, as_attachment=True, download_name=model.model_id)
+            fedn_model = repository.get_model(model.model_id)
+            return send_file(fedn_model.get_stream_unsafe(), as_attachment=True, download_name=model.model_id)
         else:
             return jsonify({"message": "No model storage configured"}), 500
     except Exception as e:
@@ -747,21 +743,15 @@ def get_parameters(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
-        repository = Control.instance().repository
+        db = get_db()
+        repository = get_repository()
         if repository is not None:
             model = db.model_store.get(id)
             if model is None:
                 return jsonify({"message": f"Entity with id: {id} not found"}), 404
+            fedn_model = repository.get_model(model.model_id)
 
-            file = repository.get_model_stream(model.model_id)
-
-            file_bytes = io.BytesIO()
-            for chunk in file.stream(32 * 1024):
-                file_bytes.write(chunk)
-            file_bytes.seek(0)  # Reset the pointer to the beginning of the byte array
-
-            a = np.load(file_bytes)
+            a = np.load(fedn_model.get_stream_unsafe())
 
             weights = []
             for i in range(len(a.files)):
@@ -803,21 +793,29 @@ def upload_model():
                         type: string
     """
     try:
-        control = Control.instance()
+        network = get_network()
         data = request.form.to_dict()
         file = request.files["file"]
         name: str = data.get("name", None)
 
         try:
-            object = BytesIO()
-            object.seek(0, 0)
-            file.seek(0)
-            object.write(file.read())
-            helper = control.get_helper()
-            logger.info(f"Loading model from file using helper {helper.name}")
-            object.seek(0)
-            model = helper.load(object)
-            control.commit(model=model, name=name)
+            fedn_model = FednModel.from_stream(file)
+            fedn_model.helper = network.get_helper()
+            try:
+                _ = fedn_model.get_model_params()
+            except Exception as e:
+                logger.error(f"Failed to extract model parameters: {e}")
+                status_code = 400
+                return (
+                    jsonify(
+                        {
+                            "success": False,
+                            "message": "Failed to extract model parameters. Ensure that the model is compatible with the selected helper.",
+                        }
+                    ),
+                    status_code,
+                )
+            network.commit_model(model=fedn_model, name=name)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {e}")
             status_code = 400

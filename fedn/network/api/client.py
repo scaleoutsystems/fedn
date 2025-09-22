@@ -951,13 +951,13 @@ class APIClient:
         _params = {}
 
         if session_id:
-            _params["sessionId"] = session_id
+            _params["session_id"] = session_id
 
         if model_id:
-            _params["modelId"] = model_id
+            _params["model_id"] = model_id
 
         if correlation_id:
-            _params["correlationId"] = correlation_id
+            _params["correlation_id"] = correlation_id
 
         if sender_name:
             _params["sender.name"] = sender_name
@@ -1028,10 +1028,10 @@ class APIClient:
         _params = {}
 
         if model_id:
-            _params["modelId"] = model_id
+            _params["model_id"] = model_id
 
         if correlation_id:
-            _params["correlationId"] = correlation_id
+            _params["correlation_id"] = correlation_id
 
         if sender_name:
             _params["sender.name"] = sender_name
@@ -1118,3 +1118,40 @@ class APIClient:
         response = requests.post(url, json=attribute, headers=self.headers, verify=self.verify)
         response.raise_for_status()
         return response.json()
+
+    ### Control Functions ###
+    def step_current_session(self):
+        """Continue a session control.
+
+        :param session_id: The id of the session to continue.
+        :type session_id: str
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("control/continue"),
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
+        return _json
+
+    def stop_current_session(self):
+        """Stop a session control.
+
+        :param session_id: The id of the session to stop.
+        :type session_id: str
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("control/stop"),
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
+        return _json

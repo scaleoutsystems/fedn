@@ -3,6 +3,7 @@ from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctio
 # See allowed_imports for what packages you can use in this class.
 
 
+# Class must be named ServerFunctions
 class ServerFunctions(ServerFunctionsBase):
     # toy example to highlight functionality of ServerFunctions.
     def __init__(self) -> None:

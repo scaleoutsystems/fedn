@@ -44,6 +44,8 @@ class SCClient(FednClient):
         for epoch in range(n_epochs):
             sc_model.train()
             for idx, (y_labels, x_spectrograms) in enumerate(dataloader_train):
+                self.check_task_abort()
+
                 optimizer.zero_grad()
                 _, logits = sc_model(x_spectrograms)
 

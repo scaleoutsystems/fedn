@@ -8,6 +8,7 @@ import uuid
 from contextlib import contextmanager
 from io import BytesIO
 from typing import Any, Optional, Tuple, Union
+from urllib.parse import urljoin
 
 import psutil
 import requests
@@ -77,7 +78,7 @@ class FednClient:
 
     def connect_to_api(self, url: str, token: str, json: dict) -> Tuple[ConnectToApiResult, Any]:
         """Connect to the FEDn API."""
-        url_endpoint = f"{url}api/v1/clients/add"
+        url_endpoint = urljoin(url, "api/v1/clients/add")
         logger.info(f"Connecting to API endpoint: {url_endpoint}")
 
         try:

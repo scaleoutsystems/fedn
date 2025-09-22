@@ -5,7 +5,7 @@ FROM $BASE_IMG AS builder
 ARG GRPC_HEALTH_PROBE_VERSION=""
 ARG REQUIREMENTS=""
 
-ARG INSTALL_TORCH=0
+ARG EXTRA_PIP_PACKAGES=""
 
 WORKDIR /build
 
@@ -36,9 +36,12 @@ RUN python -m venv /venv \
     fi \
     && rm -rf /build/requirements.txt
 
-# only install torch when asked
-RUN if [ "$INSTALL_TORCH" = "1" ]; then /venv/bin/pip install torch; fi
-
+RUN if [ -n "$EXTRA_PIP_PACKAGES" ]; then \
+    echo "Installing extra pip packages: $EXTRA_PIP_PACKAGES" && \
+    /venv/bin/pip install --no-cache-dir $EXTRA_PIP_PACKAGES; \
+    else \
+    echo "No EXTRA_PIP_PACKAGES provided"; \
+    fi
 
 # Install grpc health probe
 RUN if [ ! -z "$GRPC_HEALTH_PROBE_VERSION" ]; then \
@@ -79,4 +82,3 @@ RUN set -ex \
 USER appuser
 
 ENTRYPOINT [ "/venv/bin/fedn" ]
-

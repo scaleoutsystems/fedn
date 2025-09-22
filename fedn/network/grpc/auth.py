@@ -25,6 +25,8 @@ ENDPOINT_WHITELIST = [
     "/fedn.Connector/ListActiveClients",
     "/fedn.Control/Start",
     "/fedn.Control/Stop",
+    "/fedn.Control/SendCommand",
+    "/fedn.Control/GetState",
     "/fedn.Control/FlushAggregationQueue",
     "/fedn.Control/SetAggregator",
     "/fedn.Control/SetServerFunctions",
