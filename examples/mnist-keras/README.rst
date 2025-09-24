@@ -13,11 +13,12 @@ Prerequisites
 Creating the compute package and seed model
 -------------------------------------------
 
-Install fedn: 
+Install fedn and example specific libraries: 
 
 .. code-block::
 
    pip install fedn
+   pip install -r requirements.txt
 
 Clone this repository, then locate into this directory:
 

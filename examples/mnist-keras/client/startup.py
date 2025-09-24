@@ -23,7 +23,7 @@ class MyClient:
         client.set_validate_callback(self.validate)
         client.set_predict_callback(self.predict)
 
-    def train(self, in_model_path, settings, data_path=None, batch_size=32, epochs=1):
+    def train(self, in_model_path, settings, data_path=None, batch_size=32, epochs=5):
         """Complete a model update.
 
         Load model paramters from in_model_path (managed by the FEDn client),
@@ -48,9 +48,10 @@ class MyClient:
         model = load_parameters(in_model_path)
 
         # Train
-        history = model.fit(x_train, y_train, batch_size=batch_size, epochs=epochs)
-        print("histroy: ", history)
-        self.client.log_metric({"training_loss": history.history["training_loss"], "training_accuracy": history.history["training_accuracy"]})
+        for epoch in range(epochs):
+            print("epoch: ", epoch, "/", epochs)
+            history = model.fit(x_train, y_train, batch_size=batch_size, epochs=1)
+            self.client.log_metric({"training_loss": history.history["loss"][-1], "training_accuracy": history.history["accuracy"][-1]})
 
         # Metadata needed for aggregation server side
         metadata = {
@@ -96,8 +97,15 @@ class MyClient:
 
         return report
 
-    def predict(self, model_params, data):
-        """Make predictions with the model using the given parameters and data."""
-        # Implement prediction logic here
-        print("Predicting with model parameters:", model_params, "and data:", data)
-        return {"predictions": [1, 0, 1]}  # Example predictions
+    def predict(self, in_model_path, data_path=None):
+        # Using test data for prediction but another dataset could be loaded
+        x_test, _ = load_data(data_path, is_train=False)
+
+        # Load model
+        model = load_parameters(in_model_path)
+
+        # Predict
+        y_pred = model.predict(x_test)
+        y_pred = np.argmax(y_pred, axis=1)
+
+        return {"predictions": y_pred}
