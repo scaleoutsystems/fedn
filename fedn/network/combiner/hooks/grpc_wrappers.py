@@ -26,6 +26,7 @@ def safe_streaming(func_name):
             try:
                 yield from fn(self, request, context)
             except Exception as e:
+                self.client_updates = {}
                 self._retire_and_log(func_name, e)
                 # Option B for streaming: signal an RPC error the client understands
                 context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
