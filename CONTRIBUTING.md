@@ -22,12 +22,12 @@ Report a bug or propose a feature by [opening a new GitHub Issue](https://github
 ### Branches & Pull Requests
 
 - **master** branch has the latest release of FEDn
-- **develop** branch is where we add functionality and submit bugfixes
+- **master** branch is where we add functionality and submit bugfixes
 - if your branch introduces new functionality, name it **feature/[GitHub-Issue-ID]**
 - if your branch resolves a bug, name it **issue/[GitHub-Issue-ID]**
 - if your branch is a hotfix, name it **hotfix/[GitHub-Issue-ID]**
 
-Open your pull requests against the **develop** branch unless you're resolving a critical bug in production (hotfix). Then your pull request should be against **master** branch.
+Open your pull requests against the **master** branch.
 
 ### Code checks
 We defined GitHub actions that check code quality and formatting against pushed branches and pull requests. We use:
