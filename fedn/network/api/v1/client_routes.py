@@ -2,12 +2,11 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 
-from fedn.common.config import get_controller_config, get_network_config
+from fedn.common.config import get_api_config, get_network_config
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
-from fedn.network.api.shared import get_checksum
+from fedn.network.api.shared import get_checksum, get_db, get_network
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto import ClientDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
@@ -115,7 +114,7 @@ def get_clients():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -201,7 +200,7 @@ def list_clients():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -268,7 +267,7 @@ def get_clients_count():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.client_store.count(**kwargs)
         response = count
@@ -323,7 +322,7 @@ def clients_count():
                     type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = get_post_data_to_kwargs(request)
         count = db.client_store.count(**kwargs)
         response = count
@@ -368,7 +367,7 @@ def get_client(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         client = db.client_store.get(id)
         if client is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -412,7 +411,7 @@ def delete_client(id: str):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         result: bool = db.client_store.delete(id)
         if result is False:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -464,8 +463,8 @@ def add_client():
                         type: string
     """
     try:
-        db = Control.instance().db
-        network = Control.instance().network
+        db = get_db()
+        network = get_network()
         json_data = request.get_json()
         remote_addr = request.remote_addr
 
@@ -600,7 +599,7 @@ def get_client_config():
         checksum_arg = request.args.get("checksum", "true")
         include_checksum = checksum_arg.lower() == "true"
 
-        config = get_controller_config()
+        config = get_api_config()
         network_id = get_network_config()
         port = config["port"]
         host = config["host"]
@@ -663,7 +662,7 @@ def get_client_attributes(id):
                         type: string
     """
     try:
-        db = Control.instance().db
+        db = get_db()
 
         client = db.client_store.get(id)
         if client is None:

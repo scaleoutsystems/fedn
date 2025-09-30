@@ -1,5 +1,5 @@
 network_id: fedn-network
-controller:
+api:
   host: localhost
   port: 8092
   debug: True

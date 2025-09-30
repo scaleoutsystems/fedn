@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version, get_post_data_to_kwargs, get_typed_list_headers
-from fedn.network.controller.control import Control
 from fedn.network.storage.statestore.stores.dto.telemetry import TelemetryDTO
 from fedn.network.storage.statestore.stores.shared import MissingFieldError, ValidationError
 
@@ -14,7 +14,7 @@ bp = Blueprint("telemetry", __name__, url_prefix=f"/api/{api_version}/telemetry"
 @jwt_auth_required(role="admin")
 def get_telemetries():
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = request.args.to_dict()
 
@@ -32,7 +32,7 @@ def get_telemetries():
 @jwt_auth_required(role="admin")
 def list_telemetries():
     try:
-        db = Control.instance().db
+        db = get_db()
         limit, skip, sort_key, sort_order = get_typed_list_headers(request.headers)
         kwargs = get_post_data_to_kwargs(request)
 
@@ -50,7 +50,7 @@ def list_telemetries():
 @jwt_auth_required(role="admin")
 def get_telemetries_count():
     try:
-        db = Control.instance().db
+        db = get_db()
         kwargs = request.args.to_dict()
         count = db.telemetry_store.count(**kwargs)
         response = count
@@ -64,7 +64,7 @@ def get_telemetries_count():
 @jwt_auth_required(role="admin")
 def telemetries_count():
     try:
-        db = Control.instance().db
+        db = get_db()
 
         kwargs = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
@@ -80,7 +80,7 @@ def telemetries_count():
 @jwt_auth_required(role="admin")
 def get_telemetry(id: str):
     try:
-        db = Control.instance().db
+        db = get_db()
         telemetry = db.telemetry_store.get(id)
         if telemetry is None:
             return jsonify({"message": f"Entity with id: {id} not found"}), 404
@@ -96,7 +96,7 @@ def get_telemetry(id: str):
 @jwt_auth_required(role="admin")
 def add_telemetries():
     try:
-        db = Control.instance().db
+        db = get_db()
         data = request.get_json(silent=True) if request.is_json else request.form.to_dict()
 
         telemetry = TelemetryDTO().patch_with(data)

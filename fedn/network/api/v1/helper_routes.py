@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 
 from fedn.common.log_config import logger
 from fedn.network.api.auth import jwt_auth_required
+from fedn.network.api.shared import get_db
 from fedn.network.api.v1.shared import api_version
-from fedn.network.controller.control import Control
 
 bp = Blueprint("helper", __name__, url_prefix=f"/api/{api_version}/helpers")
 
@@ -25,7 +25,7 @@ def get_active_helper():
             description: An unexpected error occurred
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         active_package = db.package_store.get_active()
         if active_package is None:
             return jsonify({"message": "No active helper"}), 404
@@ -53,7 +53,7 @@ def set_active_helper():
             description: An unexpected error occurred
     """
     try:
-        db = Control.instance().db
+        db = get_db()
         data = request.get_json()
         helper = data["helper"]
         db.package_store.set_active_helper(helper)

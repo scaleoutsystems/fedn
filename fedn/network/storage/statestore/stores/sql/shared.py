@@ -40,6 +40,7 @@ class SessionConfigModel(MyAbstractBase):
     aggregator: Mapped[str] = mapped_column(String(255))
     aggregator_kwargs: Mapped[Optional[str]]
     round_timeout: Mapped[int]
+    accept_stragglers: Mapped[Optional[bool]] = mapped_column(default=False)
     buffer_size: Mapped[int]
     delete_models_storage: Mapped[bool]
     clients_required: Mapped[int]
@@ -86,6 +87,7 @@ class RoundConfigModel(MyAbstractBase):
     aggregator: Mapped[str] = mapped_column(String(255))
     aggregator_kwargs: Mapped[Optional[str]]
     round_timeout: Mapped[int]
+    accept_stragglers: Mapped[Optional[bool]] = mapped_column(default=False)
     buffer_size: Mapped[int]
     delete_models_storage: Mapped[bool]
     clients_required: Mapped[int]

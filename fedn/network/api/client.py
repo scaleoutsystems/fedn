@@ -1118,3 +1118,40 @@ class APIClient:
         response = requests.post(url, json=attribute, headers=self.headers, verify=self.verify)
         response.raise_for_status()
         return response.json()
+
+    ### Control Functions ###
+    def step_current_session(self):
+        """Continue a session control.
+
+        :param session_id: The id of the session to continue.
+        :type session_id: str
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("control/continue"),
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
+        return _json
+
+    def stop_current_session(self):
+        """Stop a session control.
+
+        :param session_id: The id of the session to stop.
+        :type session_id: str
+        :return: A dict with success or failure message.
+        :rtype: dict
+        """
+        response = requests.post(
+            self._get_url_api_v1("control/stop"),
+            verify=self.verify,
+            headers=self.headers,
+        )
+
+        _json = response.json()
+
+        return _json

@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in fedn_pb2_grpc.py depends on'
+        + f' but the generated code in network/grpc/fedn_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,13 +36,13 @@ class ModelServiceStub(object):
         """
         self.Upload = channel.stream_unary(
                 '/fedn.ModelService/Upload',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
                 _registered_method=True)
         self.Download = channel.unary_stream(
                 '/fedn.ModelService/Download',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                 _registered_method=True)
 
 
@@ -66,13 +66,13 @@ def add_ModelServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Upload': grpc.stream_unary_rpc_method_handler(
                     servicer.Upload,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
             ),
             'Download': grpc.unary_stream_rpc_method_handler(
                     servicer.Download,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ModelRequest.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.ModelResponse.SerializeToString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -100,7 +100,7 @@ class ModelService(object):
             request_iterator,
             target,
             '/fedn.ModelService/Upload',
-            network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
             options,
             channel_credentials,
@@ -128,7 +128,7 @@ class ModelService(object):
             target,
             '/fedn.ModelService/Download',
             network_dot_grpc_dot_fedn__pb2.ModelRequest.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.ModelResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
             options,
             channel_credentials,
             insecure,
@@ -159,6 +159,11 @@ class ControlStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
+        self.SendCommand = channel.unary_unary(
+                '/fedn.Control/SendCommand',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.CommandRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+                _registered_method=True)
         self.FlushAggregationQueue = channel.unary_unary(
                 '/fedn.Control/FlushAggregationQueue',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
@@ -174,6 +179,11 @@ class ControlStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
                 _registered_method=True)
+        self.GetState = channel.unary_unary(
+                '/fedn.Control/GetState',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.ControlStateResponse.FromString,
+                _registered_method=True)
 
 
 class ControlServicer(object):
@@ -186,6 +196,12 @@ class ControlServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def Stop(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendCommand(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -209,6 +225,12 @@ class ControlServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetState(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_ControlServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -220,6 +242,11 @@ def add_ControlServicer_to_server(servicer, server):
             'Stop': grpc.unary_unary_rpc_method_handler(
                     servicer.Stop,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'SendCommand': grpc.unary_unary_rpc_method_handler(
+                    servicer.SendCommand,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.CommandRequest.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
             ),
             'FlushAggregationQueue': grpc.unary_unary_rpc_method_handler(
@@ -236,6 +263,11 @@ def add_ControlServicer_to_server(servicer, server):
                     servicer.SetServerFunctions,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ControlResponse.SerializeToString,
+            ),
+            'GetState': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetState,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ControlRequest.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.ControlStateResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -291,6 +323,33 @@ class Control(object):
             target,
             '/fedn.Control/Stop',
             network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def SendCommand(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Control/SendCommand',
+            network_dot_grpc_dot_fedn__pb2.CommandRequest.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
             options,
             channel_credentials,
@@ -373,6 +432,33 @@ class Control(object):
             '/fedn.Control/SetServerFunctions',
             network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ControlResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetState(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Control/GetState',
+            network_dot_grpc_dot_fedn__pb2.ControlRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.ControlStateResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -840,6 +926,11 @@ class CombinerStub(object):
                 request_serializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.Response.FromString,
                 _registered_method=True)
+        self.PollAndReport = channel.unary_unary(
+                '/fedn.Combiner/PollAndReport',
+                request_serializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
+                _registered_method=True)
 
 
 class CombinerServicer(object):
@@ -894,6 +985,12 @@ class CombinerServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def PollAndReport(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CombinerServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -936,6 +1033,11 @@ def add_CombinerServicer_to_server(servicer, server):
                     servicer.SendTelemetryMessage,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.TelemetryMessage.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.Response.SerializeToString,
+            ),
+            'PollAndReport': grpc.unary_unary_rpc_method_handler(
+                    servicer.PollAndReport,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ActivityReport.FromString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.TaskRequest.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1164,6 +1266,33 @@ class Combiner(object):
             metadata,
             _registered_method=True)
 
+    @staticmethod
+    def PollAndReport(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/fedn.Combiner/PollAndReport',
+            network_dot_grpc_dot_fedn__pb2.ActivityReport.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.TaskRequest.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
 
 class FunctionServiceStub(object):
     """Missing associated documentation comment in .proto file."""
@@ -1181,7 +1310,7 @@ class FunctionServiceStub(object):
                 _registered_method=True)
         self.HandleClientConfig = channel.stream_unary(
                 '/fedn.FunctionService/HandleClientConfig',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
                 _registered_method=True)
         self.HandleClientSelection = channel.unary_unary(
@@ -1196,13 +1325,13 @@ class FunctionServiceStub(object):
                 _registered_method=True)
         self.HandleStoreModel = channel.stream_unary(
                 '/fedn.FunctionService/HandleStoreModel',
-                request_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+                request_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
                 response_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
                 _registered_method=True)
         self.HandleAggregation = channel.unary_stream(
                 '/fedn.FunctionService/HandleAggregation',
                 request_serializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
-                response_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
+                response_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                 _registered_method=True)
 
 
@@ -1255,7 +1384,7 @@ def add_FunctionServiceServicer_to_server(servicer, server):
             ),
             'HandleClientConfig': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleClientConfig,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.SerializeToString,
             ),
             'HandleClientSelection': grpc.unary_unary_rpc_method_handler(
@@ -1270,13 +1399,13 @@ def add_FunctionServiceServicer_to_server(servicer, server):
             ),
             'HandleStoreModel': grpc.stream_unary_rpc_method_handler(
                     servicer.HandleStoreModel,
-                    request_deserializer=network_dot_grpc_dot_fedn__pb2.StoreModelRequest.FromString,
+                    request_deserializer=network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
                     response_serializer=network_dot_grpc_dot_fedn__pb2.StoreModelResponse.SerializeToString,
             ),
             'HandleAggregation': grpc.unary_stream_rpc_method_handler(
                     servicer.HandleAggregation,
                     request_deserializer=network_dot_grpc_dot_fedn__pb2.AggregationRequest.FromString,
-                    response_serializer=network_dot_grpc_dot_fedn__pb2.AggregationResponse.SerializeToString,
+                    response_serializer=network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -1331,7 +1460,7 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleClientConfig',
-            network_dot_grpc_dot_fedn__pb2.ClientConfigRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.ClientConfigResponse.FromString,
             options,
             channel_credentials,
@@ -1412,7 +1541,7 @@ class FunctionService(object):
             request_iterator,
             target,
             '/fedn.FunctionService/HandleStoreModel',
-            network_dot_grpc_dot_fedn__pb2.StoreModelRequest.SerializeToString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.SerializeToString,
             network_dot_grpc_dot_fedn__pb2.StoreModelResponse.FromString,
             options,
             channel_credentials,
@@ -1440,7 +1569,7 @@ class FunctionService(object):
             target,
             '/fedn.FunctionService/HandleAggregation',
             network_dot_grpc_dot_fedn__pb2.AggregationRequest.SerializeToString,
-            network_dot_grpc_dot_fedn__pb2.AggregationResponse.FromString,
+            network_dot_grpc_dot_fedn__pb2.FileChunk.FromString,
             options,
             channel_credentials,
             insecure,

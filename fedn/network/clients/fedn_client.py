@@ -19,6 +19,7 @@ from fedn.common.config import FEDN_AUTH_SCHEME, FEDN_CONNECT_API_SECURE, FEDN_P
 from fedn.common.log_config import logger
 from fedn.network.clients.grpc_handler import GrpcHandler, RetryException
 from fedn.network.clients.package_runtime import PackageRuntime
+from fedn.network.clients.task_receiver import TaskReceiver
 from fedn.utils.dispatcher import Dispatcher
 
 # Constants for HTTP status codes
@@ -95,9 +96,7 @@ class LoggingContext:
             if model_id is None:
                 model_id = request.model_id
             if round_id is None:
-                if request.type == fedn.StatusType.MODEL_UPDATE:
-                    config = json.loads(request.data)
-                    round_id = config["round_id"]
+                round_id = request.round_id
             if session_id is None:
                 session_id = request.session_id
 
@@ -126,6 +125,8 @@ class FednClient:
         self.grpc_handler: Optional[GrpcHandler] = None
 
         self._current_context: Optional[LoggingContext] = None
+
+        self.task_receiver = TaskReceiver(self, self._run_task_callback)
 
     def set_train_callback(self, callback: callable) -> None:
         """Set the train callback."""
@@ -305,6 +306,20 @@ class FednClient:
         elif request.type == fedn.StatusType.BACKWARD:
             self.backward_gradients(request)
 
+    def _run_task_callback(self, request: fedn.TaskRequest) -> None:
+        if request.type in (
+            fedn.StatusType.MODEL_UPDATE,
+            fedn.StatusType.MODEL_VALIDATION,
+            fedn.StatusType.MODEL_PREDICTION,
+            fedn.StatusType.FORWARD,
+            fedn.StatusType.BACKWARD,
+        ):
+            self._task_stream_callback(request)
+            return {}
+        else:
+            logger.error(f"Unknown task type: {request.type}")
+            raise ValueError(f"Unknown task type: {request.type}")
+
     def update_local_model(self, request: fedn.TaskRequest) -> None:
         """Update the local model."""
         with self.logging_context(LoggingContext(request=request)):
@@ -431,7 +446,7 @@ class FednClient:
 
             self.send_model_prediction(prediction_message)
 
-    def log_metric(self, metrics: dict, step: int = None, commit: bool = True) -> bool:
+    def log_metric(self, metrics: dict, step: int = None, commit: bool = True, check_task_abort=True) -> bool:
         """Log the metrics to the server.
 
         Args:
@@ -440,6 +455,7 @@ class FednClient:
             If provided the context step will be set to this value.
             If not provided, the step from the context will be used.
             commit (bool, optional): Whether or not to increment the step.  Defaults to True.
+            check_task_abort (bool, optional): Whether or not to check for task abort. Defaults to True.
 
         Returns:
             bool: True if the metrics were logged successfully, False otherwise.
@@ -469,7 +485,10 @@ class FednClient:
             session_id=context.session_id,
         )
 
-        return self.grpc_handler.send_model_metric(message)
+        success = self.grpc_handler.send_model_metric(message)
+        if check_task_abort:
+            self.task_receiver.check_abort()
+        return success
 
     def forward_embeddings(self, request):
         """Forward pass for split learning gradient calculation or inference."""
@@ -497,7 +516,7 @@ class FednClient:
 
         update = self.create_update_message(model_id=model_id, model_update_id=embedding_update_id, meta=meta, request=request)
 
-        self.send_model_update(update)
+        self.send_model_update(update)  # embeddings
 
         self.send_status(
             "Forward pass completed.",
@@ -562,11 +581,12 @@ class FednClient:
             meta=meta,
         )
 
-    def log_attributes(self, attributes: dict) -> bool:
+    def log_attributes(self, attributes: dict, check_task_abort: bool = True) -> bool:
         """Log the attributes to the server.
 
         Args:
             attributes (dict): The attributes to log.
+            check_task_abort (bool, optional): Whether or not to check for task abort. Defaults to True.
 
         Returns:
             bool: True if the attributes were logged successfully, False otherwise.
@@ -581,13 +601,21 @@ class FednClient:
         for key, value in attributes.items():
             message.attributes.add(key=key, value=value)
 
-        return self.grpc_handler.send_attributes(message)
+        success = self.grpc_handler.send_attributes(message)
+        if check_task_abort:
+            self.task_receiver.check_abort()
+        return success
 
-    def log_telemetry(self, telemetry: dict) -> bool:
+    def log_telemetry(
+        self,
+        telemetry: dict,
+        check_task_abort: bool = True,
+    ) -> bool:
         """Log the telemetry data to the server.
 
         Args:
             telemetry (dict): The telemetry data to log.
+            check_task_abort (bool, optional): Whether or not to check for task abort. Defaults to True.
 
         Returns:
             bool: True if the telemetry data was logged successfully, False otherwise.
@@ -602,7 +630,23 @@ class FednClient:
         for key, value in telemetry.items():
             message.telemetries.add(key=key, value=value)
 
-        return self.grpc_handler.send_telemetry(message)
+        success = self.grpc_handler.send_telemetry(message)
+        if check_task_abort:
+            self.task_receiver.check_abort()
+        return success
+
+    def check_task_abort(self) -> None:
+        """Check if the ongoing task has been aborted.
+
+        This function should be called periodically from the task callback to ensure
+        that the task can be interrupted if needed.
+        If called from a thread that do not run the task, this function is a no-op.
+
+        Raises:
+            StoppedException: If the task was aborted.
+
+        """
+        self.task_receiver.check_abort()
 
     def create_update_message(self, model_id: str, model_update_id: str, meta: dict, request: fedn.TaskRequest) -> fedn.ModelUpdate:
         """Create an update message."""
@@ -610,6 +654,9 @@ class FednClient:
             sender_name=self.name,
             model_id=model_id,
             model_update_id=model_update_id,
+            correlation_id=request.correlation_id,
+            round_id=request.round_id,
+            session_id=request.session_id,
             receiver_name=request.sender.name,
             receiver_role=request.sender.role,
             meta=meta,
@@ -650,20 +697,41 @@ class FednClient:
         logger.info(f"Setting client ID to: {client_id}")
         self.client_id = client_id
 
-    def run(self, with_telemetry=True, with_heartbeat=True) -> None:
+    def run(self, with_telemetry=True, with_heartbeat=False, with_polling=True) -> None:
         """Run the client."""
         if with_heartbeat:
             threading.Thread(target=self.send_heartbeats, args=(self.name, self.client_id), daemon=True).start()
         if with_telemetry:
             threading.Thread(target=self.default_telemetry_loop, daemon=True).start()
+
         try:
-            self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
+            if with_polling:
+                self._run_polling_client()
+            else:
+                self.listen_to_task_stream(client_name=self.name, client_id=self.client_id)
         except KeyboardInterrupt:
             logger.info("Client stopped by user.")
 
-    def get_model_from_combiner(self, id: str, client_id: str, timeout: int = 20) -> BytesIO:
+    def _run_polling_client(self) -> None:
+        self.task_receiver.start()
+        logger.info("Task receiver started.")
+        while True:
+            try:
+                logger.info("Client is running. Press Ctrl+C to stop.")
+                self.task_receiver.wait_on_manager_thread()
+                logger.info("Task manager thread has exited. Stopping client.")
+                break
+            except KeyboardInterrupt:
+                if self.task_receiver.current_task is None:
+                    logger.info("No ongoing task to abort. Exiting client.")
+                    break
+                self.task_receiver.abort_current_task()
+                logger.info("To completely stop the client, press Ctrl+C again within 5 seconds...")
+            time.sleep(5)
+
+    def get_model_from_combiner(self, id: str, client_id: str) -> BytesIO:
         """Get the model from the combiner."""
-        return self.grpc_handler.get_model_from_combiner(id=id, client_id=client_id, timeout=timeout)
+        return self.grpc_handler.get_model_from_combiner(model_id=id, client_id=client_id)
 
     def send_model_to_combiner(self, model: BytesIO, id: str) -> None:
         """Send the model to the combiner."""

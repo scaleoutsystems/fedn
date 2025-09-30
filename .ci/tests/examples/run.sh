@@ -28,7 +28,7 @@ else
     docker compose \
         -f ../../docker-compose.yaml \
         -f docker-compose.override.yaml \
-        up -d --build combiner api-server mongo minio client1   
+        up -d --build combiner controller api-server hooks mongo minio client1   
 fi
 
 # add server functions to python path to import server functions code
@@ -39,6 +39,9 @@ python ../../.ci/tests/examples/wait_for.py reducer
 
 >&2 echo "Wait for combiners to connect"
 python ../../.ci/tests/examples/wait_for.py combiners
+
+>&2 echo "Wait for controller to connect"
+python ../../.ci/tests/examples/wait_for.py controller
 
 >&2 echo "Upload compute package"
 python ../../.ci/tests/examples/api_test.py set_package --path package.tgz --helper "$helper" --name test
