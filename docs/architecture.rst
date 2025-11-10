@@ -3,12 +3,12 @@
 Architecture overview
 =====================
 
-Constructing a federated model with FEDn amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network. A FEDn network, as illustrated in the picture below, is made up of components into three different tiers: the *Controller* tier (3), one or more *Combiners* in second tier (2), and a number of *Clients* in tier (1). 
+Constructing a federated model with Scaleout Edge amounts to a) specifying the details of the client-side training code and data integrations, and b) deploying the federated network. A Scaleout Edge network, as illustrated in the picture below, is made up of components into three different tiers: the *Controller* tier (3), one or more *Combiners* in second tier (2), and a number of *Clients* in tier (1). 
 The combiners forms the backbone of the federated ML orchestration mechanism, while the Controller tier provides discovery services and controls to coordinate training over the federated network. 
 By horizontally scaling the number of combiners, one can meet the needs of a growing number of clients.  
  
-.. image:: img/FEDn_network.png
-   :alt: FEDn network
+.. image:: img/Scaleout_Edge_network.png
+   :alt: Scaleout Edge network
    :width: 100%
    :align: center
 
@@ -28,12 +28,12 @@ A python3 client implementation is provided out of the box, and it is possible t
 A combiner is an actor whose main role is to orchestrate and aggregate model updates from a number of clients during a training session. 
 When and how to trigger such orchestration are specified in the overall *compute plan* laid out by the *Controller*. 
 Each combiner in the network runs an independent gRPC server, providing RPCs for interacting with the federated network it controls. 
-Hence, the total number of clients that can be accommodated in a FEDn network is proportional to the number of active combiners in the FEDn network. 
+Hence, the total number of clients that can be accommodated in a Scaleout Edge network is proportional to the number of active combiners in the Scaleout Edge network. 
 Combiners can be deployed anywhere, e.g. in a cloud or on a fog node to provide aggregation services near the cloud edge. 
 
 **The controller: tier 3**
 
-Tier 3 does actually contain several components and services, but we tend to associate it with the *Controller* the most. The *Controller* fills three main roles in the FEDn network:
+Tier 3 does actually contain several components and services, but we tend to associate it with the *Controller* the most. The *Controller* fills three main roles in the Scaleout Edge network:
 
 1. it lays out the overall, global training strategy and communicates that to the combiner network.
 It also dictates the strategy to aggregate model updates from individual combiners into a single global model, 
@@ -46,7 +46,7 @@ which is responsible for storing various states of the network and training sess
 
 **Notes on aggregating algorithms**
 
-FEDn is designed to allow customization of the FedML algorithm, following a specified pattern, or programming model. 
+Scaleout Edge is designed to allow customization of the FedML algorithm, following a specified pattern, or programming model. 
 Model aggregation happens on two levels in the network. First, each Combiner can be configured with a custom orchestration and aggregation implementation, that reduces model updates from Clients into a single, *combiner level* model. 
 Then, a configurable aggregation protocol on the *Controller* level is responsible for combining the combiner-level models into a global model. By varying the aggregation schemes on the two levels in the system, 
 many different possible outcomes can be achieved. Good starting configurations are provided out-of-the-box to help the user get started. See :ref:`agg-label` and API reference for more details.
@@ -54,6 +54,6 @@ many different possible outcomes can be achieved. Good starting configurations a
 
 .. meta::
    :description lang=en:
-      Architecture overview - An overview of the FEDn federated learning platform architecture.
-   :keywords: Federated Learning, Architecture, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+      Architecture overview - An overview of the Scaleout Edge federated learning platform architecture.
+   :keywords: Federated Learning, Architecture, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems, Scaleout Edge
    

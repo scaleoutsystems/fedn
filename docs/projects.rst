@@ -1,31 +1,31 @@
 .. _projects-label:
 
 ================================================
-Develop a FEDn project
+Develop a Scaleout Edge project
 ================================================
 
-This guide explains how a FEDn project is structured, and details how to develop your own
-project. We assume knowledge of how to run a federated learning project with FEDn, corresponding to
+This guide explains how a Scaleout Edge project is structured, and details how to develop your own
+project. We assume knowledge of how to run a federated learning project with Scaleout Edge, corresponding to
 the tutorial: :ref:`quickstart-label`. 
  
 Overview
 ==========
 
-A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn. At the core, 
-a project is a directory of files (often a Git repository), containing your machine learning code, FEDn entry points, and a specification 
-of the runtime environment for the client (python environment or a Docker image). The FEDn API and command-line tools provide functionality
+A Scaleout Edge project is a convention for packaging/wrapping machine learning code to be used for federated learning with Scaleout Edge. At the core, 
+a project is a directory of files (often a Git repository), containing your machine learning code, Scaleout Edge entry points, and a specification 
+of the runtime environment for the client (python environment or a Docker image). The Scaleout Edge API and command-line tools provide functionality
 to help a user automate deployment and management of a project that follows the conventions. 
 
 
-The structure of a FEDn project
-================================
+The structure of a Scaleout Edge project
+========================================
 
 We recommend that projects have the following folder and file structure, here illustrated by the 'mnist-pytorch' example from 
 the Getting Started Guide:
 
 | project
 | ├ client
-| │   ├ fedn.yaml
+| │   ├ scaleout.yaml
 | │   ├ python_env.yaml
 | │   ├ model.py
 | │   ├ data.py
@@ -40,24 +40,24 @@ the Getting Started Guide:
 |
 
 The content of the ``client`` folder is what we commonly refer to as the *compute package*. It contains modules and files specifying the logic of a single client. 
-The file ``fedn.yaml`` is the FEDn Project File. It is used by FEDn to get information about the specific commands to run when building the initial 'seed model', 
+The file ``scaleout.yaml`` is the Scaleout Edge Project File. It is used by Scaleout Edge to get information about the specific commands to run when building the initial 'seed model', 
 and when a client recieves a training request or a validation request from the server. 
 These commmands are referred to as the ``entry points``. 
 
 The compute package (client folder)
 ====================================
 
-**The Project File (fedn.yaml)**
+**The Project File (scaleout.yaml)**
 
-FEDn uses a project file 'fedn.yaml' to specify which entry points to execute when the client recieves a training or validation request, 
+Scaleout Edge uses a project file 'scaleout.yaml' to specify which entry points to execute when the client recieves a training or validation request, 
 and (optionally) what runtime environment to execute those entry points in. There are up to four entry points:
 
 - **build** - used for any kind of setup that needs to be done before the client starts up, such as initializing the global seed model. 
 - **startup** - invoked immediately after the client starts up and the environment has been initalized. 
-- **train** - invoked by the FEDn client to perform a model update.  
-- **validate** - invoked by the FEDn client to perform a model validation. 
+- **train** - invoked by the Scaleout Edge client to perform a model update.  
+- **validate** - invoked by the Scaleout Edge client to perform a model validation. 
 
-To illustrate this, we look the ``fedn.yaml`` from the 'mnist-pytorch' project used in the Getting Started Guide: 
+To illustrate this, we look the ``scaleout.yaml`` from the 'mnist-pytorch' project used in the Getting Started Guide: 
 
 .. code-block:: yaml
 
@@ -74,21 +74,21 @@ To illustrate this, we look the ``fedn.yaml`` from the 'mnist-pytorch' project u
             command: python validate.py
 
 In this example, all entrypoints are python scripts (model.py, data.py, train.py and validate.py). 
-They are executed by FEDn using the system default python interpreter 'python', in an environment with dependencies specified by "python_env.yaml". 
+They are executed by Scaleout Edge using the system default python interpreter 'python', in an environment with dependencies specified by "python_env.yaml". 
 Next, we look at the environment specification and each entry point in more detail. 
 
 **Environment (python_env.yaml)**
 
-FEDn assumes that all entry points (build, startup, train, validate) are executable within the client's runtime environment. You have two main options 
+Scaleout Edge assumes that all entry points (build, startup, train, validate) are executable within the client's runtime environment. You have two main options 
 to handle the environment: 
 
-    1. Let FEDn create and initalize the environment automatically by specifying ``python_env``. FEDn will then create an isolated virtual environment and install the dependencies specified in ``python_env.yaml`` into it before starting up the client. FEDn currently supports Virtualenv environments, with packages on PyPI. 
-    2. Manage the environment manually. Here you have several options, such as managing your own virtualenv, running in a Docker container, etc. Remove the ``python_env`` tag from ``fedn.yaml`` to handle the environment manually.  
+    1. Let Scaleout Edge create and initalize the environment automatically by specifying ``python_env``. Scaleout Edge will then create an isolated virtual environment and install the dependencies specified in ``python_env.yaml`` into it before starting up the client. Scaleout Edge currently supports Virtualenv environments, with packages on PyPI. 
+    2. Manage the environment manually. Here you have several options, such as managing your own virtualenv, running in a Docker container, etc. Remove the ``python_env`` tag from ``scaleout.yaml`` to handle the environment manually.  
 
 
 **build (optional):**
 
-This entry point is used for any kind of setup that **needs to be done to initialize FEDn prior to federated training**.  
+This entry point is used for any kind of setup that **needs to be done to initialize Scaleout Edge prior to federated training**.  
 This is the only entrypoint not used by the client during global training rounds - rather it is used by the project initator. 
 Most often it is used to build the seed model. 
 
@@ -102,7 +102,7 @@ that instantiates a model object (with random weights), exctracts its parameters
 
     import torch
 
-    from fedn.utils.helpers.helpers import get_helper
+    from scaleoututil.helpers.helpers import get_helper
 
     HELPER_MODULE = "numpyhelper"
     helper = get_helper(HELPER_MODULE)
@@ -188,14 +188,14 @@ a publicly available dataset. However, in real-world settings with truly private
 **train (mandatory):** 
 
 This entry point is invoked when the client recieves a new model update (training) request from the server. The training entry point must be a single-input single-output (SISO) program. 
-Upon recipt of a traing request, the FEDn client will download the latest version of the global model, write it to a (temporary) file and execute the command specified in the entrypoint: 
+Upon recipt of a traing request, the Scaleout Edge client will download the latest version of the global model, write it to a (temporary) file and execute the command specified in the entrypoint: 
 
 .. code-block:: python
 
     python train.py model_in model_out
 
-where 'model_in' is the **file** containing the current global model (parameters) to be updated, and 'model_out' is a **path** to write the new model update to (FEDn substitutes this path for tempfile location).
-When a traing update is complete, FEDn reads the updated paramters from 'model_out' and streams them back to the server for aggregation. 
+where 'model_in' is the **file** containing the current global model (parameters) to be updated, and 'model_out' is a **path** to write the new model update to (Scaleout Edge substitutes this path for tempfile location).
+When a traing update is complete, Scaleout Edge reads the updated paramters from 'model_out' and streams them back to the server for aggregation. 
 
 .. note::
     The training entrypoint must also write metadata to a json-file. The entry ``num_example`` is mandatory - it is used by the aggregators to compute a weighted average. The user can in addition choose to log other variables such as hyperparamters. These will then be stored in the backend database and accessible via the API and UI.  
@@ -203,7 +203,7 @@ When a traing update is complete, FEDn reads the updated paramters from 'model_o
 In our 'mnist-pytorch' example, upon startup a client downloads the MNIST image dataset and creates partitions (one for each client). This partition is in turn divided 
 into a train/test split. The file 'train.py' (shown below) reads the train split, runs an epoch of training and writes the updated paramters to file.
 
-To learn more about how model serialization and model marshalling works in FEDn, see :ref:`helper-label` and :ref:`agg-label`. 
+To learn more about how model serialization and model marshalling works in Scaleout Edge, see :ref:`helper-label` and :ref:`agg-label`. 
 
 .. code-block:: python
 
@@ -215,7 +215,7 @@ To learn more about how model serialization and model marshalling works in FEDn,
     from model import load_parameters, save_parameters
 
     from data import load_data
-    from fedn.utils.helpers.helpers import save_metadata
+    from scaleoututil.helpers.helpers import save_metadata
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.abspath(dir_path))
@@ -224,9 +224,9 @@ To learn more about how model serialization and model marshalling works in FEDn,
     def train(in_model_path, out_model_path, data_path=None, batch_size=32, epochs=1, lr=0.01):
         """Complete a model update.
 
-        Load model paramters from in_model_path (managed by the FEDn client),
+        Load model paramters from in_model_path (managed by the Scaleout Edge client),
         perform a model update, and write updated paramters
-        to out_model_path (picked up by the FEDn client).
+        to out_model_path (picked up by the Scaleout Edge client).
 
         :param in_model_path: The path to the input model.
         :type in_model_path: str
@@ -288,7 +288,7 @@ To learn more about how model serialization and model marshalling works in FEDn,
 
 **validate (optional):** 
 
-When training a global model with FEDn, the data scientist can choose to ask clients to perform local model validation of each new global model version
+When training a global model with Scaleout Edge, the data scientist can choose to ask clients to perform local model validation of each new global model version
 by specifying an entry point called 'validate'.  
 
 Similar to the training entrypoint, the validation entry point must be a SISO program. It should reads a model update from file, validate it (in any way suitable to the user), and write a **json file** containing validation data:
@@ -297,13 +297,13 @@ Similar to the training entrypoint, the validation entry point must be a SISO pr
 
     python validate.py model_in validations.json
 
-The content of the file 'validations.json' is captured by FEDn, passed on to the server and then stored in the database backend. The validate entry point is optional.  
+The content of the file 'validations.json' is captured by Scaleout Edge, passed on to the server and then stored in the database backend. The validate entry point is optional.  
 
 In our 'mnist-pytorch' example, upon startup a client downloads the MNIST image dataset and creates partitions (one for each client). This partition is in turn divided 
 into a train/test split. The file 'validate.py' (shown below) reads both the train and test splits and computes accuracy scores and the loss.
 
-It is a requirement that the output of validate.py is valid json. Furthermore, the FEDn Studio UI will be able to capture and visualize all **scalar metrics** 
-specified in this file. The entire conent of the json file will be retrievable programatically using the FEDn APIClient, and can be downloaded from the Studio UI. 
+It is a requirement that the output of validate.py is valid json. Furthermore, the Scaleout Edge UI will be able to capture and visualize all **scalar metrics** 
+specified in this file. The entire conent of the json file will be retrievable programatically using the Scaleout Edge APIClient, and can be downloaded from the Scaleout Edge UI. 
 
 .. code-block:: python
 
@@ -314,7 +314,7 @@ specified in this file. The entire conent of the json file will be retrievable p
     from model import load_parameters
 
     from data import load_data
-    from fedn.utils.helpers.helpers import save_metrics
+    from scaleoututil.helpers.helpers import save_metrics
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
     sys.path.append(os.path.abspath(dir_path))
@@ -366,18 +366,18 @@ specified in this file. The entire conent of the json file will be retrievable p
 Testing the entrypoints
 =======================
 
-We recommend you to test your training and validation entry points locally before creating the compute package and uploading it to Studio. 
+We recommend you to test your training and validation entry points locally before creating the compute package and uploading it to the Scaleout Edge server. 
 To run the 'build' entrypoint and create the seed model (deafult filename 'seed.npz'): 
 
 .. code-block:: python
 
-    fedn run build --path client 
+    scaleout run build --path client 
 
 Run the 'startup' entrypoint to download the dataset:
 
 .. code-block:: python
 
-    fedn run startup --path client 
+    scaleout run startup --path client 
 
 Then, standing inside the 'client folder', you can test *train* and *validate* by:
 
@@ -388,35 +388,35 @@ Then, standing inside the 'client folder', you can test *train* and *validate* b
 
 You can also test *train* and *validate* entrypoint using CLI command:
 
-.. note:: Before running the fedn run train or fedn run validate commands, make sure to download the training and test data. The downloads are usually handled by the "fedn run startup" command in the examples provided by FEDn.
+.. note:: Before running the scaleout run train or scaleout run validate commands, make sure to download the training and test data. The downloads are usually handled by the "scaleout run startup" command in the examples provided by Scaleout Edge.
 
 .. code-block:: bash
 
-    fedn run train --path client --input <path to input model parameters> --output <path to write the updated model parameters>
-    fedn run validate --path client --input <path to input model parameters> --output <path to write the output JSON containing validation metrics>
+    scaleout run train --path client --input <path to input model parameters> --output <path to write the updated model parameters>
+    scaleout run validate --path client --input <path to input model parameters> --output <path to write the output JSON containing validation metrics>
 
-Packaging for training on FEDn
-===============================
+Packaging for training on Scaleout Edge
+=======================================
 
-To run a project on FEDn we compress the entire client folder as a .tgz file. There is a utility command in the FEDn CLI to do this:
+To run a project on Scaleout Edge we compress the entire client folder as a .tgz file. There is a utility command in the Scaleout Edge CLI to do this:
 
 .. code-block:: bash
 
-    fedn package create --path client
+    scaleout package create --path client
 
 You can include a .ignore file in the client folder to exclude files from the package. This is useful for excluding large data files, temporary files, etc.
-To learn how to initialize FEDn with the package seed model, see :ref:`quickstart-label`. 
+To learn how to initialize Scaleout Edge with the package seed model, see :ref:`quickstart-label`. 
 
-How is FEDn using the project? 
-===============================
+How is Scaleout Edge using the project? 
+=======================================
 
-With an understanding of the FEDn project, the compute package (entrypoints), we can take a closer look at how FEDn 
+With an understanding of the Scaleout Edge project, the compute package (entrypoints), we can take a closer look at how Scaleout Edge 
 is using the project during federated training. The figure below shows the logical view of how a training request 
 is handled. 
 
 A training round is initiated by the controller. It asks a Combiner for a model update. The model in turn asks clients to compute a model update, by publishing a training request
-to its request stream. The FEDn Client, :py:mod:`fedn.network.client`, subscribes to the stream and picks up the request. It then calls upon the Dispatcher, :py:mod:`fedn.utils.Dispatcher`. 
-The dispatcher reads the Project File, 'fedn.yaml', looking up the entry point definition and executes that command. Upon successful execution, the FEDn Client reads the
+to its request stream. The Scaleout Edge Client, :py:mod:`scaleout-client.python.client.scaleout_client`, subscribes to the stream and picks up the request. It then calls upon the Dispatcher, :py:mod:`scaleout-util.scaleoututil.utils.dispatcher.Dispatcher`. 
+The dispatcher reads the Project File, 'scaleout.yaml', looking up the entry point definition and executes that command. Upon successful execution, the Scaleout Edge Client reads the
 model update and metadata from file, and streams the content back to the combiner for aggregration.  
 
 .. image:: img/ComputePackageOverview.png
@@ -428,19 +428,19 @@ model update and metadata from file, and streams the content back to the combine
 Where to go from here? 
 ======================
 
-With an understanding of how FEDn Projects are structured and created, you can explore our library of example projects. They demonstrate different use case scenarios of FEDn 
+With an understanding of how Scaleout Edge Projects are structured and created, you can explore our library of example projects. They demonstrate different use case scenarios of Scaleout Edge 
 and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
 
-- `FEDn + PyTorch <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-pytorch>`__
-- `FEDn + Tensforflow/Keras <https://github.com/scaleoutsystems/fedn/tree/master/examples/mnist-keras>`__
-- `FEDn + MONAI <https://github.com/scaleoutsystems/fedn/tree/master/examples/monai-2D-mednist>`__
-- `FEDn + Hugging Face <https://github.com/scaleoutsystems/fedn/tree/master/examples/huggingface>`__
-- `FEDn + Flower <https://github.com/scaleoutsystems/fedn/tree/master/examples/flower-client>`__
-- `FEDN + Self-supervised learning <https://github.com/scaleoutsystems/fedn/tree/master/examples/FedSimSiam>`__
+- `Scaleout Edge + PyTorch <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/mnist-pytorch>`__
+- `Scaleout Edge + Tensforflow/Keras <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/mnist-keras>`__
+- `Scaleout Edge + MONAI <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/monai-2D-mednist>`__
+- `Scaleout Edge + Hugging Face <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/huggingface>`__
+- `Scaleout Edge + Flower <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/flower-client>`__
+- `Scaleout Edge + Self-supervised learning <https://github.com/scaleoutsystems/scaleout-client/tree/master/examples/FedSimSiam>`__
 
 
 .. meta::
     :description lang=en:
-        A FEDn project is a convention for packaging/wrapping machine learning code to be used for federated learning with FEDn.
-    :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+        A Scaleout Edge project is a convention for packaging/wrapping machine learning code to be used for federated learning with Scaleout Edge.
+    :keywords: Federated Learning, Machine Learning, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems, Scaleout Edge
     

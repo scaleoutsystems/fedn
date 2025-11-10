@@ -1,5 +1,7 @@
-FEDn is using sphinx with reStructuredText.
+Scaleout Edge is using sphinx with reStructuredText.
 
+# Install sphinx
+pip install -r requirements.txt
 
 # Updated build Script
 cd docs/

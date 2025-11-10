@@ -1,13 +1,12 @@
 import os
 import sys
 
-import sphinx_rtd_theme  # noqa: F401
 
 # Insert path
 sys.path.insert(0, os.path.abspath(".."))
 
 # Project info
-project = "FEDn"
+project = "Scaleout Edge"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
@@ -29,8 +28,8 @@ extensions = [
 ]
 
 # SEO configuration
-html_title = "FEDn Documentation - Scalable Federated Learning Framework"
-html_short_title = "FEDn Docs"
+html_title = "Scaleout Edge Documentation - Scalable Federated Learning Framework"
+html_short_title = "Scaleout Edge Docs"
 
 # The master toctree document.
 master_doc = "index"
@@ -65,11 +64,11 @@ html_extra_path = ["robots.txt"]
 html_static_path = ["_static"]
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "fedndocs"
+htmlhelp_basename = "scaleoutdocs"
 
 # If defined shows an image instead of project name on page top-left (link to index page)
 html_logo = "_static/images/scaleout_logo_flat_dark.svg"
-# FEDn logo looks ugly on rtd theme
+# Scaleout Edge logo looks ugly on rtd theme
 
 html_favicon = "favicon.png"
 
@@ -114,18 +113,18 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "fedn.tex", "FEDn Documentation", "Scaleout Systems AB", "manual"),
+    (master_doc, "scaleout.tex", "Scaleout Edge Documentation", "Scaleout Systems AB", "manual"),
 ]
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
+man_pages = [(master_doc, "scaleout", "Scaleout Edge Documentation", [author], 1)]
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
+    (master_doc, "scaleout", "Scaleout Edge Documentation", author, "scaleout", "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.

@@ -3,9 +3,9 @@
 Using the API Client
 ====================
 
-FEDn comes with an *APIClient* - a Python3 library that is used to interact with FEDn programmatically. 
+Scaleout Edge comes with an *APIClient* - a Python3 library that is used to interact with your project programmatically. 
 
-This guide assumes that the user has aleady taken the :ref:`quickstart-label` tutorial. If this is not the case, please start there to learn how to set up a FEDn Studio project and learn 
+This guide assumes that the user has aleady taken the :ref:`quickstart-label` tutorial. If this is not the case, please start there to learn how to set up a Scaleout Edge project and learn 
 to connect clients. In this guide we will build on that same PyTorch example (MNIST), showing how to use the APIClient to control training sessions, use different aggregators, and to retrieve models and metrics. 
 
 **Installation**
@@ -14,12 +14,12 @@ The APIClient is available as a Python package on PyPI, and can be installed usi
 
 .. code-block:: bash
    
-   $ pip install fedn
+   $ pip install scaleout
 
-**Connect the APIClient to the FEDn project**
+**Connect the APIClient to the Scaleout Edge project**
 
 To access the API you need the URL to the controller-host, as well as an admin API token. You 
-obtain these from your Studio project. Navigate to your "Project settings" and copy the "Project url", this is the controller host address:
+obtain these from your Scaleout Edge project. Navigate to your "Project settings" and copy the "Project url", this is the controller host address:
 
 .. image:: img/find_controller_url.png
 
@@ -27,34 +27,34 @@ To obtain an admin API token press "Generate" in the "Generate Admin token" sect
 
 .. image:: img/generate_admin_token.png
 
-To initalize the connection to the FEDn REST API: 
+To initalize the connection to the Scaleout Edge REST API: 
 
 .. code-block:: python
 
-   >>> from fedn import APIClient
+   >>> from scaleout import APIClient
    >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
 
 Alternatively, the access token can be sourced from an environment variable. 
 
 .. code-block:: bash
 
-   $ export FEDN_AUTH_TOKEN=<access-token>
+   $ export SCALEOUT_AUTH_TOKEN=<access-token>
 
 Then passing a token as an argument is not required. 
 
 .. code-block:: python
 
-   >>> from fedn import APIClient
+   >>> from scaleout import APIClient
    >>> client = APIClient(host="<controller-host>", secure=True, verify=True)
 
 We are now ready to work with the API. 
 
 We here assume that you have worked through steps 1-2 in the quisktart tutorial, i.e. that you have created the compute package and seed model on your local machine. 
-In the next step, we will use the API to upload these objects to the Studio project (corresponding to step 3 in the quickstart tutorial).  
+In the next step, we will use the API to upload these objects to the Scaleout Edge project (corresponding to step 3 in the quickstart tutorial).  
 
 **Set the active compute package and seed model**
 
-To set the active compute package in the FEDn Studio Project: 
+To set the active compute package in the Scaleout Edge Project: 
 
 .. code:: python
 
@@ -78,7 +78,7 @@ using the default aggregator (FedAvg):
    >>> model_id = models[-1]['model']
    >>> validations = client.get_validations(model_id=model_id)
 
-You can follow the progress of the training in the Studio UI. 
+You can follow the progress of the training in the Scaleout Edge UI. 
 
 To run a session using the FedAdam aggregator using custom hyperparamters: 
 
@@ -143,14 +143,14 @@ To get a specific session:
    
    >>> session = client.get_session(id="session_id")
 
-For more information on how to use the APIClient, see the :py:mod:`fedn.network.api.client`.  
+For more information on how to use the APIClient, see the :py:mod:`scaleout-client.scaleout.network.api.client`.  
 There is also a collection of Jupyter Notebooks showcasing more advanced use of the API, including how to work with other built-in aggregators and how to automate hyperparameter tuning:
  
-- `API Example <https://github.com/scaleoutsystems/fedn/tree/master/examples/api-tutorials>`_  . 
+- `API Example <https://github.com/scaleoutsystems/scaleout-client/tree/master/scaleout/examples/api-tutorials>`_  . 
 
 
 .. meta::
    :description lang=en:
-      FEDn comes with an APIClient - a Python3 library that can be used to interact with FEDn programmatically.
-   :keywords: Federated Learning, APIClient, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+      Scaleout Edge comes with an APIClient - a Python3 library that can be used to interact with Scaleout Edge programmatically.
+   :keywords: Federated Learning, APIClient, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems, Scaleout Edge
    

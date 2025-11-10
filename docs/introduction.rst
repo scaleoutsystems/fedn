@@ -8,7 +8,7 @@ Traditional machine learning
 
 Traditional machine learning is centralized. Data from various sources is collected into a single location - typically a cloud platform or data center — and training models on that combined dataset.
 
-This method works well in many cases, but it’s increasingly limited. The rapid growth of connected devices, sensors and distributed data sources has led to an exponential increase in data volume and complexity. Meanwhile, privacy regulations and security concerns make centralizing this data difficult and expensive.
+This method works well in many cases, but it's increasingly limited. The rapid growth of connected devices, sensors and distributed data sources has led to an exponential increase in data volume and complexity. Meanwhile, privacy regulations and security concerns make centralizing this data difficult and expensive.
 
 Often, the data needed for training exists across many devices, organizations, or locations. Centralizing it is challenging due to privacy risks and high transfer costs.
 
@@ -26,12 +26,12 @@ In federated learning, models are trained across multiple devices or servers (ca
 
 This cycle repeats until the global model reaches the desired accuracy.
 
-The FEDn framework 
---------------------
+The Scaleout Edge framework 
+---------------------------
 
-FEDn is a federated learning framework focused on security, scalability, and ease of use. It supports the full development lifecycle—from early experiments to production deployments—with minimal code changes. Key design goals include:
+Scaleout Edge is a federated learning framework focused on security, scalability, and ease of use. It supports the full development lifecycle—from early experiments to production deployments—with minimal code changes. Key design goals include:
 
--  **Minimal server-side complexity for the end-user**. FEDn Studio handles orchestration, providing a UI, REST API, and Python interface for managing experiments and tracking metrics in real time.
+-  **Minimal server-side complexity for the end-user**. Scaleout Edge handles orchestration, providing a UI, REST API, and Python interface for managing experiments and tracking metrics in real time.
 
 -  **Secure by design.** Clients never need to open inbound ports. gRPC, token-based authentication (JWT) and RBAC provides flexible and secure integration. 
 
@@ -39,7 +39,7 @@ FEDn is a federated learning framework focused on security, scalability, and eas
 
 -  **Cloud native.** Deploy on public cloud, private cloud, or on-prem infrastructure.
 
--  **Scalability and resilience.** Multiple combiners can balance load. FEDn handles failures in all critical components and manages intermittent client-connections. 
+-  **Scalability and resilience.** Multiple combiners can balance load. Scaleout Edge handles failures in all critical components and manages intermittent client-connections. 
 
 -  **Developer and DevOps friendly.** Logging, tracing, and plugin architecture simplify monitoring, debugging, and extending the system.  
 
@@ -69,9 +69,9 @@ From development to FL in production:
 
 Available client APIs:
 
-- Python client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn>`__)
-- C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
-- Android Kotlin client (`FEDn Kotlin client <https://github.com/scaleoutsystems/fedn-android-client>`__)
+- Python client (`Scaleout Edge C++ client <https://github.com/scaleoutsystems/scaleout-client/python>`__)
+- C++ client (`Scaleout Edge C++ client <https://github.com/scaleoutsystems/scaleout-client/cpp>`__)
+- Android Kotlin client (`Scaleout Edge Kotlin client <https://github.com/scaleoutsystems/scaleout-client/android>`__)
 
 Support
 --------
@@ -87,6 +87,5 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
     :keywords: Federated Learning, Machine Learning, What is federated machine learning, Federated Learning Framework, Federated Learning Platform
     :og:title: What is Federated Learning?
     :og:description: Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
-    :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
-    :og:url: https://fedn.scaleoutsystems.com/docs/introduction.html
+    :og:url: https://docs.scaleoutsystems.com/en/stable/introduction.html
     :og:type: website

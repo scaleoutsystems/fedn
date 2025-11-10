@@ -12,8 +12,8 @@ However, during development of a new model it will be necessary to reinitialize.
 
     .. code:: python
 
-        >>> from fedn import APIClient
-        >>> client = APIClient(host="localhost", port=8092)
+        >>> from scaleout import APIClient
+        >>> client = APIClient(host="<controller-host>", token="<access-token>", secure=True, verify=True)
         >>> client.set_package("package.tgz", helper="numpyhelper")
         >>> client.set_initial_model("seed.npz")      
 
@@ -26,7 +26,7 @@ Yes, to facilitate interactive development of the compute package you can start 
 
 .. code-block:: bash
 
-    fedn client start --remote=False -in client.yaml 
+    scaleout client start --remote=False -in client.yaml 
 
 
 Note that in production federations this options should in most cases be disallowed. 
@@ -39,10 +39,10 @@ There is a plugin interface for extending the framework with new aggregators. Se
 :ref:`agg-label`
 
 
-Q: What is needed to include additional ML frameworks in FEDn?
+Q: What is needed to include additional ML frameworks in Scaleout Edge?
 -------------------------------------------------------------------------------------
 
-You need to make sure that FEDn knows how to serialize and deserialize the model object. If you can 
+You need to make sure that Scaleout Edge knows how to serialize and deserialize the model object. If you can 
 serialize to a list of numpy ndarrays in your compute package entrypoint (see the Quickstart Tutorial code), you 
 can use the built in "numpyhelper". If this is not possible, you can extend the framework with a custom helper, 
 see the section about model marshaling: 
@@ -56,17 +56,17 @@ Yes! You can toggle which message streams a client subscribes to when starting t
 
 .. code-block:: bash
 
-    fedn client start --trainer=False -in client.yaml 
+    scaleout client start --trainer=False -in client.yaml 
 
 
 Q: How do you approach the question of output privacy? 
 ----------------------------------------------------------------------------------
 
 We take security in (federated) machine learning seriously. Federated learning is a foundational technology that improves input privacy 
-in machine learning by allowing datasets to stay local and private, and not copied to a server. FEDn is designed to provide an industry grade
+in machine learning by allowing datasets to stay local and private, and not copied to a server. Scaleout Edge is designed to provide an industry grade
 implementation of the core communication and aggregation layers of federated learning, as well as configurable modules for traceability, logging
-etc, to allow the developer balance between privacy and auditability. With `FEDn Studio <https://scaleoutsystems.com/framework>`__ we add 
-functionality for user authentication, authorization, and federated client identity management. As such, The FEDn Framework provides
+etc, to allow the developer balance between privacy and auditability. With `Scaleout Edge <https://scaleoutsystems.com/framework>`__ we add 
+functionality for user authentication, authorization, and federated client identity management. As such, The Scaleout Edge Framework provides
 a comprehensive software suite for implementing secure federated learning following industry best-practices.     
 
 Going beyond input privacy, there are several additional considerations relating to output privacy and potential attacks on (federated) machine learning systems. 
@@ -90,5 +90,5 @@ with the Scaleout team.
 .. meta::
    :description lang=en:
       How do you approach the question of output privacy? We take security in (federated) machine learning seriously.
-   :keywords: Federated Learning, FAQ, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems
+   :keywords: Federated Learning, FAQ, Federated Learning Framework, Federated Learning Platform, FEDn, Scaleout Systems, Scaleout Edge
    

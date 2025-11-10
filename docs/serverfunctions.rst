@@ -1,7 +1,9 @@
+.. _server-functions:
+
 Modifying Server Functionality
 ==============================
 
-FEDn provides an interface where you can implement your own server-side logic directly into FEDn Studio by utilizing the ``ServerFunctions`` class. This enables advanced customization of the server's behavior while working with FEDn.
+Scaleout Edge provides an interface where you can implement your own server-side logic directly into your server by utilizing the ``ServerFunctions`` class. This enables advanced customization of the server's behavior while working with Scaleout Edge.
 You can for example implement custom client selection logic, adjust hyperparameters, or implement a custom aggregation algorithm. See https://www.youtube.com/watch?v=Rnfhfqy_Tts for information in video format.
 
 Requirements for ``ServerFunctions`` Implementation
@@ -12,16 +14,16 @@ The ``ServerFunctions`` class has specific requirements for proper instantiation
 1. **Class Name**: The implemented class must be named ``ServerFunctions``.
 2. **Allowed Imports**: Only a pre-defined list of Python packages is available for use within a ``ServerFunctions`` implementation for compatibility and security reasons. You can find the allowed packages at:
 
-   :py:mod:`fedn.network.combiner.hooks.allowed_imports`.
+   :py:mod:`scaleout-client.scaleout.network.combiner.hooks.allowed_imports`.
 
 Overridable Methods
 -------------------
 
-The ``ServerFunctions`` class provides three methods that can optionally be overridden. If you choose not to override one or several of these, FEDn will execute its default behavior for that functionality.
+The ``ServerFunctions`` class provides three methods that can optionally be overridden. If you choose not to override one or several of these, Scaleout Edge will execute its default behavior for that functionality.
 
 The base class defining these methods and their types is:
 
-:py:mod:`fedn.network.combiner.hooks.serverfunctionsbase.ServerFunctionsBase`.
+:py:mod:`scaleout-util.scaleoututil.serverfunctions.serverfunctionsbase.ServerFunctionsBase`.
 
 The methods available for customization are:
 
@@ -72,26 +74,26 @@ Below is an example of how to implement custom server functionality in a ``Serve
             logger.info("Models aggregated")
             return [param / total_weight for param in weighted_sum]
 
-Using ``ServerFunctions`` in FEDn Studio
-----------------------------------------
+Using ``ServerFunctions`` in Scaleout Edge
+------------------------------------------
 
-To use your custom ``ServerFunctions`` code in FEDn Studio, follow these steps:
+To use your custom ``ServerFunctions`` code in Scaleout Edge, follow these steps:
 
 1. **Prepare Your Environment**:
 
-   Ensure you have an API token for your project. Retrieve it from the "Settings" page in FEDn Studio and add it to your environment:
+   Ensure you have an API token for your project. Retrieve it from the "Settings" page in your Scaleout Edge UI and add it to your environment:
 
    .. code-block:: bash
 
-       export FEDN_AUTH_TOKEN=<your_access_token>
+       export SCALEOUT_AUTH_TOKEN=<your_access_token>
 
 2. **Connect Using the API Client**:
 
-   Connect to your FEDn project using the ``APIClient``. Replace ``<controller-host>`` with the address found on the Studio dashboard.
+   Connect to your Scaleout Edge project using the ``APIClient``. Replace ``<controller-host>`` with the address found on the Scaleout Edge dashboard.
 
    .. code-block:: python
 
-       from fedn import APIClient
+       from scaleout-client import APIClient
        client = APIClient(host="<controller-host>", secure=True, verify=True)
 
 3. **Start a Session with ``ServerFunctions``**:
@@ -105,14 +107,13 @@ To use your custom ``ServerFunctions`` code in FEDn Studio, follow these steps:
 
 4. **Monitor Logs**:
 
-   Logs from your ``ServerFunctions`` implementation can be viewed on the Studio dashboard under the "Logs" section.
+   Logs from your ``ServerFunctions`` implementation can be viewed on the Scaleout Edge dashboard under the "Logs" section.
 
 Notes
 -----
 
-- **Beta Usage**: Custom server functionality is available in beta starting from FEDn 0.20.0.
 - **Documentation**: Refer to the full APIClient documentation for more details on connecting to your project:
 
   https://docs.scaleoutsystems.com/en/stable/apiclient.html
 
-This modular interface enables you to integrate your specific server-side logic into your FEDn federated learning pipeline.
+This modular interface enables you to integrate your specific server-side logic into your Scaleout Edge federated learning pipeline.
