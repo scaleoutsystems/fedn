@@ -10,7 +10,7 @@ abs_path = os.path.abspath(dir_path)
 
 def load_data(data_path=None, is_train=True):
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/enron_spam.pt")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/1/enron_spam.pt")
     data = torch.load(data_path, weights_only=False)
     if is_train:
         X = data["X_train"]

@@ -4,10 +4,10 @@ import os
 
 import numpy as np
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
-ARRAY_SIZE_FACTOR = float(os.environ.get("FEDN_ARRAY_SIZE_FACTOR", 1))
+ARRAY_SIZE_FACTOR = float(os.environ.get("SCALEOUT_ARRAY_SIZE_FACTOR", 1))
 # 144 MB * ARRAY_SIZE_FACTOR
 ARRAY_SIZE = int(20000000 * ARRAY_SIZE_FACTOR)
 

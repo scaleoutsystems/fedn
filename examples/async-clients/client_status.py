@@ -14,7 +14,7 @@ import click
 import os
 from datetime import datetime
 from config import settings
-from fedn import APIClient
+from scaleout import APIClient
 
 @click.command()
 @click.option("--csv-filename", "-f", default=None,

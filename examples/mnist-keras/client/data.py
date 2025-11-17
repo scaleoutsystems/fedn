@@ -31,7 +31,7 @@ def load_data(data_path, is_train=True):
     :rtype: tuple
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/mnist.npz")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/1/mnist.npz")
 
     data = np.load(data_path)
 

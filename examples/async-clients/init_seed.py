@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 import click
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
 

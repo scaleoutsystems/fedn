@@ -1,4 +1,4 @@
-from fedn.network.combiner.hooks.allowed_import import Dict, List, ServerFunctionsBase, Tuple, api_client, np
+from scaleoututil.serverfunctions.allowed_import import Dict, List, ServerFunctionsBase, Tuple, api_client, np
 
 # See allowed_imports for what packages you can use in this class.
 

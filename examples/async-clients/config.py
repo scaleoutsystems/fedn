@@ -13,7 +13,7 @@ LOCAL_CONFIG = {
 }
 
 REMOTE_CONFIG = {
-    "DISCOVER_HOST": "fedn.scaleoutsystems.com/<project-slug>",
+    "DISCOVER_HOST": "scaleout.scaleoutsystems.com/<project-slug>",
     "DISCOVER_PORT": None,
     "IS_LOCAL": False,
     "SECURE": True,

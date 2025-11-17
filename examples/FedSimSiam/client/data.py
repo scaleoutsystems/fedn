@@ -37,7 +37,7 @@ def load_data(data_path, is_train=True):
     """
     if data_path is None:
         data_path = os.environ.get(
-            "FEDN_DATA_PATH", abs_path+"/data/clients/1/cifar10.pt")
+            "SCALEOUT_DATA_PATH", abs_path+"/data/clients/1/cifar10.pt")
 
     data = torch.load(data_path, weights_only=True)
 
@@ -56,7 +56,7 @@ def create_knn_monitoring_dataset(out_dir="data"):
     if not os.path.exists(out_dir):
         os.mkdir(out_dir)
 
-    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
+    n_splits = int(os.environ.get("SCALEOUT_NUM_DATA_SPLITS", 2))
 
     # Make dir
     if not os.path.exists(f"{out_dir}/clients"):
@@ -83,7 +83,7 @@ def load_knn_monitoring_dataset(data_path, batch_size=16):
     """ Loads the KNN monitoring dataset."""
     if data_path is None:
         data_path = os.environ.get(
-            "FEDN_DATA_PATH", abs_path+"/data/clients/1/cifar10.pt")
+            "SCALEOUT_DATA_PATH", abs_path+"/data/clients/1/cifar10.pt")
 
     data_directory = os.path.dirname(data_path)
     memory_path = os.path.join(data_directory, "knn_memoryset.pt")
@@ -110,7 +110,7 @@ def splitset(dataset, parts):
 
 def split(out_dir="data"):
 
-    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
+    n_splits = int(os.environ.get("SCALEOUT_NUM_DATA_SPLITS", 2))
 
     # Make dir
     if not os.path.exists(f"{out_dir}/clients"):

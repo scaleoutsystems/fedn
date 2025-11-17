@@ -13,7 +13,7 @@ Prerequisites
 -------------
 
 -  `Python >=3.9, <=3.12 <https://www.python.org/downloads>`__
--  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__   
+-  `A project in FEDn Studio  <https://scaleout.scaleoutsystems.com/signup>`__   
 
 Installing pre requirements and creating seed model
 -------------------------------------------
@@ -43,7 +43,7 @@ Clone this repository, then locate into this directory:
 
 .. code-block::
 
-   git clone https://github.com/scaleoutsystems/fedn.git
+   git clone https://github.com/scaleoutsystems/scaleout.git
    cd fedn/examples/pytorch-keyworddetection-api
 
 Next we need to setup the APIClient. This link https://docs.scaleoutsystems.com/en/stable/apiclient.html helps you to get the hostname and access token. Edit the file fedn_api.py and insert your HOST and TOKEN.
@@ -57,7 +57,7 @@ Next, generate the seed model:
 This will create a model file 'seed.npz' in the root of the project and upload it to the server.
 
 
-Now we need to start the clients, download at set of client configutations following the quickstart tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html#start-clients. 
+Now we need to start the clients, download at set of client configutations following the quickstart tutorial: https://scaleout.readthedocs.io/en/stable/quickstart.html#start-clients. 
 
 Start the clients with the following command:
 .. code-block::

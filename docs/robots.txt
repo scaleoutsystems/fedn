@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-# Allow search engines to index all documentation
-Sitemap: https://docs.scaleoutsystems.com/sitemap.xml

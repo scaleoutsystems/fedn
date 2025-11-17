@@ -3,7 +3,7 @@ import collections
 import torch
 from monai.networks.nets import DenseNet121
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)

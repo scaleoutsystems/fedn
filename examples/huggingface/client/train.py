@@ -7,7 +7,7 @@ from model import load_parameters, save_parameters
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-from fedn.utils.helpers.helpers import save_metadata
+from scaleout.utils.helpers.helpers import save_metadata
 
 MODEL = "google/bert_uncased_L-2_H-128_A-2"
 

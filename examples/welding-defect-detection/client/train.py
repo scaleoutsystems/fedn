@@ -1,7 +1,7 @@
 import sys
 from model import load_parameters, save_parameters
 from data import load_data
-from fedn.utils.helpers.helpers import save_metadata
+from scaleout.utils.helpers.helpers import save_metadata
 import os
 
 # Get the list of all files and directories

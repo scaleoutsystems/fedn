@@ -1,6 +1,6 @@
 import click
 from config import settings
-from fedn import APIClient
+from scaleout import APIClient
 
 
 def init_fedn(seed_path):

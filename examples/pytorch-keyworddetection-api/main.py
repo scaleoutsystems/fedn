@@ -10,7 +10,7 @@ from pathlib import Path
 from sc_client import SCClient
 from util import construct_api_url, read_settings
 
-from fedn.network.clients.fedn_client import ConnectToApiResult, FednClient
+from scaleout.network.clients.fedn_client import ConnectToApiResult, FednClient
 
 
 def main() -> None:

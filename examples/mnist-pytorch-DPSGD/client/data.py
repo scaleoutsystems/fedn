@@ -32,7 +32,7 @@ def load_data(data_path, is_train=True):
     """
     print("data_path is None: ", data_path is None)
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/mnist.pt")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/1/mnist.pt")
 
     print("data path: ", data_path)
     data = torch.load(data_path, weights_only=True)
@@ -60,7 +60,7 @@ def splitset(dataset, parts):
 
 
 def split(out_dir="data"):
-    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
+    n_splits = int(os.environ.get("SCALEOUT_NUM_DATA_SPLITS", 2))
 
     # Make dir
     if not os.path.exists(f"{out_dir}/clients"):

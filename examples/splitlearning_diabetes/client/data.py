@@ -22,7 +22,7 @@ def load_data(data_path=None, is_train=True):
     :rtype: torch.Tensor
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/diabetes.pt")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/1/diabetes.pt")
 
     data = torch.load(data_path, weights_only=True)
     if is_train:
@@ -42,7 +42,7 @@ def load_labels(data_path=None, is_train=True):
     :rtype: torch.Tensor
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/labels.pt")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/labels.pt")
     data = torch.load(data_path, weights_only=True)
     if is_train:
         return data["y_train"]

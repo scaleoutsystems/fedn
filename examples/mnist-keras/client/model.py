@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 NUM_CLASSES = 10
 HELPER_MODULE = "numpyhelper"

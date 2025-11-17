@@ -30,7 +30,7 @@ def load_data(data_path, is_train=True):
     :rtype: tuple
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/clients/1/mnist.pt")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/clients/1/mnist.pt")
 
     data = torch.load(data_path, weights_only=True)
 
@@ -57,7 +57,7 @@ def splitset(dataset, parts):
 
 
 def split(out_dir="data"):
-    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 2))
+    n_splits = int(os.environ.get("SCALEOUT_NUM_DATA_SPLITS", 2))
 
     # Make dir
     os.makedirs(f"{out_dir}/clients", exist_ok=True)

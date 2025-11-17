@@ -21,7 +21,7 @@ This example is generalizable to many manufacturing and operations use cases, su
 
 ## How to run the example
 
-To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html
+To run the example, follow the steps below. For a more detailed explanation, follow the Quickstart Tutorial: https://scaleout.readthedocs.io/en/stable/quickstart.html
 
 **Note: To be able to run this example, you need to have GPU access.**
 
@@ -29,7 +29,7 @@ To run the example, follow the steps below. For a more detailed explanation, fol
 ### 1. Prerequisites
 
 -  `Python >=3.8, <=3.12 <https://www.python.org/downloads>`__
--  `A project in FEDn Studio  <https://fedn.scaleoutsystems.com/signup>`__  
+-  `A project in FEDn Studio  <https://scaleout.scaleoutsystems.com/signup>`__  
 -  `A Kaggle account  <https://www.kaggle.com/account/login?phase=startSignInTab&returnUrl=%2Fsignup>`__  
 -  GPU access
 
@@ -45,7 +45,7 @@ pip install fedn
 Clone this repository, then locate into this directory:
 
 ```
-git clone https://github.com/scaleoutsystems/fedn.git
+git clone https://github.com/scaleoutsystems/scaleout.git
 cd fedn/examples/welding-defect-detection
 ```
 
@@ -55,7 +55,7 @@ cd fedn/examples/welding-defect-detection
 Create the compute package:
 
 ```
-fedn package create --path client
+scaleout package create --path client
 ```
 
 This creates a file 'package.tgz' in the project folder.
@@ -63,14 +63,14 @@ This creates a file 'package.tgz' in the project folder.
 Next, generate the seed model:
 
 ```
-fedn run build --path client
+scaleout run build --path client
 ```
 
 This will create a model file 'seed.npz' in the root of the project. This step will take a few minutes, depending on hardware and internet connection (builds a virtualenv).  
 
 ### 4. Running the project on FEDn
 
-To learn how to set up your FEDn Studio project and connect clients, take the quickstart tutorial: https://fedn.readthedocs.io/en/stable/quickstart.html. When activating the first client, you will be asked to provide your login credentials to Kaggle to download the welding defect dataset and split it into separate client folders.   
+To learn how to set up your FEDn Studio project and connect clients, take the quickstart tutorial: https://scaleout.readthedocs.io/en/stable/quickstart.html. When activating the first client, you will be asked to provide your login credentials to Kaggle to download the welding defect dataset and split it into separate client folders.   
 
 
 ## Experiments with results

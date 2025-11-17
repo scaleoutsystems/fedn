@@ -21,7 +21,7 @@ def load_labels(label_dir):
 
 def load_data(data_path, step):
     if data_path is None:
-        data_env = os.environ.get("FEDN_DATA_PATH")
+        data_env = os.environ.get("SCALEOUT_DATA_PATH")
         if data_env is None:
             data_path = f"{abs_path}/data/clients/1"
         else:
@@ -81,7 +81,7 @@ The Welding Defect Dataset/{folder}/labels", label)
         shutil.move(old_image_path, new_image_path)
 
 def split(out_dir="data"):
-    n_splits = int(os.environ.get("FEDN_NUM_DATA_SPLITS", 1))
+    n_splits = int(os.environ.get("SCALEOUT_NUM_DATA_SPLITS", 1))
 
     # Make dir
     if not os.path.exists(f"{out_dir}/clients"):

@@ -5,7 +5,7 @@ import torch.nn.functional as f
 from torch import nn
 from torchvision.models import resnet18
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)

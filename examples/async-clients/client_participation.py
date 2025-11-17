@@ -11,7 +11,7 @@ client participation or model validation in the federated learning network.
 
 import click
 from config import settings
-from fedn import APIClient
+from scaleout import APIClient
 import matplotlib.pyplot as plt
 from datetime import datetime, timezone
 

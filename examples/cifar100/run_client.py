@@ -9,9 +9,9 @@ from init_seed import load_parameters, save_parameters
 from torch import nn, optim
 
 from config import settings
-from fedn import FednClient
-from fedn.network.clients.fedn_client import ConnectToApiResult
-from fedn.utils.helpers.helpers import get_helper
+from scaleout import FednClient
+from scaleout.network.clients.fedn_client import ConnectToApiResult
+from scaleout.utils.helpers.helpers import get_helper
 
 helper = get_helper("numpyhelper")
 
@@ -194,7 +194,7 @@ if __name__ == "__main__":
         print("Failed to connect to API, exiting.")
         exit(1)
 
-    result = client.init_grpchandler(config=combiner_config, client_name=client.client_id, token=settings["CLIENT_TOKEN"])
+    result = client.init_grpchandler(config=combiner_config, client_id=client.client_id, token=settings["CLIENT_TOKEN"])
 
     if not result:
         print("Failed to initialize gRPC handler, exiting.")

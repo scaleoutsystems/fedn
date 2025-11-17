@@ -17,7 +17,7 @@ from monai.transforms import (
     ScaleIntensity,
 )
 
-from fedn.utils.helpers.helpers import save_metadata
+from scaleout.utils.helpers.helpers import save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.abspath(dir_path))
@@ -51,7 +51,7 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     :type client_settings_path: str
     """
     if client_settings_path is None:
-        client_settings_path = os.environ.get("FEDN_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
+        client_settings_path = os.environ.get("SCALEOUT_CLIENT_SETTINGS_PATH", dir_path + "/client_settings.yaml")
 
     with open(client_settings_path, "r") as fh:  # Used by CJG for local training
         try:
@@ -62,11 +62,11 @@ def train(in_model_path, out_model_path, data_path=None, client_settings_path=No
     batch_size = client_settings["batch_size"]
     max_epochs = client_settings["local_epochs"]
     num_workers = client_settings["num_workers"]
-    split_index = os.environ.get("FEDN_DATA_SPLIT_INDEX")
+    split_index = os.environ.get("SCALEOUT_DATA_SPLIT_INDEX")
     lr = client_settings["lr"]
 
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH")
 
     with open(os.path.join(os.path.dirname(data_path), "data_splits.yaml"), "r") as file:
         clients = yaml.safe_load(file)

@@ -19,7 +19,7 @@ Clone FEDn
 
 .. code-block::
 
-    git clone https://github.com/scaleoutsystems/fedn.git
+    git clone https://github.com/scaleoutsystems/scaleout.git
 
 Install FEDn
 
@@ -47,7 +47,7 @@ You will now have a file 'seed.npz' in the directory. Add this seed model to the
 
 .. code-block::
 
-    python init_fedn.py
+    python init_scaleout.py
 
 Project configuration
 ------------
@@ -71,7 +71,7 @@ The file ``config.py`` contains all configuration settings for this example. The
 .. code-block::
 
     {
-        "api.fedn.scaleoutsystems.com/your-project-name": {
+        "api.scaleout.scaleoutsystems.com/your-project-name": {
             "CLIENT_TOKEN": "your-client-token-here",
             "ADMIN_TOKEN": "your-admin-token-here"
         }

@@ -24,8 +24,8 @@ from init_seed import compile_model, make_data
 from sklearn.metrics import accuracy_score
 
 from config import settings
-from fedn import FednClient
-from fedn.network.clients.fedn_client import GrpcConnectionOptions
+from scaleout import FednClient
+from scaleout.network.clients.fedn_client import GrpcConnectionOptions
 
 HELPER_MODULE = "numpyhelper"
 
@@ -151,16 +151,16 @@ def run_client(name="client", client_id=None, no_discovery=False, intermittent=F
         url = get_api_url(host=settings["DISCOVER_HOST"], port=settings["DISCOVER_PORT"], secure=settings["SECURE"])
         result, combiner_config = fl_client.connect_to_api(url, settings["CLIENT_TOKEN"], controller_config)
 
-    fl_client.init_grpchandler(config=combiner_config, client_name=fl_client.client_id, token=settings["CLIENT_TOKEN"])
+    fl_client.init_grpchandler(config=combiner_config, client_id=fl_client.client_id, token=settings["CLIENT_TOKEN"])
 
     if intermittent:
         for i in range(settings["N_CYCLES"]):
             if i != 0:
-                fl_client.grpc_handler._reconnect()
+                fl_client.grpc_handler._reconnect_channel()
 
             threading.Thread(target=fl_client.run, daemon=True).start()
             time.sleep(online_for)
-            fl_client.grpc_handler._disconnect()
+            fl_client.grpc_handler._disconnect_channel()
 
             # Sample a delay until the client reconnects
             delay = np.random.randint(0, settings["CLIENTS_MAX_DELAY"])

@@ -3,7 +3,7 @@ import collections
 import torch
 from transformers import AutoModelForSequenceClassification
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 MODEL = "google/bert_uncased_L-2_H-128_A-2"
 HELPER_MODULE = "numpyhelper"

@@ -6,7 +6,7 @@ import time
 import numpy as np
 from model import load_model
 
-from fedn.utils.helpers.helpers import save_metrics
+from scaleout.utils.helpers.helpers import save_metrics
 
 HELPER_MODULE = "numpyhelper"
 ARRAY_SIZE = 1000000

@@ -1,4 +1,4 @@
-from fedn import APIClient
+from scaleout import APIClient
 
 DISCOVER_HOST = "127.0.0.1"
 DISCOVER_PORT = 8092

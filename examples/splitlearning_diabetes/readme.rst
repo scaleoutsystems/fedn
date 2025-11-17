@@ -7,7 +7,7 @@ It is best if you create a virtual environment for this.
 
 .. code-block:: bash
 
-    git clone https://github.com/scaleoutsystems/fedn.git
+    git clone https://github.com/scaleoutsystems/scaleout.git
     cd fedn
     pip install fedn
 
@@ -52,7 +52,7 @@ To create the compute package, run:
 
 .. code-block:: bash
 
-    fedn package create --path client
+    scaleout package create --path client
 
 Note: For split learning, we do not need a seed model in contrast to horizontal federated learning. 
 
@@ -72,15 +72,15 @@ In another terminal (make sure to be located in the examples/splitlearning_diabe
 
 .. code-block:: bash
 
-    export FEDN_COMPUTE_PACKAGE_DIR=.
-    fedn controller start
+    export SCALEOUT_COMPUTE_PACKAGE_DIR=.
+    scaleout controller start
 
 Now, we set the path to the labels.pt file in the client folder and start the combiner (from another terminal, again from the examples/splitlearning_diabetes folder)
 
 .. code-block:: bash
 
-    export FEDN_LABELS_PATH=./client/data/clients/labels.pt
-    fedn combiner start
+    export SCALEOUT_LABELS_PATH=./client/data/clients/labels.pt
+    scaleout combiner start
 
 **NOTE** 
 
@@ -99,15 +99,15 @@ To start the first client, run:
 
 .. code-block:: bash
 
-    export FEDN_DATA_PATH=./data/clients/1/diabetes.pt 
-    fedn client start --api-url http://localhost:8092 --local-package
+    export SCALEOUT_DATA_PATH=./data/clients/1/diabetes.pt 
+    scaleout client start --api-url http://localhost:8092 --local-package
 
 and to start the second client, run:
 
 .. code-block:: bash
 
-    export FEDN_DATA_PATH=./data/clients/2/diabetes.pt 
-    fedn client start --api-url http://localhost:8092 --local-package
+    export SCALEOUT_DATA_PATH=./data/clients/2/diabetes.pt 
+    scaleout client start --api-url http://localhost:8092 --local-package
 
 
 **NOTE** 

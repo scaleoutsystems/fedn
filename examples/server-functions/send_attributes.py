@@ -3,7 +3,7 @@ import json
 import random
 import time
 
-from fedn import APIClient
+from scaleout import APIClient
 
 
 def parse_args():

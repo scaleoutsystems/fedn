@@ -3,8 +3,8 @@ import os
 import fire
 from flwr_client import app
 
-from fedn.utils.flowercompat.client_app_adapter import FlwrClientAppAdapter
-from fedn.utils.helpers.helpers import get_helper, save_metadata, save_metrics
+from scaleout.utils.flowercompat.client_app_adapter import FlwrClientAppAdapter
+from scaleout.utils.helpers.helpers import get_helper, save_metadata, save_metrics
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)

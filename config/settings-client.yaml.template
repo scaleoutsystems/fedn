@@ -1,3 +1,0 @@
-network_id: fedn-network
-discover_host: api-server
-discover_port: 8092

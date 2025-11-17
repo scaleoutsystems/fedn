@@ -5,8 +5,8 @@ import torch
 from model import compile_model, load_client_model, save_client_model
 
 from data import load_data
-from fedn.common.log_config import logger
-from fedn.utils.helpers.helpers import get_helper, save_metadata
+from scaleoututil.logging import FednLogger
+from scaleoututil.helpers.helpers import get_helper, save_metadata
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
@@ -33,10 +33,10 @@ def forward_pass(client_id, out_embedding_path, is_sl_inference, data_path=None)
     :type data_path: str
     """
     if is_sl_inference == "True":
-        logger.info(f"Client-side inference forward pass for client {client_id}")
+        FednLogger().info(f"Client-side inference forward pass for client {client_id}")
         X = load_data(data_path, is_train=False)
     else:
-        logger.info(f"Client-side training forward pass for client {client_id}")
+        FednLogger().info(f"Client-side training forward pass for client {client_id}")
         X = load_data(data_path, is_train=True)
 
     num_local_features = X.shape[1]

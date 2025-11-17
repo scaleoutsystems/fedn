@@ -4,7 +4,7 @@ from data import get_dataloaders
 from model import compile_model, model_hyperparams, save_parameters
 from settings import BATCHSIZE_VALID, DATASET_PATH, KEYWORDS
 
-from fedn import APIClient
+from scaleout import APIClient
 
 HOST = ""  ## INSERT HOST
 TOKEN = ""  ## INSERT TOKEN
@@ -40,7 +40,8 @@ def main():
 
     if args.upload_seed:
         init_seedmodel()
-        api_client.set_active_model("seed.npz")
+        response = api_client.set_active_model("seed.npz")
+        print(response)
     elif args.start_session:
         # Depending on the computer hosting the clients this round_timeout might need to increase
         response = api_client.start_session(name="Training", round_timeout=1200)

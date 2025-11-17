@@ -1,0 +1,7 @@
+# Remove the python_env tag below to handle the environment manually
+python_env: python_env.yaml 
+
+entry_points:
+  build: 
+    command: python build.py
+  startup: startup.py

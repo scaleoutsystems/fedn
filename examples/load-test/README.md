@@ -13,7 +13,7 @@ way by sending and aggregating numeric arrays of varying size.
 
 Clone FEDn and locate into this directory.
 ```sh
-git clone https://github.com/scaleoutsystems/fedn.git
+git clone https://github.com/scaleoutsystems/scaleout.git
 cd fedn/examples/load-test
 ```
 
@@ -41,9 +41,9 @@ python client/entrypoint init_seed
 ```
 
 ### Initialize the FEDn network and run an experiment
-Edit 'init_fedn.py' to configure the FEDn host (controller) to connect to, then
+Edit 'init_scaleout.py' to configure the FEDn host (controller) to connect to, then
 ```
-python init_fedn.py
+python init_scaleout.py
 ```
 
 Launch clients and run a training session/experiment:

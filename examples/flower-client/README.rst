@@ -1,7 +1,7 @@
 FEDn Project: Flower ClientApps in FEDn
 ---------------------------------------
 
-This example demonstrates how to run a Flower 'ClientApp' on FEDn. Sign up to FEDn Studio for a quick and easy way to set up all the backend services: https://fedn.scaleoutsystems.com/signup/ (optional).
+This example demonstrates how to run a Flower 'ClientApp' on FEDn. Sign up to FEDn Studio for a quick and easy way to set up all the backend services: https://scaleout.scaleoutsystems.com/signup/ (optional).
 
 The FEDn compute package 'client/entrypoint' 
 uses a built-in Flower compatibiltiy adapter for convenient wrapping of the Flower client.
@@ -12,7 +12,7 @@ https://github.com/adap/flower/tree/main/examples/app-pytorch).
 Running the example
 -------------------
 
-See `https://fedn.readthedocs.io/en/stable/quickstart.html` for a general introduction to FEDn. 
+See `https://scaleout.readthedocs.io/en/stable/quickstart.html` for a general introduction to FEDn. 
 This example follows the same structure as the pytorch quickstart example. 
 
 Install fedn:
@@ -25,14 +25,14 @@ Clone this repository, then locate into this directory:
 
 .. code-block::
 
-   git clone https://github.com/scaleoutsystems/fedn.git
+   git clone https://github.com/scaleoutsystems/scaleout.git
    cd fedn/examples/flower-client
 
 Create the compute package (compress the 'client' folder):
 
 .. code-block::
 
-   fedn package create --path client
+   scaleout package create --path client
 
 This should create a file 'package.tgz' in the project folder.
 
@@ -40,7 +40,7 @@ Next, generate a seed model (the first model in the global model trail):
 
 .. code-block::
 
-   fedn run build --path client
+   scaleout run build --path client
 
 This creates a seed.npz in the root of the project folder. Next, you will upload the compute package and seed model to
 a FEDn network. Here you have two main options: using FEDn Studio 
@@ -50,7 +50,7 @@ on your own machine.
 Using FEDn Studio:
 -------------------------------------------
 
-Follow instructions here to register for Studio and start a project: https://fedn.readthedocs.io/en/stable/quickstart.html.
+Follow instructions here to register for Studio and start a project: https://scaleout.readthedocs.io/en/stable/quickstart.html.
 
 In your Studio project: 
 
@@ -62,7 +62,7 @@ On your local machine / client, start the FEDn client:
 
 .. code-block::
 
-   fedn client start -in client.yaml --secure=True --force-ssl
+   scaleout client start -in client.yaml --secure=True --force-ssl
 
 
 Or, if you prefer to use Docker (this might take a long time):
@@ -72,7 +72,7 @@ Or, if you prefer to use Docker (this might take a long time):
    docker run \
    -v $PWD/client.yaml:/app/client.yaml \
    -e CLIENT_NUMBER=0 \
-   -e FEDN_PACKAGE_EXTRACT_DIR=package \
+   -e SCALEOUT_PACKAGE_EXTRACT_DIR=package \
    ghcr.io/scaleoutsystems/fedn/fedn:0.11.1 run client -in client.yaml --secure=True --force-ssl
 
 Scaling to multiple clients
@@ -86,10 +86,10 @@ For Unix Operating Systems:
 
 .. code-block::
 
-   CLIENT_NUMBER=0 fedn run client -in client.yaml --secure=True --force-ssl
+   CLIENT_NUMBER=0 scaleout run client -in client.yaml --secure=True --force-ssl
 
 Using Windows PowerShell:
 
 .. code-block::
 
-   & { $env:CLIENT_NUMBER="0"; fedn run client -in client.yaml --secure=$true --force-ssl }
+   & { $env:CLIENT_NUMBER="0"; scaleout run client -in client.yaml --secure=$true --force-ssl }

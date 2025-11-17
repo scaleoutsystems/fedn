@@ -17,7 +17,7 @@ def get_classes(data_path):
     :type data_path: str
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/MedNIST")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/MedNIST")
 
     class_names = sorted(x for x in os.listdir(data_path) if os.path.isdir(os.path.join(data_path, x)))
     return class_names
@@ -34,7 +34,7 @@ def load_data(data_path, sample_size=None, is_train=True):
     :rtype: tuple
     """
     if data_path is None:
-        data_path = os.environ.get("FEDN_DATA_PATH", abs_path + "/data/MedNIST")
+        data_path = os.environ.get("SCALEOUT_DATA_PATH", abs_path + "/data/MedNIST")
 
     class_names = get_classes(data_path)
     num_class = len(class_names)

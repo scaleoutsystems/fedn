@@ -302,7 +302,7 @@ def get_data_loader(num_splits: int = 5, balanced: bool = True, iid: bool = True
     cifar_data = CIFAR100Federated()
 
     if is_train:
-        split_id = os.environ.get("FEDN_DATA_SPLIT_ID", 0)
+        split_id = os.environ.get("SCALEOUT_DATA_SPLIT_ID", 0)
         dataset = cifar_data.get_split(split_id=split_id, num_splits=num_splits, balanced=balanced, iid=iid)
         print(f"Getting data loader for split {split_id} of trainset (size: {len(dataset)})")
     else:

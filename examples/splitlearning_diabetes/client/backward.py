@@ -6,8 +6,8 @@ from data import load_data
 from model import load_client_model, save_client_model
 from torch import optim
 
-from fedn.common.log_config import logger
-from fedn.utils.helpers.helpers import get_helper
+from scaleoututil.logging import FednLogger
+from scaleoututil.helpers.helpers import get_helper
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 abs_path = os.path.abspath(dir_path)
@@ -27,7 +27,7 @@ def backward_pass(gradient_path, client_id):
     param client_id: ID of the client to update.
     :type client_id: str
     """
-    logger.info(f"Performing backward pass for client {client_id}")
+    FednLogger().info(f"Performing backward pass for client {client_id}")
 
     x_train = load_data(data_path=None, is_train=True)
     num_local_features = x_train.shape[1]

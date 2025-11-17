@@ -1,9 +1,0 @@
-# Compose schema version
-version: '3.3'
-
-# Overriding settings
-services:
-  reducer:
-    volumes:
-      - ${HOST_REPO_DIR:-.}:/app
-      - ${HOST_REPO_DIR:-.}/config/settings-reducer.yaml:/app/config/settings-reducer.yaml

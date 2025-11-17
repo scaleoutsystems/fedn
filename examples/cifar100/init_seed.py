@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torchvision import models
 
-from fedn.utils.helpers.helpers import get_helper
+from scaleout.utils.helpers.helpers import get_helper
 
 HELPER_MODULE = "numpyhelper"
 helper = get_helper(HELPER_MODULE)

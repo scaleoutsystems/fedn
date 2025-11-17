@@ -7,7 +7,7 @@
    :target: https://discord.gg/KMg4VwszAd
 
 .. |pic3| image:: https://readthedocs.org/projects/fedn/badge/?version=latest&style=flat
-   :target: https://fedn.readthedocs.io
+   :target: https://scaleout.readthedocs.io
 
 FEDn: An enterprise-ready federated learning framework 
 -------------------------------------------------------
@@ -26,7 +26,7 @@ Our goal is to provide a federated learning framework that is both secure, scala
 
 -  **Developer and DevOps friendly.** Extensive event logging and distributed tracing enables developers to monitor the sytem in real-time, simplifying troubleshooting and auditing. Extensions and integrations are facilitated by a flexible plug-in architecture.  
 
-FEDn is free forever for academic and personal use / small projects. Sign up for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
+FEDn is free forever for academic and personal use / small projects. Sign up for a `FEDn Studio account <https://scaleout.scaleoutsystems.com/signup>`__  and take the `Quickstart tutorial <https://scaleout.readthedocs.io/en/stable/quickstart.html>`__ to get started with FEDn. 
 
 Features
 =========
@@ -64,8 +64,8 @@ Getting started
 
 Get started with FEDn in two steps:  
 
-1. Register for a `FEDn Studio account <https://fedn.scaleoutsystems.com/signup>`__
-2. Take the `Quickstart tutorial <https://fedn.readthedocs.io/en/stable/quickstart.html>`__
+1. Register for a `FEDn Studio account <https://scaleout.scaleoutsystems.com/signup>`__
+2. Take the `Quickstart tutorial <https://scaleout.readthedocs.io/en/stable/quickstart.html>`__
 
 Use of our multi-tenant, managed deployment of FEDn Studio (SaaS) is free forever for academic research and personal development/testing purposes.
 For users and teams requiring additional resources, more storage and cpu, dedicated support, and other hosting options (private cloud, on-premise), `explore our plans <https://www.scaleoutsystems.com/start#pricing>`__.  
@@ -75,7 +75,7 @@ Documentation
 
 More details about the architecture, deployment, and how to develop your own application and framework extensions are found in the documentation:
 
--  `Documentation <https://fedn.readthedocs.io>`__
+-  `Documentation <https://scaleout.readthedocs.io>`__
 
 FEDn Project Examples
 =====================
@@ -95,7 +95,7 @@ FEDn Studio Deployment options
 
 Several hosting options are available to suit different project settings.
 
--  `Public cloud (multi-tenant) <https://fedn.scaleoutsystems.com>`__: Managed multi-tenant deployment in public cloud. 
+-  `Public cloud (multi-tenant) <https://scaleout.scaleoutsystems.com>`__: Managed multi-tenant deployment in public cloud. 
 -   Dedicated cloud (single-tenant): Managed, dedicated deployment in a cloud region of your choice (AWS, GCP, Azure, managed Kubernetes) 
 -   Self-managed: Set up a self-managed deployment in your VPC or on-premise Kubernets cluster using Helm Chart and container images provided by Scaleout. 
 
@@ -125,7 +125,7 @@ If you use FEDn in your research, please cite:
 
    @article{ekmefjord2021scalable,
      title={Scalable federated machine learning with FEDn},
-     author={Ekmefjord, Morgan and Ait-Mlouk, Addi and Alawadi, Sadi and {\AA}kesson, Mattias and Stoyanova, Desislava and Spjuth, Ola and Toor, Salman and Hellander, Andreas},
+     author={Ekmefjord, Morgan and Ait-Mlouk, Addi and Alawadi, Sadi and {\\AA}kesson, Mattias and Stoyanova, Desislava and Spjuth, Ola and Toor, Salman and Hellander, Andreas},
      journal={arXiv preprint arXiv:2103.00148},
      year={2021}
    }

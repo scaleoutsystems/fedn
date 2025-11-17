@@ -1,5 +1,5 @@
 from config import settings
-from fedn import APIClient
+from scaleout import APIClient
 
 client = APIClient(
     host=settings["DISCOVER_HOST"],
