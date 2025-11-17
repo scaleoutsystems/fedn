@@ -17,22 +17,20 @@ The branching strategy we follow is [GitFlow](https://datasift.github.io/gitflow
 
 ### GitHub Issues
 
-Report a bug or propose a feature by [opening a new GitHub Issue](https://github.com/scaleoutsystems/fedn/issues/new/choose). We have set up templates accordingly so, choose the one that matches your case. Please try to provide all the required information in the template. If you believe some of the sections are not relevant to your case, you can omit them.
+Report a bug or propose a feature by [opening a new GitHub Issue](https://github.com/scaleoutsystems/scaleout-client/issues/new/choose). We have set up templates accordingly so, choose the one that matches your case. Please try to provide all the required information in the template. If you believe some of the sections are not relevant to your case, you can omit them.
 
 ### Branches & Pull Requests
 
-- **master** branch has the latest release of FEDn
-- **develop** branch is where we add functionality and submit bugfixes
+- **main** branch has the latest release of the Scaleout client
 - if your branch introduces new functionality, name it **feature/[GitHub-Issue-ID]**
 - if your branch resolves a bug, name it **issue/[GitHub-Issue-ID]**
 - if your branch is a hotfix, name it **hotfix/[GitHub-Issue-ID]**
 
-Open your pull requests against the **develop** branch unless you're resolving a critical bug in production (hotfix). Then your pull request should be against **master** branch.
+Open your pull requests against the **main** branch.
 
 ### Code checks
 We defined GitHub actions that check code quality and formatting against pushed branches and pull requests. We use:
 
-- [autopep8](https://pypi.org/project/autopep8/) to conform to the PEP 8 code style
-- [isort](https://github.com/PyCQA/isort) to organize imports
+- [ruff](https://docs.astral.sh/ruff/) for linting, formatting and import sorting. See pyproject.toml for more details.
 
 For more information please refer to the code check action: [.github/workflows/code-checks.yaml](.github/workflows/code-checks.yaml).

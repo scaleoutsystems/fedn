@@ -6,8 +6,8 @@ We actively maintain and patch the following versions of this project. Please en
 
 | Version | Supported          |
 | ------- | ------------------ |
-| >= 0.18.0   | :white_check_mark: |
-| <= 0.17.0   | :x:                |
+| >= 1.0.0   | :white_check_mark: |
+| <= 1.0.0   | :x:                |
 
 ## Reporting a Vulnerability
 
