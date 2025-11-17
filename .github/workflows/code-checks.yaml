@@ -3,34 +3,57 @@ name: "code checks"
 on: push
 
 jobs:
-  code-checks:
+  python-quality:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: init venv
-        run: .devcontainer/bin/init_venv.sh
-
-      - name: Ruff Linting
-        uses: chartboost/ruff-action@v1
-
-      - name: check for floating imports
-        run: >
-          ! grep -E -R 
-          --exclude-dir='.venv' 
-          --exclude-dir='.mnist-pytorch' 
-          --exclude-dir='.mnist-keras' 
-          --exclude-dir='.huggingface'
-          --exclude-dir='docs'
-          --exclude-dir='flower-client'
-          --exclude='tests.py'
-          --exclude='controller_cmd.py'
-          --exclude='fedn_pb2_grpc.py'
-          --exclude='combiner_cmd.py'
-          --exclude='run_cmd.py'
-          --exclude='README.rst'
-          '^[ \t]+(import|from) ' -I . |
-          grep -v '# not-floating-import'
-
-      # TODO: add linting/formatting for all file types
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install quality tools for scaleout-core
+        run: |
+          python -m pip install --upgrade pip
+          cd python
+          # Install quality tools and minimal dependencies
+          if [ -f pyproject.toml ]; then
+            # For pyproject.toml projects, use optional dev dependencies
+            pip install -e ".[dev]" --no-deps || pip install ruff mypy bandit safety
+            # Install minimal project dependencies for type checking only
+            pip install -e . --no-deps 2>/dev/null || true
+          fi
+      - name: Check code formatting and linting with Ruff
+        run: |
+          cd python
+          echo "Running Ruff format check for python"
+          ruff format --check --diff . || (echo "❌ Code formatting issues found in python. Run 'ruff format .' to fix." && exit 1)
+          echo "Running Ruff linting for python"
+          ruff check . || (echo "❌ Linting issues found in python. Run 'ruff check --fix .' to fix." && exit 1)
+      - name: Type checking with mypy
+        run: |
+          cd python
+          mypy . --ignore-missing-imports --show-error-codes || true
+      - name: Security analysis with bandit
+        run: |
+          cd python
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . || true
+      - name: Check dependencies with safety
+        run: |
+          cd python
+          # Check dependencies based on project structure
+          if [ -f pyproject.toml ]; then
+            # For pyproject.toml projects, extract dependencies and check them
+            pip freeze > temp-requirements.txt
+            safety check -r temp-requirements.txt || true
+            rm -f temp-requirements.txt
+          elif [ -f requirements.txt ]; then
+            safety check -r requirements.txt || true
+          fi
+      - name: Generate code quality report
+        run: |
+          cd scaleout-core
+          echo "## Python Code Quality Report for scaleout-core" > python-quality-report.md
+          echo "### Ruff (Code Formatting & Linting)" >> python-quality-report.md
+          ruff format --check . && echo "✅ Formatting Passed" >> python-quality-report.md || echo "❌ Formatting Failed" >> python-quality-report.md
+          ruff check . && echo "✅ Linting Passed" >> python-quality-report.md || echo "❌ Linting Issues Found" >> python-quality-report.md

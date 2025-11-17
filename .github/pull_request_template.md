@@ -12,7 +12,7 @@ This is simply a reminder of what we are going to look for before merging your c
 
 - This PR is against **develop** branch (not applicable for hotfixes)
 - You have included a link to the issue on GitHub or JIRA (if any)
-- You have read the [CONTRIBUTING](https://github.com/scaleoutsystems/fedn/blob/master/CONTRIBUTING.md) doc
+- You have read the [CONTRIBUTING](https://github.com/scaleoutsystems/scaleout-client/blob/main/CONTRIBUTING.md) doc
 - You have included tests to complement my changes
 - You have updated the related documentation (if necessary) 
 - You have added a reviewer for this pull request
