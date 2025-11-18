@@ -1,0 +1,198 @@
+syntax = "proto3";
+
+package scaleout;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+message Response {
+    string response = 1;
+    string parameters = 2;
+}
+
+// Status 
+
+enum LogLevel {
+      NONE = 0;
+      INFO  = 1;
+      DEBUG = 2;
+      WARNING = 3;
+      ERROR = 4;
+      AUDIT = 5;
+    }
+
+message Status {
+    string client_id = 1;
+    string status = 2;
+    LogLevel log_level = 3;
+    google.protobuf.Timestamp timestamp = 6;
+    string type = 7;
+}
+
+// Combiner from Client
+
+message ModelUpdate {
+  string client_id = 1;
+  string model_id = 3;
+  string model_update_id = 4;
+  string correlation_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string meta = 7;
+  string config = 8;
+  string round_id = 9;
+  string session_id = 10;
+}
+
+message ModelValidation {
+  string client_id = 1;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string session_id = 8;
+}
+
+message ModelPrediction {
+  string client_id = 1;
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+  string session_id = 8;
+}
+
+message BackwardCompletion {
+  string client_id = 1;
+  string gradient_id = 3;
+  string correlation_id = 4;
+  string session_id = 5;
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+message ModelMetric {
+  string client_id = 1;
+  repeated MetricElem metrics = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  google.protobuf.UInt32Value step = 4;
+  string model_id = 5;
+  string round_id = 6;
+  string session_id = 7;
+}
+
+message MetricElem {
+  string key = 1;
+  float value = 2;
+}
+
+message AttributeMessage {
+  string client_id = 1;
+  repeated AttributeElem attributes = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message AttributeElem {
+  string key = 1;
+  string value = 2;
+}
+
+message TelemetryMessage {
+  string client_id = 1;
+  repeated TelemetryElem telemetries = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message TelemetryElem {
+  string key = 1;
+  float value = 2;
+}
+
+// Task related
+
+
+message TaskRequest {
+  string model_id = 3;
+  string data = 4;
+  string correlation_id = 5;
+  string timestamp = 6;
+  string session_id = 8;
+  string round_id = 10;
+  string type = 11;
+  string status = 12;
+  string client_id = 1;
+}
+
+message ActivityReport {
+  string node_id = 1; // If sent from a client
+  string correlation_id = 2;
+  string status = 3;
+  bool done = 4;
+  string response = 5; // json
+}
+
+message Heartbeat {
+  string client_id = 1;
+  float memory_utilisation = 2;
+  float cpu_utilisation = 3;
+}
+
+message ClientAvailableMessage {
+  string client_id = 1;
+  string data = 2;
+  string timestamp = 3;
+}
+
+message ClientAnnounceRequest {
+  string client_id = 1;
+  string type = 2;
+  string parameters = 3;
+}
+
+
+service CombinerClient {
+    rpc SendModelUpdate (ModelUpdate) returns (Response);
+    rpc SendModelValidation (ModelValidation) returns (Response);
+    rpc SendModelPrediction (ModelPrediction) returns (Response);
+    rpc SendBackwardCompletion (BackwardCompletion) returns (Response);
+    rpc SendModelMetric(ModelMetric) returns (Response);
+    rpc SendAttributeMessage(AttributeMessage) returns (Response);
+    rpc SendTelemetryMessage(TelemetryMessage) returns (Response);
+
+    rpc Announce(ClientAnnounceRequest) returns (Response);
+
+    rpc PollAndReport(ActivityReport) returns (TaskRequest);
+
+    // Status endpoint
+    rpc SendStatus (Status) returns (Response);
+    // Client messaging to stay engaged.
+    rpc SendHeartbeat (Heartbeat) returns (Response);
+    // Stream endpoints for training/validation pub/sub
+    rpc TaskStream (ClientAvailableMessage) returns (stream TaskRequest);
+}
+
+
+// ModelService
+
+enum ModelStatus {
+  UNKNOWN = 0;
+  IN_PROGRESS = 1;
+  OK = 2;
+  FAILED = 3;
+}
+
+message ModelRequest {
+  string model_id = 3;  
+}
+
+message FileChunk {
+  bytes data = 1;
+}
+
+message ModelResponse {
+  ModelStatus status = 3;
+  string message = 4;
+}
+
+service ModelService {
+  rpc Upload(stream FileChunk) returns (ModelResponse);
+  rpc Download(ModelRequest) returns (stream FileChunk);
+}
