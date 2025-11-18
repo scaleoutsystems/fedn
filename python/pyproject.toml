@@ -11,7 +11,7 @@ dependencies = [
     "numpy>=1.21.6",
     "psutil",
     "requests",
-    "scaleoututil",
+    "scaleoututil==1.0.0",
     "click==8.1.8",
 ]
 
