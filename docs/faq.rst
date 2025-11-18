@@ -26,17 +26,20 @@ Yes, to facilitate interactive development of the compute package you can start 
 
 .. code-block:: bash
 
-    scaleout client start --remote=False -in client.yaml 
+    scaleout client start --local-package
 
 
-Note that in production federations this options should in most cases be disallowed. 
+Note that in production federations the remote compute package option should in most cases be disallowed. 
 
-Q: How can other aggregation algorithms can be defined?
--------------------------------------------------------
+Q: How can I define custom aggregation algorithms?
+--------------------------------------------------
 
-There is a plugin interface for extending the framework with new aggregators. See 
+Scaleout Edge provides several built-in aggregators, but custom aggregation or
+server-side behavior can be implemented through the **server functions**
+interface. This allows you to override or extend the Combiner-level logic as
+needed.
 
-:ref:`agg-label`
+See :ref:`agg-label` and :ref:`server-functions` for details.
 
 
 Q: What is needed to include additional ML frameworks in Scaleout Edge?
@@ -48,16 +51,6 @@ can use the built in "numpyhelper". If this is not possible, you can extend the 
 see the section about model marshaling: 
 
 :ref:`helper-label`
-
-Q: Can I start a client listening only to training requests or only on validation requests?:
---------------------------------------------------------------------------------------------
-
-Yes! You can toggle which message streams a client subscribes to when starting the client. For example, to start a pure validation client: 
-
-.. code-block:: bash
-
-    scaleout client start --trainer=False -in client.yaml 
-
 
 Q: How do you approach the question of output privacy? 
 ----------------------------------------------------------------------------------

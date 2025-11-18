@@ -1,7 +1,7 @@
 .. _server-functions:
 
-Modifying Server Functionality
-==============================
+Server Functions
+================
 
 Scaleout Edge provides an interface where you can implement your own server-side logic directly into your server by utilizing the ``ServerFunctions`` class. This enables advanced customization of the server's behavior while working with Scaleout Edge.
 You can for example implement custom client selection logic, adjust hyperparameters, or implement a custom aggregation algorithm. See https://www.youtube.com/watch?v=Rnfhfqy_Tts for information in video format.

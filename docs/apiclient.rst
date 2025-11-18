@@ -27,7 +27,7 @@ To obtain an admin API token press "Generate" in the "Generate Admin token" sect
 
 .. image:: img/generate_admin_token.png
 
-To initalize the connection to the Scaleout Edge REST API: 
+To initalize the connection to the Scaleout REST API: 
 
 .. code-block:: python
 
@@ -146,7 +146,7 @@ To get a specific session:
 For more information on how to use the APIClient, see the :py:mod:`scaleout-client.scaleout.network.api.client`.  
 There is also a collection of Jupyter Notebooks showcasing more advanced use of the API, including how to work with other built-in aggregators and how to automate hyperparameter tuning:
  
-- `API Example <https://github.com/scaleoutsystems/scaleout-client/tree/master/scaleout/examples/api-tutorials>`_  . 
+- `API Example <https://github.com/scaleoutsystems/scaleout-client/python/examples/api-tutorials>`_  . 
 
 
 .. meta::

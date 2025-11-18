@@ -78,7 +78,7 @@ On you local machine/client, install the Scaleout Edge package using pip:
 
 **From source**
 
-Clone the Scaleout Edge repository and install the package:
+Clone the Scaleout Client repository and install the package:
 
 .. code-block:: bash
 

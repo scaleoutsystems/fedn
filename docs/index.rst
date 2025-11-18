@@ -1,7 +1,7 @@
 Welcome to Scaleout Edge Documentation
 ======================================
 
-Scaleout Edge is an open-source framework for scalable federated learning. This documentation covers architecture, setup, deployment, API references, and troubleshooting guidance. Quickly locate configuration examples, technical concepts, or operational details you need to deploy federated models efficiently in production environments.
+Scaleout Edge is a framework for scalable federated learning. This documentation covers architecture, setup, deployment, API references, and troubleshooting guidance. Quickly locate configuration examples, technical concepts, or operational details you need to deploy federated models efficiently in production environments.
 
 .. toctree::
    :maxdepth: 1
@@ -23,10 +23,10 @@ Scaleout Edge is an open-source framework for scalable federated learning. This 
    A Guide to the Scaleout Edge Project Structure <projects>
    Architecture Overview <architecture>
    aggregators
+   serverfunctions
    cli
    helpers
    apiclient
-   serverfunctions
    localcompute
 
 .. toctree::

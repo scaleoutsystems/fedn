@@ -72,13 +72,13 @@ Several additional parameters that guide general behavior of the aggregation flo
 - Whether to retain or delete model update files after they have been processed (default is to delete them)
 
 
-Extending Scaleout Edge with new Aggregators
---------------------------------------------
+Implement own Aggregators
+-------------------------
 
 Scaleout Edge supports a flexible architecture that allows developers to implement custom aggregation logic beyond the built-in options.
 To define and register your own aggregator, you should use the server functions interface, where aggregation behavior can be customized to suit specific research or production needs.
 
-For detailed instructions and examples on how to implement new aggregators, see the section on :ref:server-functions.
+For detailed instructions and examples on how to implement new aggregators, see the section on :ref:`server-functions`.
 
 
 .. meta::

@@ -3,7 +3,7 @@
 CLI
 =================================
 
-The Scaleout Edge Command-Line Interface (CLI) is a powerful tool that allows users to interact with the Scaleout Edge server. It provides a comprehensive set of commands to manage and operate various components of the Scaleout Edge network, including starting services, managing sessions, and retrieving data.
+The Scaleout Edge Command-Line Interface (CLI) is designed to streamline management of the Scaleout Edge platform, making it easier for users to deploy, monitor and interact with their federated learning networks.
 
 With the Scaleout Edge CLI, users can:
 
@@ -18,6 +18,19 @@ With the Scaleout Edge CLI, users can:
 The Scaleout Edge CLI is designed to streamline the management of the Scaleout Edge platform, making it easier for users to deploy, monitor, and interact with their federated learning networks.
 
 For detailed usage and examples, refer to the sections below.
+
+Login
+------
+
+The `scaleout` commands allow users to log in to Scaleout Edge and interact with the platform.
+
+**Commands:**
+
+- **scaleout login** - Log in to the Scaleout Edge using a username, password, and host. Example:  
+
+.. code-block:: bash
+
+     scaleout login -u username -P password -H host
 
 Client
 ------
@@ -44,18 +57,6 @@ The `scaleout client` commands allow users to start and manage Scaleout Edge cli
      
      scaleout client get-config --name test-client
 
-Login
-------
-
-The `scaleout` commands allow users to log in to Scaleout Edge and interact with the platform.
-
-**Commands:**
-
-- **scaleout login** - Log in to the Scaleout Edge using a username, password, and host. Example:  
-
-.. code-block:: bash
-
-     scaleout login -u username -P password -H host
 
 Combiner
 --------
