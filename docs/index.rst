@@ -5,17 +5,17 @@ Scaleout Edge is a framework for scalable federated learning. This documentation
 
 .. toctree::
    :maxdepth: 1
-   :caption: Core Concepts
+   :caption: Get Started
 
    overview
-   introduction
-   Architecture Overview <architecture>
+   My First Scaleout Edge Project <quickstart>
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting Started
+   :caption: Core Concepts
 
-   My First Scaleout Edge Project <quickstart>
+   introduction
+   Architecture Overview <architecture>
 
 .. toctree::
    :maxdepth: 1
@@ -33,6 +33,12 @@ Scaleout Edge is a framework for scalable federated learning. This documentation
    aggregators
    serverfunctions
    helpers
+
+.. toctree::
+   :maxdepth: 1
+   :caption: API Reference
+
+   apiref/index
 
 .. toctree::
    :maxdepth: 1

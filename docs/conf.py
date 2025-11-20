@@ -2,8 +2,12 @@ import os
 import sys
 
 
-# Insert path
-sys.path.insert(0, os.path.abspath(".."))
+# Insert paths
+#sys.path.insert(0, os.path.abspath(".."))  # repo root
+sys.path.insert(0, os.path.abspath("../scaleout-core"))
+sys.path.insert(0, os.path.abspath("../scaleout-core/scaleoutcore/network/api/v1"))
+sys.path.insert(0, os.path.abspath("../scaleout-client-python"))
+sys.path.insert(0, os.path.abspath("../scaleout-util"))
 
 # Project info
 project = "Scaleout Edge"
@@ -14,6 +18,7 @@ release = "0.33.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
+    "sphinx_click.ext",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
@@ -26,6 +31,8 @@ extensions = [
     "sphinx_code_tabs",
     "sphinx_copybutton",
 ]
+
+autosummary_generate = True
 
 # SEO configuration
 html_title = "Scaleout Edge Documentation - Scalable Federated Learning Framework"
@@ -40,7 +47,7 @@ templates_path = []
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ["_build", ".venv", "venv", "Thumbs.db", ".DS_Store"]
 
 # The theme to use for HTML and HTML Help pages.
 html_theme = "sphinx_rtd_theme"
@@ -53,6 +60,39 @@ html_theme_options = {
 # SEO improvements
 html_use_index = True
 html_split_index = False
+
+# mock imports
+autodoc_mock_imports = [
+    "click",
+    "psutil",
+    "grpc",
+    "flask",
+    "numpy",
+    "pymongo",
+    "jwt",
+    "pydantic",
+    "sqlalchemy",
+    "psycopg2",
+    "requests",
+    "boto3",
+    "minio",
+    "redis",
+    "yaml",
+    "werkzeug",
+    "fastapi",
+    "uvicorn",
+    "google",
+    "alembic",
+    "alembic.config",
+    "opentelemetry",
+    "opentelemetry.trace",
+    "opentelemetry.instrumentation",
+    "opentelemetry.sdk",
+    "scaleoututil.grpc.scaleout_pb2",
+    "scaleoututil.grpc.scaleout_pb2_grpc",
+    "scaleoutcore.network.grpc.server_pb2",
+    "scaleoutcore.network.grpc.server_pb2_grpc",
+]
 
 # Allow search engines to index the documentation
 # Remove any robots restrictions
