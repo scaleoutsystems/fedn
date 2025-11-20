@@ -8,7 +8,7 @@ Traditional machine learning
 
 Traditional machine learning is centralized. Data from various sources is collected into a single location - typically a cloud platform or data center — and training models on that combined dataset.
 
-This method works well in many cases, but it’s increasingly limited. The rapid growth of connected devices, sensors and distributed data sources has led to an exponential increase in data volume and complexity. Meanwhile, privacy regulations and security concerns make centralizing this data difficult and expensive.
+This method works well in many cases, but it's increasingly limited. The rapid growth of connected devices, sensors and distributed data sources has led to an exponential increase in data volume and complexity. Meanwhile, privacy regulations and security concerns make centralizing this data difficult and expensive.
 
 Often, the data needed for training exists across many devices, organizations, or locations. Centralizing it is challenging due to privacy risks and high transfer costs.
 
@@ -20,18 +20,18 @@ How federated learning works
 In federated learning, models are trained across multiple devices or servers (called client nodes) without moving the data. Here's how it works:
 
 1. **Initialize the global model -** A central server starts with an initial global model—like a neural network or decision tree.
-2. **Sending to clients -** The model's parameters are sent to selected clients. Each client keeps its local dataset private.
+2. **Model retrieval -** Selected clients download the current model parameters from the server. Their local datasets remain private.
 3. **Local training -** Each client updates the model using its local data. This training is repeated in several rounds — not to completion.
 4. **Combining the updates -** The updated models from each client are sent back to the central server, where they are combined. 
 
 This cycle repeats until the global model reaches the desired accuracy.
 
-The FEDn framework 
---------------------
+The Scaleout Edge framework 
+---------------------------
 
-FEDn is a federated learning framework focused on security, scalability, and ease of use. It supports the full development lifecycle—from early experiments to production deployments—with minimal code changes. Key design goals include:
+Scaleout Edge focuses on security, scalability, and ease of use. It supports the full development lifecycle—from early experiments to production deployments—with minimal code changes. Key design goals include:
 
--  **Minimal server-side complexity for the end-user**. FEDn Studio handles orchestration, providing a UI, REST API, and Python interface for managing experiments and tracking metrics in real time.
+-  **Minimal server-side complexity for the end-user**. Scaleout Edge handles orchestration, providing a UI, REST API, and Python interface for managing experiments and tracking metrics in real time.
 
 -  **Secure by design.** Clients never need to open inbound ports. gRPC, token-based authentication (JWT) and RBAC provides flexible and secure integration. 
 
@@ -39,7 +39,7 @@ FEDn is a federated learning framework focused on security, scalability, and eas
 
 -  **Cloud native.** Deploy on public cloud, private cloud, or on-prem infrastructure.
 
--  **Scalability and resilience.** Multiple combiners can balance load. FEDn handles failures in all critical components and manages intermittent client-connections. 
+-  **Scalability and resilience.** Multiple combiners can balance load. Scaleout Edge handles failures in all critical components and manages intermittent client-connections. 
 
 -  **Developer and DevOps friendly.** Logging, tracing, and plugin architecture simplify monitoring, debugging, and extending the system.  
 
@@ -57,29 +57,65 @@ Federated learning:
 - No inbound ports required on client devices
 
 
-From development to FL in production: 
+From development to FL in production
+------------------------------------
 
--  Secure deployment of server-side / control-plane on Kubernetes.
--  UI with dashboards for orchestrating FL experiments and for visualizing results
--  Team features - collaborate with other users in shared project workspaces. 
--  Features for the trusted-third party: Manage access to the FL network, FL clients and training progress.
--  REST API for handling experiments/jobs. 
--  View and export logging and tracing information. 
--  Public cloud, dedicated cloud and on-premise deployment options.
+Scaleout Edge provides a complete operational toolkit for moving federated
+learning from early prototypes to production deployments. The platform’s
+capabilities can be grouped into the following categories:
+
+ModelOps / FL Ops
+~~~~~~~~~~~~~~~~~
+- UI and dashboards for orchestrating FL experiments and monitoring training
+  progress.
+- REST API for managing experiments and jobs.
+- Support for multi-round orchestration and model lifecycle management.
+- Plug-in architecture for extending aggregators, storage backends, load
+  balancers, and orchestration components.
+
+Observability & Telemetry
+~~~~~~~~~~~~~~~~~~~~~~~~~
+- Built-in logging, tracing, and experiment metrics.
+- Export and integration options for external observability systems.
+- Visual dashboards showing experiment status, model performance, client
+  activity, and system health.
+
+Security & Trust
+~~~~~~~~~~~~~~~~
+- Secure, cloud-native control plane deployed on Kubernetes.
+- Token-based authentication (JWT) and role-based access control (RBAC).
+- Outbound-only connectivity for clients (no inbound ports required).
+- Trusted third-party features: manage access to the FL network, clients,
+  and training progress.
+
+Collaboration & Governance
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Shared project workspaces for collaborative experimentation.
+- User and role management for multi-team or multi-organization setups.
+- Clear separation of responsibilities between data owners, model owners,
+  and infrastructure operators.
+
+Deployment & Infrastructure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- Flexible deployment options: public cloud, private cloud, dedicated cloud,
+  or fully on-premise.
+- Horizontal scalability through multiple combiners.
+- Resilience to intermittent client availability and failures across
+  critical components.
 
 Available client APIs:
 
-- Python client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn>`__)
-- C++ client (`FEDn C++ client <https://github.com/scaleoutsystems/fedn-cpp-client>`__)
-- Android Kotlin client (`FEDn Kotlin client <https://github.com/scaleoutsystems/fedn-android-client>`__)
+- Python client (`Scaleout Edge C++ client <https://github.com/scaleoutsystems/scaleout-client/python>`__)
+- C++ client (`Scaleout Edge C++ client <https://github.com/scaleoutsystems/scaleout-client/cpp>`__)
+- Android Kotlin client (`Scaleout Edge Kotlin client <https://github.com/scaleoutsystems/scaleout-client/android>`__)
 
 Support
 --------
 
-Community support in available in our `Discord
+Community support is available in our `Discord
 server <https://discord.gg/KMg4VwszAd>`__.
 
-For professionals / Enteprise, we offer `Dedicated support <https://www.scaleoutsystems.com/start#pricing>`__.
+For professionals / Enterprise, we offer `Dedicated support <https://www.scaleoutsystems.com/start#pricing>`__.
 
 .. meta::
     :description lang=en:
@@ -87,6 +123,5 @@ For professionals / Enteprise, we offer `Dedicated support <https://www.scaleout
     :keywords: Federated Learning, Machine Learning, What is federated machine learning, Federated Learning Framework, Federated Learning Platform
     :og:title: What is Federated Learning?
     :og:description: Federated learning is a decentralized approach that tackles the issues of centralized machine learning by allowing models to be trained on data distributed across various locations without moving the data.
-    :og:image: https://fedn.scaleoutsystems.com/static/images/scaleout_black.png
-    :og:url: https://fedn.scaleoutsystems.com/docs/introduction.html
+    :og:url: https://docs.scaleoutsystems.com/en/stable/introduction.html
     :og:type: website
