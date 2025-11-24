@@ -78,12 +78,14 @@ On you local machine/client, install the Scaleout Edge package using pip:
 
 **From source**
 
-Clone the Scaleout Client repository and install the package:
+Clone the Scaleout Client repository and install the util package followd by the client package:
 
 .. code-block:: bash
 
    git clone https://github.com/scaleoutsystems/scaleout-client.git
-   cd scaleout-client
+   cd scaleout/scaleout-util
+   pip install .
+   cd ../scaleout-client
    pip install .
 
 
@@ -112,10 +114,12 @@ Create a compute package:
 
 This will create a file called ``package.tgz`` in the root of the project.
 
-Next, create the seed model: 
+Next, create the seed model. For this to work we need to install the dependencies required by the client code. These dependencies are listed in ``python_env.yaml`` located in the ``client`` folder.
+Install the dependencies into the current python environement using the following command and then create the seed model:
 
 .. code-block::
-
+   
+   scaleout run install --path client
    scaleout run build --path client
 
 This will create a file called ``seed.npz`` in the root of the project. 
@@ -125,7 +129,7 @@ This will create a file called ``seed.npz`` in the root of the project.
    When you first exectue the above commands, Scaleout Edge will build a venv, and this takes 
    a bit of time. For more information on the various options to manage the environement, see :ref:`projects-label`. 
 
-Next will now upload these files to your Scaleout Edge project.  
+Next you will now upload these files to your Scaleout Edge project.  
 
 3. Initialize the server-side
 ------------------------------
