@@ -1,13 +1,16 @@
 import os
 import sys
 
-import sphinx_rtd_theme  # noqa: F401
 
-# Insert path
-sys.path.insert(0, os.path.abspath(".."))
+# Insert paths
+# sys.path.insert(0, os.path.abspath(".."))  # repo root
+sys.path.insert(0, os.path.abspath("../scaleout-core"))
+sys.path.insert(0, os.path.abspath("../scaleout-core/scaleoutcore/network/api/v1"))
+sys.path.insert(0, os.path.abspath("../scaleout-client-python"))
+sys.path.insert(0, os.path.abspath("../scaleout-util"))
 
 # Project info
-project = "FEDn"
+project = "Scaleout Edge"
 author = "Scaleout Systems AB"
 
 # The full version, including alpha/beta/rc tags
@@ -15,6 +18,7 @@ release = "0.33.0"
 
 # Add any Sphinx extension module names here, as strings
 extensions = [
+    "sphinx_click.ext",
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.doctest",
@@ -28,9 +32,11 @@ extensions = [
     "sphinx_copybutton",
 ]
 
+autosummary_generate = True
+
 # SEO configuration
-html_title = "FEDn Documentation - Scalable Federated Learning Framework"
-html_short_title = "FEDn Docs"
+html_title = "Scaleout Edge Documentation - Scalable Federated Learning Framework"
+html_short_title = "Scaleout Edge Docs"
 
 # The master toctree document.
 master_doc = "index"
@@ -41,7 +47,7 @@ templates_path = []
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ["_build", ".venv", "venv", "Thumbs.db", ".DS_Store"]
 
 # The theme to use for HTML and HTML Help pages.
 html_theme = "sphinx_rtd_theme"
@@ -55,6 +61,39 @@ html_theme_options = {
 html_use_index = True
 html_split_index = False
 
+# mock imports
+autodoc_mock_imports = [
+    "click",
+    "psutil",
+    "grpc",
+    "flask",
+    "numpy",
+    "pymongo",
+    "jwt",
+    "pydantic",
+    "sqlalchemy",
+    "psycopg2",
+    "requests",
+    "boto3",
+    "minio",
+    "redis",
+    "yaml",
+    "werkzeug",
+    "fastapi",
+    "uvicorn",
+    "google",
+    "alembic",
+    "alembic.config",
+    "opentelemetry",
+    "opentelemetry.trace",
+    "opentelemetry.instrumentation",
+    "opentelemetry.sdk",
+    "scaleoututil.grpc.scaleout_pb2",
+    "scaleoututil.grpc.scaleout_pb2_grpc",
+    "scaleoutcore.network.grpc.server_pb2",
+    "scaleoutcore.network.grpc.server_pb2_grpc",
+]
+
 # Allow search engines to index the documentation
 # Remove any robots restrictions
 html_extra_path = ["robots.txt"]
@@ -65,11 +104,11 @@ html_extra_path = ["robots.txt"]
 html_static_path = ["_static"]
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "fedndocs"
+htmlhelp_basename = "scaleoutdocs"
 
 # If defined shows an image instead of project name on page top-left (link to index page)
 html_logo = "_static/images/scaleout_logo_flat_dark.svg"
-# FEDn logo looks ugly on rtd theme
+# Scaleout Edge logo looks ugly on rtd theme
 
 html_favicon = "favicon.png"
 
@@ -114,18 +153,18 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "fedn.tex", "FEDn Documentation", "Scaleout Systems AB", "manual"),
+    (master_doc, "scaleout.tex", "Scaleout Edge Documentation", "Scaleout Systems AB", "manual"),
 ]
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "fedn", "FEDn Documentation", [author], 1)]
+man_pages = [(master_doc, "scaleout", "Scaleout Edge Documentation", [author], 1)]
 
 # Grouping the document tree into Texinfo files. List of tuples
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, "fedn", "FEDn Documentation", author, "fedn", "One line description of project.", "Miscellaneous"),
+    (master_doc, "scaleout", "Scaleout Edge Documentation", author, "scaleout", "One line description of project.", "Miscellaneous"),
 ]
 
 # Bibliographic Dublin Core info.
