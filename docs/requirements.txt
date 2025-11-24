@@ -1,4 +1,3 @@
 sphinx-rtd-theme
 sphinx_code_tabs
 sphinx-copybutton
-sphinx-click

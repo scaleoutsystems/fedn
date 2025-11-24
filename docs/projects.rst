@@ -431,12 +431,12 @@ Where to go from here?
 With an understanding of how Scaleout Edge Projects are structured and created, you can explore our library of example projects. They demonstrate different use case scenarios of Scaleout Edge 
 and its integration with popular machine learning frameworks like PyTorch and TensorFlow.
 
-- `Scaleout Edge + PyTorch <https://github.com/scaleoutsystems/scaleout-client//python/examples/mnist-pytorch>`__
-- `Scaleout Edge + Tensforflow/Keras <https://github.com/scaleoutsystems/scaleout-client/python/examples/mnist-keras>`__
-- `Scaleout Edge + MONAI <https://github.com/scaleoutsystems/scaleout-client/python/examples/monai-2D-mednist>`__
-- `Scaleout Edge + Hugging Face <https://github.com/scaleoutsystems/scaleout-client/python/examples/huggingface>`__
-- `Scaleout Edge + Flower <https://github.com/scaleoutsystems/scaleout-client/python/examples/flower-client>`__
-- `Scaleout Edge + Self-supervised learning <https://github.com/scaleoutsystems/scaleout-client/python/examples/FedSimSiam>`__
+- `Scaleout Edge + PyTorch <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/mnist-pytorch>`__
+- `Scaleout Edge + Tensforflow/Keras <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/mnist-keras>`__
+- `Scaleout Edge + MONAI <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/monai-2D-mednist>`__
+- `Scaleout Edge + Hugging Face <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/huggingface>`__
+- `Scaleout Edge + Flower <https://github.com/scaleoutsystems/scaleout-client/tree/master/python/examples/flower-client>`__
+- `Scaleout Edge + Self-supervised learning <https://github.com/scaleoutsystems/scaleout-client/tree/master/examples/FedSimSiam>`__
 
 
 .. meta::

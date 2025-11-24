@@ -12,6 +12,9 @@ A Scaleout Edge network consists of three tiers:
 - **Tier 1: Clients**
 - **Tier 2: Combiners**
 - **Tier 3: Controller and supporting services**
+
+These components work together to coordinate distributed, privacy-preserving
+machine learning across a large number of participating data nodes.
  
 .. image:: img/Scaleout_Edge_network.png
    :alt: Scaleout Edge network
@@ -31,7 +34,7 @@ Key characteristics:
   No inbound or publicly exposed ports are required.
 - Upon connecting to the network, a client receives a **compute package** from the 
   Controller or uses one that is locally available for the client. This package 
-  contains training and validation code to execute locally.
+  contains e.g. training and validation code to execute locally.
 - The compute package is defined by entry points in the client code and can be
   customized to support various model types, frameworks, and even programming
   languages.
@@ -42,7 +45,7 @@ implemented in any language to suit specific hardware or software environments.
 Tier 2 — Combiners
 ------------------
 
-A **Combiner** orchestrates and aggregates model updates coming from its
+A **Combiner** orchestrates and aggregates model updates coming from its local
 group of clients. It is responsible for the mid-level federated learning workflow.
 
 Key responsibilities:
