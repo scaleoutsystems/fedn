@@ -488,6 +488,16 @@ def start_splitlearning_session():
         if model_name_prefix is None or not isinstance(model_name_prefix, str) or len(model_name_prefix) == 0:
             model_name_prefix = None
 
+        client_ids: str = data.get("client_ids", None)
+        if client_ids is not None and not isinstance(client_ids, str):
+            return jsonify({"message": "client_ids must be a comma separated string"}), 400
+        if client_ids is not None:
+            client_ids: list[str] = client_ids.split(",")
+            if len(client_ids) == 0:
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
+            if any(not isinstance(client_id, str) for client_id in client_ids):
+                return jsonify({"message": "client_ids must be a comma separated string"}), 400
+
         if not session_id or session_id == "":
             return jsonify({"message": "Session ID is required"}), 400
 
@@ -500,7 +510,7 @@ def start_splitlearning_session():
 
         if not rounds or not isinstance(rounds, int):
             rounds = session_config.rounds
-        nr_available_clients = _get_number_of_available_clients()
+        nr_available_clients = _get_number_of_available_clients(client_ids=client_ids)
 
         if nr_available_clients < min_clients:
             return jsonify({"message": f"Number of available clients is lower than the required minimum of {min_clients}"}), 400
