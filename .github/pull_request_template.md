@@ -10,7 +10,7 @@ Checklist
 If you're unsure about any of the items below, don't hesitate to ask. We're here to help! 
 This is simply a reminder of what we are going to look for before merging your code.
 
-- This PR is against **develop** branch (not applicable for hotfixes)
+- This PR is against **master** branch
 - You have included a link to the issue on GitHub or JIRA (if any)
 - You have read the [CONTRIBUTING](https://github.com/scaleoutsystems/fedn/blob/master/CONTRIBUTING.md) doc
 - You have included tests to complement my changes
