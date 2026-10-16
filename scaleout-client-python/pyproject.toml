@@ -10,8 +10,8 @@ dependencies = [
     "psutil",
     "scaleoututil==1.1.0",
     "click==8.5.0",
-    "urllib3>=2.6.0",
-    "filelock>=3.32.6",
+    "urllib3>=2.8.0",
+    "filelock>=4.0.9",
 ]
 
 [project.urls]

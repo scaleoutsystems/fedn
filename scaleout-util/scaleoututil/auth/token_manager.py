@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Callable
 import requests
 
-from scaleoututil.config import SCALEOUT_AUTH_REFRESH_TOKEN_URI, SCALEOUT_AUTH_SCHEME
+from scaleoututil.config import SCALEOUT_AUTH_SCHEME
 from scaleoututil.logging import ScaleoutLogger
 from scaleoututil.utils.http_status_codes import HTTP_STATUS_OK, HTTP_STATUS_NO_CONTENT, HTTP_STATUS_UNAUTHORIZED, HTTP_STATUS_SERVER_ERROR
 
@@ -53,7 +53,7 @@ class TokenManager:
         Args:
             access_token: Initial access token (optional if refresh_token is provided)
             refresh_token: Refresh token for obtaining new access tokens
-            token_endpoint: URL endpoint for token refresh (overrides env var)
+            token_endpoint: URL endpoint for token refresh
             expires_in: Token lifetime in seconds (optional, will be extracted from JWT if not provided)
             verify_ssl: Whether to verify SSL certificates (default: True). Set to False for development with self-signed certificates.
             role: Role associated with the token (default: "client")
@@ -63,7 +63,7 @@ class TokenManager:
         self._access_token = access_token
         self._refresh_token = refresh_token
         self.role = role
-        self._token_endpoint = SCALEOUT_AUTH_REFRESH_TOKEN_URI or token_endpoint
+        self._token_endpoint = token_endpoint
         self._verify_ssl = verify_ssl
         self._lock = threading.Lock()
         self._on_token_refresh = on_token_refresh

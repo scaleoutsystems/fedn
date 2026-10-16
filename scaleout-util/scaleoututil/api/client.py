@@ -373,7 +373,9 @@ class Scaleout:
 
         :param id: The combiner id to update.
         :type id: str
-        :param public_hostname: The public hostname to set.
+        :param public_hostname: The hostname and port, as hostname:port, of the endpoint that
+            accepts the edge clients' gRPC connections, such as a configured ingress or load
+            balancer. Without a port, edge clients connect on the combiner's own port.
         :type public_hostname: str
         :raises RuntimeError: If the server responds with a non-success status code.
         :return: The server response (a success message).
@@ -1189,6 +1191,83 @@ class Scaleout:
         _json = response.json()
 
         return _json
+
+    def get_metrics(
+        self,
+        *,
+        session_id: str = None,
+        model_id: str = None,
+        round_id: str = None,
+        key: str = None,
+        sender_name: str = None,
+        sender_role: str = None,
+        sender_client_id: str = None,
+        n_max: int = None,
+    ):
+        """Get metrics logged with EdgeClient.log_metric from the statestore. Filter by input parameters.
+
+        :param session_id: The session id to get metrics for.
+        :type session_id: str
+        :param model_id: The model id to get metrics for.
+        :type model_id: str
+        :param round_id: The round id to get metrics for.
+        :type round_id: str
+        :param key: The metric key (name) to get metrics for.
+        :type key: str
+        :param sender_name: The sender name to get metrics for.
+        :type sender_name: str
+        :param sender_role: The sender role to get metrics for.
+        :type sender_role: str
+        :param sender_client_id: The sender client id to get metrics for.
+        :type sender_client_id: str
+        :param n_max: The maximum number of metrics to get (If none all will be fetched).
+        :type n_max: int
+        :return: Metrics.
+        :rtype: dict
+        """
+        _params = {}
+
+        if session_id:
+            _params["session_id"] = session_id
+
+        if model_id:
+            _params["model_id"] = model_id
+
+        if round_id:
+            _params["round_id"] = round_id
+
+        if key:
+            _params["key"] = key
+
+        if sender_name:
+            _params["sender.name"] = sender_name
+
+        if sender_role:
+            _params["sender.role"] = sender_role
+
+        if sender_client_id:
+            _params["sender.client_id"] = sender_client_id
+
+        additional_headers = {}
+        if n_max:
+            additional_headers["X-Limit"] = str(n_max)
+
+        response = requests.get(self._get_url_api_v1("metrics/"), params=_params, verify=self.verify, headers=self._get_headers(additional_headers))
+
+        return response.json()
+
+    def get_metrics_count(self, session_id: str = None):
+        """Get the number of metrics in the statestore.
+
+        :return: The number of metrics.
+        :rtype: int
+        """
+        _params = {}
+        if session_id:
+            _params["session_id"] = session_id
+        response = requests.get(self._get_url_api_v1("metrics/count"), params=_params, verify=self.verify, headers=self._get_headers())
+
+        return response.json()
 
     def get_validations_count(self, session_id: str = None):
         """Get the number of validations in the statestore.

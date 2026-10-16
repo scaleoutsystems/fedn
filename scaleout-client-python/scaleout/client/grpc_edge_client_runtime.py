@@ -124,6 +124,8 @@ class GrpcEdgeClientRuntime(EdgeClientRuntime):
         self.task_receiver = TaskReceiver(self, self._run_task_callback, polling_interval=SCALEOUT_CLIENT_TASK_POLLING_INTERVAL)
 
         self._restart_callback = None
+        self._restart_lock = threading.Lock()
+        self._restart_thread: Optional[threading.Thread] = None
 
     # -- identity proxies ------------------------------------------------------
     # GrpcHandler and TaskReceiver hold a reference to the runtime and read
@@ -286,7 +288,7 @@ class GrpcEdgeClientRuntime(EdgeClientRuntime):
         if token and url:
             self._init_login(token, url)
         try:
-            self.grpc_handler = GrpcHandler(self, host=config.host, port=config.port)
+            self.grpc_handler = GrpcHandler(self, host=config.host, port=config.port, secure=config.secure)
 
             self._backend = InMemoryBackend(classes=_DEFAULT_PRIORITY_CLASSES)
             self._routing_adapter = GrpcRoutingTransportAdapter(
@@ -452,6 +454,15 @@ class GrpcEdgeClientRuntime(EdgeClientRuntime):
     def check_task_abort(self) -> None:
         """Raise StoppedException if the current task has been aborted."""
         self.task_receiver.check_abort()
+
+    def get_current_task_id(self) -> Optional[str]:
+        """Return the correlation_id of the task running on the calling thread, if any."""
+        task = self.task_receiver.get_current_task()
+        return task.correlation_id if task is not None else None
+
+    def start_autonomous_task(self, callback: Callable[[], Any], command_type: str, parameters: Optional[dict]) -> Task:
+        """Start a task the client is initiating on its own accord."""
+        return self.task_receiver.start_autonomous_task(callback, command_type, parameters)
 
     # -- runtime loops ---------------------------------------------------------
 
@@ -650,49 +661,68 @@ class GrpcEdgeClientRuntime(EdgeClientRuntime):
         force = params.get("force", False)
 
         if not valid_env_for_restart():
-            ScaleoutLogger().error("Client not started with valid configuration, can not update compute package")
+            ScaleoutLogger().error("Client not started with valid configuration, can not restart")
             raise Exception("Client not started with valid configuration, can not restart")
 
+        if not self._restart_lock.acquire(blocking=False):
+            ScaleoutLogger().warning("Restart already in progress; ignoring duplicate restart request %s", task_request.correlation_id)
+            raise Exception("Restart already in progress; ignoring duplicate restart request")
+
         task = self.task_receiver.get_current_task()
-        if force:
-            threading.Thread(target=self._restart, kwargs={"force": True}).start()
-            return {}
-        elif abort_ongoing:
-            self.task_receiver.stop_recieving_new_tasks()
-            ScaleoutLogger().info("Aborting current ongoing tasks before updating compute package")
-            threading.Thread(target=self._restart, kwargs={"task": task}).start()
-            return {}
-        elif self.task_receiver.has_other_tasks():
-            ScaleoutLogger().error("Client has other tasks running, can not update compute package")
-            raise Exception("Client has other tasks running, cannot restart")
-        else:
-            self.task_receiver.stop_recieving_new_tasks()
-            ScaleoutLogger().info("No ongoing tasks, updating compute package")
-            threading.Thread(target=self._restart, kwargs={"task": task, "force": True}).start()
-            return {}
+        try:
+            if force:
+                self.task_receiver.stop_recieving_new_tasks()
+                self._restart_thread = threading.Thread(target=self._restart, kwargs={"task": task, "force": True}, daemon=True)
+                self._restart_thread.start()
+                return {}
+            elif abort_ongoing:
+                self.task_receiver.stop_recieving_new_tasks()
+                ScaleoutLogger().info("Aborting current ongoing tasks before restarting")
+                self._restart_thread = threading.Thread(target=self._restart, kwargs={"task": task}, daemon=True)
+                self._restart_thread.start()
+                return {}
+            elif self.task_receiver.has_other_tasks():
+                ScaleoutLogger().error("Client has other tasks running, can not restart")
+                raise Exception("Client has other tasks running, can not restart")
+            else:
+                self.task_receiver.stop_recieving_new_tasks()
+                ScaleoutLogger().info("No ongoing tasks, restarting")
+                self._restart_thread = threading.Thread(target=self._restart, kwargs={"task": task, "force": True}, daemon=True)
+                self._restart_thread.start()
+                return {}
+        except Exception:
+            self.task_receiver.resume_recieving_new_tasks()
+            self._restart_lock.release()
+            raise
 
     def _restart(self, task: Task = None, force: bool = False):
-        if task is not None:
-            # Wait until instructing task is completed
-            time.sleep(1)
-            ScaleoutLogger().info("Waiting for update task to be reported...")
-            while self.task_receiver.is_task_running(task):
+        try:
+            if task is not None:
+                # Wait until instructing task is completed and reported to the combiner
                 time.sleep(1)
-        if not force:
-            # If not force, abort other tasks
-            if self.task_receiver.has_current_tasks():
-                ScaleoutLogger().info("Aborting and waiting on current tasks to report...")
-                self.task_receiver.abort_all_current_tasks()
-                while self.task_receiver.has_current_tasks():
+                ScaleoutLogger().info("Waiting for update task to be reported...")
+                while self.task_receiver.is_task_running(task):
                     time.sleep(1)
+            if not force:
+                # If not force, abort other tasks
+                if self.task_receiver.has_current_tasks():
+                    ScaleoutLogger().info("Aborting and waiting on current tasks to report...")
+                    self.task_receiver.abort_all_current_tasks()
+                    while self.task_receiver.has_current_tasks():
+                        time.sleep(1)
 
-        # Set restart callback to be called on main thread
-        def _restart_call():
-            # Use current venv and let the package manager handle the venv selection with another restart
-            restart_with_venv_and_package()
+            # Set restart callback to be called on main thread
+            def _restart_call():
+                # Use current venv and let the package manager handle the venv selection with another restart
+                restart_with_venv_and_package()
 
-        self._restart_callback = _restart_call
-        self.task_receiver.stop()
+            self._restart_callback = _restart_call
+            self.task_receiver.stop()
+        except Exception as e:
+            ScaleoutLogger().error("Restart thread failed before completing restart: %s", e)
+            ScaleoutLogger().error(traceback.format_exc())
+            self.task_receiver.resume_recieving_new_tasks()
+            self._restart_lock.release()
 
     # -- run loop --------------------------------------------------------------
 

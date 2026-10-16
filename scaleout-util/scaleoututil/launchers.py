@@ -60,6 +60,7 @@ def launch_clients(
     stagger_seconds: float = 0.0,
     scaleout_bin: str = "scaleout",
     extra_env: Optional[Dict[str, str]] = None,
+    extra_client_args: Optional[List[str]] = None,
 ) -> int:
     """Spawn ``num_clients`` ``scaleout client start`` subprocesses sharing one enrollment token.
 
@@ -100,6 +101,12 @@ def launch_clients(
     :param extra_env: Extra env vars to set on every subprocess. Merged
         after ``CLIENT_NUMBER``/``TOTAL_N_CLIENTS``/``SCALEOUT_CLIENT_COMPUTE_LOCK``
         so the caller can override them if needed.
+    :param extra_client_args: Extra CLI arguments appended verbatim to every
+        ``scaleout client start`` command, for flags this helper does not model
+        itself -- e.g. ``["--preferred-combiner", "combiner-1"]``, which a
+        deployment with more than one combiner needs so that all the clients
+        land on the same one (a round is satisfied per combiner, so a fleet
+        split across two of them can never meet ``clients_required``).
     :return: ``0`` if all subprocesses exited cleanly, otherwise the exit
         code of the first failing subprocess.
     """
@@ -156,6 +163,8 @@ def launch_clients(
             cmd += ["--api-port", str(api_port)]
         if remote_package:
             cmd.append("--remote-package")
+        if extra_client_args:
+            cmd += list(extra_client_args)
 
         printable = list(cmd)
         if "--token" in printable:

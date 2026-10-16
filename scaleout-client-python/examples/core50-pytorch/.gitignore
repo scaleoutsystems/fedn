@@ -1,7 +1,0 @@
-data
-*.npz
-*.tgz
-*.tar.gz
-.core50-pytorch
-client*.yaml
-package

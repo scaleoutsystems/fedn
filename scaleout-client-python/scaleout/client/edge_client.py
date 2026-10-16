@@ -21,6 +21,7 @@ import psutil
 
 from scaleoututil.config import get_model_cache_dir
 
+from scaleoututil.grpc.tasktype import TaskType
 from scaleoututil.utils.dist import get_version as _get_version
 
 import scaleoututil.grpc.scaleout_pb2 as scaleout_msg
@@ -32,6 +33,7 @@ from scaleout.client.grpc_handler import GrpcConnectionOptions  # re-exported fo
 from scaleout.client.local_repository import LocalModelRepository
 from scaleout.client.inference_context import InferenceContext
 from scaleout.client.logging_context import LoggingContext
+from scaleout.client.task_receiver import Task
 
 VERSION = _get_version("scaleout")
 
@@ -81,6 +83,8 @@ class EdgeClientRuntime(Protocol):
     ) -> bool: ...
     def send_inference_result(self, key: str, payload: dict, inference_id: str, model_id: str, priority: Optional[str] = None) -> bool: ...
     def check_task_abort(self) -> None: ...
+    def get_current_task_id(self) -> Optional[str]: ...
+    def start_autonomous_task(self, callback: Callable[[], Any], command_type: str, parameters: Optional[dict]) -> Task: ...
     def get_model_from_combiner(self, model_id: str) -> ScaleoutModel: ...
     def connect_to_api(
         self,
@@ -198,6 +202,37 @@ class EdgeClient:
             yield
         finally:
             self.current_inference_context = prev_context
+
+    # -- autonomous tasks ------------------------------------------------------
+
+    def start_autonomous_task(self, callback: Callable[[], Any], command_type: str, parameters: Optional[dict] = None) -> Task:
+        """Start a task the client is initiating on its own accord as a
+        stoppable command, without waiting for the server to dispatch it.
+
+        `callback` runs on a background thread; call check_task_abort()
+        periodically inside it to respond to a server-issued stop.
+        """
+        if not command_type.startswith("Autonomous_"):
+            command_type = "Autonomous_" + command_type
+        return self._runtime.start_autonomous_task(callback, command_type, parameters)
+
+    def start_autonomous_inference(self, model: ScaleoutModel | str, params: Dict = None) -> Task:
+        """Start an autononmous inference task, i.e. inference initiated by the client.
+        Starts the inference in a seperate thread as if it arrived from the server.
+        Returns the Task; its correlation_id identifies the command on the server.
+        """
+        model_id = model.model_id if isinstance(model, ScaleoutModel) else model
+        # Same shape as the dispatched path, which always passes a dict.
+        inference_params = dict(params or {})
+        to_server_params = dict(inference_params)
+        to_server_params["model_id"] = model_id
+
+        def _run_inference():
+            ctx = InferenceContext(inference_id=self._runtime.get_current_task_id(), model_id=model_id)
+            with self.inference_context(ctx):
+                return self.run_inference(model, inference_params)
+
+        return self.start_autonomous_task(_run_inference, TaskType.Inference.value, to_server_params)
 
     # -- identity --------------------------------------------------------------
 

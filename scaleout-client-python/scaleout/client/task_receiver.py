@@ -1,15 +1,21 @@
 import json
 import threading
 import time
-from typing import TYPE_CHECKING, List, Optional
+import uuid
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 import scaleoututil.grpc.scaleout_pb2 as scaleout_msg
 from scaleoututil.grpc.statustype import StatusType
+from scaleoututil.grpc.tasktype import TaskType
 from scaleoututil.logging import ScaleoutLogger
 import traceback
 
 if TYPE_CHECKING:
     from scaleout.client.grpc_edge_client_runtime import GrpcEdgeClientRuntime  # not-floating-import
+
+# Polls to keep sending command_type for an unacked autonomous task before assuming the combiner lacks support.
+MAX_SELF_REGISTRATION_ATTEMPTS = 10
 
 
 class StoppedException(Exception):
@@ -31,6 +37,12 @@ class Task:
         self.response = None
         self.correlation_id = request.correlation_id
         self.done = False
+        self.command_type = None
+        self.parameters_json = None
+        self.acked_by_server = False
+        self.registration_attempts = 0
+        self.started_at = None
+        self.completed_at = None
 
 
 class TaskReceiver:
@@ -110,6 +122,30 @@ class TaskReceiver:
                         task.interrupted_reason = "Aborted by client"
                 ScaleoutLogger().info("TaskReceiver: Aborting current task... ")
 
+    def start_autonomous_task(self, callback: Callable[[], Any], command_type: str, parameters: Optional[dict]) -> Task:
+        """Start a task the client is initiating on its own accord.
+
+        Runs `callback` on a new thread and starts reporting on it through the
+        existing poll/report cycle immediately, so the combiner can lazily create
+        a stoppable `commands` row for it - no synchronous registration
+        round-trip needed before the task can start.
+        """
+        correlation_id = str(uuid.uuid4())
+        parameters_json = json.dumps(parameters) if parameters is not None else None
+        request = scaleout_msg.TaskRequest()
+        request.correlation_id = correlation_id
+        request.type = command_type
+        if parameters_json is not None:
+            request.data = parameters_json
+
+        task = Task(request)
+        task.command_type = command_type
+        task.parameters_json = parameters_json
+        with self._lock:
+            self._current_tasks.append(task)
+        threading.Thread(target=self._execute_task, args=(task, callback)).start()
+        return task
+
     def _run_task_polling(self):
         # This method runs in the task manager thread
         while True:
@@ -141,11 +177,14 @@ class TaskReceiver:
                                     self._current_tasks.remove(task)
                                 break
 
+                new_task_requests = []
+                new_restart_task_requests = []
                 for task_request in directive.tasks:
                     task = self._get_task_by_correlation_id(task_request.correlation_id)
                     if task is not None:
                         # Update to existing task
                         with task.lock:
+                            task.acked_by_server = True
                             if StatusType.matches(task_request.status, StatusType.INTERRUPTED):
                                 if not task.interrupted:
                                     task.interrupted = True
@@ -156,15 +195,25 @@ class TaskReceiver:
                                     task.interrupted = True
                                     task.interrupted_reason = "Timed out by server"
                                 ScaleoutLogger().info("TaskReceiver: Received timeout message for task %s.", task.correlation_id)
+                    elif task_request.type == TaskType.RestartClient.value:
+                        new_restart_task_requests.append(task_request)
                     else:
-                        # New task
-                        with self._lock:
-                            # Lock to add new task
-                            ScaleoutLogger().info("TaskReceiver: Got task %s", task_request.correlation_id)
-                            new_task = Task(task_request)
-                            self._current_tasks.append(new_task)
-                            # Run the task in a separate thread
-                            threading.Thread(target=self._run_task, args=(new_task,)).start()
+                        new_task_requests.append(task_request)
+
+                # Dispatch restart requests last: this guarantees that any other task
+                # delivered in this same batch is already in _current_tasks by the time a
+                # restart's own thread checks has_other_tasks() / has_current_tasks() --
+                # closing an ordering race where a restart arriving before another task in
+                # the same poll response could otherwise conclude "no other tasks running".
+                for task_request in new_task_requests + new_restart_task_requests:
+                    with self._lock:
+                        # Lock to add new task
+                        ScaleoutLogger().info("TaskReceiver: Got task %s", task_request.correlation_id)
+                        new_task = Task(task_request)
+                        new_task.acked_by_server = True
+                        self._current_tasks.append(new_task)
+                        # Run the task in a separate thread
+                        threading.Thread(target=self._run_task, args=(new_task,)).start()
 
                 toc = time.time()
                 if toc - tic < self.polling_interval:
@@ -189,6 +238,23 @@ class TaskReceiver:
                         report.response = json.dumps(task.response)
                     report.correlation_id = task.correlation_id
                     report.done = task.done
+                    if task.started_at is not None:
+                        report.started_at.FromDatetime(task.started_at)
+                    if task.completed_at is not None:
+                        report.completed_at.FromDatetime(task.completed_at)
+                    if not task.acked_by_server and task.command_type is not None:
+                        if task.registration_attempts < MAX_SELF_REGISTRATION_ATTEMPTS:
+                            task.registration_attempts += 1
+                            report.command_type = task.command_type
+                            if task.parameters_json is not None:
+                                report.parameters = task.parameters_json
+                        elif task.registration_attempts == MAX_SELF_REGISTRATION_ATTEMPTS:
+                            # Older combiners don't support self-registered tasks: keep running locally, stop resending.
+                            task.registration_attempts += 1
+                            ScaleoutLogger().warning(
+                                "TaskReceiver: Combiner did not acknowledge autonomous task %s; it will run untracked and cannot be stopped by the server.",
+                                task.correlation_id,
+                            )
                     activities.append(report)
         return activities
 
@@ -200,13 +266,20 @@ class TaskReceiver:
         return None
 
     def _run_task(self, task: Task):
+        self._execute_task(task, lambda: self.task_callback(task.request))
+
+    def _execute_task(self, task: Task, runner: Callable[[], Any]):
         # This method runs in the task runner thread (Not the task manager thread)
         # It only affects the current task and hence does not need to lock the task receiver
         with task.lock:
             task.runner_thread = threading.current_thread()
             task.status = StatusType.RUNNING
+            task.started_at = datetime.now(timezone.utc)
         try:
-            response = self.task_callback(task.request)
+            response = runner()
+            # Try to serialize
+            # Fail here rather than in the polling thread
+            json.dumps(response)
             ScaleoutLogger().info("TaskReceiver: Task completed: %s", task.correlation_id)
             with task.lock:
                 task.response = response
@@ -230,6 +303,7 @@ class TaskReceiver:
         finally:
             with task.lock:
                 task.done = True
+                task.completed_at = datetime.now(timezone.utc)
 
     def wait_on_manager_thread(self):
         if self._task_manager_thread is not None:
@@ -250,6 +324,10 @@ class TaskReceiver:
     def stop_recieving_new_tasks(self):
         """Used to let the combiner know that the client only reports already started tasks before shutting down."""
         self._skip_polling_tasks = True
+
+    def resume_recieving_new_tasks(self):
+        """Undo stop_recieving_new_tasks, e.g. when a restart fails before completing."""
+        self._skip_polling_tasks = False
 
     def is_task_running(self, task):
         with self._lock:

@@ -202,7 +202,7 @@ def grpc_retry(
 class GrpcHandler:
     """Handler for GRPC connections and operations."""
 
-    def __init__(self, client: "GrpcEdgeClientRuntime", host: str, port: int) -> None:
+    def __init__(self, client: "GrpcEdgeClientRuntime", host: str, port: int, secure: Optional[bool] = None) -> None:
         """Initialize the GrpcHandler."""
         self.client = client
 
@@ -210,6 +210,7 @@ class GrpcHandler:
 
         self.host = host
         self.port = port
+        self.secure = secure
 
         self._stop = False
 
@@ -244,10 +245,23 @@ class GrpcHandler:
     def _init_channel(self, host: str, port: int) -> None:
         """Initialize the GRPC channel.
 
-        Secure (TLS) by default; controlled by SCALEOUT_GRPC_SECURE rather than the
-        port number. Set SCALEOUT_GRPC_SECURE=false for plaintext combiners.
+        When SCALEOUT_GRPC_SECURE is set it is the baseline, and the combiner-reported TLS
+        mode (``self.secure``) may only upgrade it to TLS, never downgrade it. When unset, the
+        client follows the combiner, and uses TLS when the combiner doesn't report a mode
+        (``None``, older combiners).
         """
-        if SCALEOUT_GRPC_SECURE:
+        if SCALEOUT_GRPC_SECURE is not None:
+            use_secure = SCALEOUT_GRPC_SECURE or bool(self.secure)
+            if self.secure is not None and self.secure != SCALEOUT_GRPC_SECURE:
+                ScaleoutLogger().warning(
+                    f"Combiner reports grpc_secure={self.secure} but SCALEOUT_GRPC_SECURE={SCALEOUT_GRPC_SECURE}; using secure={use_secure}"
+                )
+        elif self.secure is not None:
+            use_secure = self.secure
+            ScaleoutLogger().info(f"Using combiner-reported grpc_secure={use_secure}")
+        else:
+            use_secure = True
+        if use_secure:
             self._init_secure_channel(host, port)
         else:
             self._init_insecure_channel(host, port)
@@ -540,13 +554,23 @@ class GrpcHandler:
 class GrpcConnectionOptions:
     """Options for configuring the GRPC connection."""
 
-    def __init__(self, host: str, port: int, internal_hostname: str = "", package: str = "", helper_type: str = "") -> None:
+    def __init__(
+        self,
+        host: str,
+        port: int,
+        *,
+        internal_hostname: str = "",
+        package: str = "",
+        helper_type: str = "",
+        secure: Optional[bool] = None,
+    ) -> None:
         """Initialize GrpcConnectionOptions."""
         self.host = host
         self.internal_hostname = internal_hostname
         self.package = package
         self.port = port
         self.helper_type = helper_type
+        self.secure = secure
         if not host:
             self.host = internal_hostname
 
@@ -559,4 +583,5 @@ class GrpcConnectionOptions:
             internal_hostname=config.get("internal_hostname", ""),
             package=config.get("package", ""),
             helper_type=config.get("helper_type", ""),
+            secure=config.get("grpc_secure"),
         )
