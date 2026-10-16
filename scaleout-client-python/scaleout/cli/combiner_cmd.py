@@ -31,7 +31,13 @@ def combiner_cmd(ctx):
 def set_public_hostname(
     ctx, *, protocol: str, host: str, port: str, token: str = None, id: str = None, public_hostname: str = None, no_verify_tls: bool = False
 ):
-    """Set the public host of a combiner."""
+    """Set the public address of a combiner.
+
+    PUBLIC_HOSTNAME is the hostname and port, as hostname:port, of the endpoint
+    that accepts the edge clients' gRPC connections, such as a configured ingress
+    or load balancer. Without a port, edge clients connect on the combiner's configured
+    port. For IPv6, use [address]:port.
+    """
     base_url, client = build_client(protocol, host, port, token, no_verify_tls)
     try:
         result = client.set_public_hostname(id, public_hostname)

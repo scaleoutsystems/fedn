@@ -190,16 +190,13 @@ def render_response(result, entity_name: str, output_format: str = "human", base
     return 0
 
 
-def set_context(host, token, name: Optional[str] = None):
+def set_context(host, token):
     """Saves context data and sets it as active"""
-    # If no name provided, use host as the name
-    if not name:
-        # Extract a readable name from the host URL
-        try:
-            parsed = urlparse(host)
-            name = parsed.netloc or host
-        except Exception:
-            name = host
+    try:
+        parsed = urlparse(host)
+        name = parsed.netloc or host
+    except Exception:
+        name = host
 
     context_data = {
         "name": name,

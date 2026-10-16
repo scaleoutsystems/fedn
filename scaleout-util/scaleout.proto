@@ -141,6 +141,10 @@ message ActivityReport {
   string status = 3;
   bool done = 4;
   string response = 5; // json
+  optional string command_type = 6; // set only until the server acks the self-registration
+  optional string parameters = 7; // json, same lifetime as command_type
+  google.protobuf.Timestamp started_at = 8; // client's own wall-clock task-start time
+  google.protobuf.Timestamp completed_at = 9; // client's own wall-clock task-end time
 }
 
 message Heartbeat {

@@ -379,9 +379,14 @@ def restart_with_venv_and_package(venv_path=None):
     env = os.environ.copy()
     env["VIRTUAL_ENV"] = venv_path
     venv_bin = os.path.dirname(venv_python)
-    current_path = env.get("PATH", "")
-    if current_path.split(os.pathsep)[0] != venv_bin:
-        env["PATH"] = f"{venv_bin}{os.pathsep}{current_path}"
+    path_entries = env.get("PATH", "").split(os.pathsep)
+    previously_injected_bin = env.get("SCALEOUT_RESTART_VENV_BIN")
+    if previously_injected_bin is not None:
+        path_entries = [entry for entry in path_entries if entry != previously_injected_bin]
+    if not path_entries or path_entries[0] != venv_bin:
+        path_entries.insert(0, venv_bin)
+    env["PATH"] = os.pathsep.join(path_entries)
+    env["SCALEOUT_RESTART_VENV_BIN"] = venv_bin
     env.pop("PYTHONHOME", None)
 
     ScaleoutLogger().info(f"Restarting with interpreter: {venv_python}")

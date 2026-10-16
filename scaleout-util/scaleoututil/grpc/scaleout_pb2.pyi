@@ -539,6 +539,10 @@ class ActivityReport(_message.Message):
     STATUS_FIELD_NUMBER: _builtins.int
     DONE_FIELD_NUMBER: _builtins.int
     RESPONSE_FIELD_NUMBER: _builtins.int
+    COMMAND_TYPE_FIELD_NUMBER: _builtins.int
+    PARAMETERS_FIELD_NUMBER: _builtins.int
+    STARTED_AT_FIELD_NUMBER: _builtins.int
+    COMPLETED_AT_FIELD_NUMBER: _builtins.int
     node_id: _builtins.str
     """If sent from a client"""
     correlation_id: _builtins.str
@@ -546,6 +550,18 @@ class ActivityReport(_message.Message):
     done: _builtins.bool
     response: _builtins.str
     """json"""
+    command_type: _builtins.str
+    """set only until the server acks the self-registration"""
+    parameters: _builtins.str
+    """json, same lifetime as command_type"""
+    @_builtins.property
+    def started_at(self) -> _timestamp_pb2.Timestamp:
+        """client's own wall-clock task-start time"""
+
+    @_builtins.property
+    def completed_at(self) -> _timestamp_pb2.Timestamp:
+        """client's own wall-clock task-end time"""
+
     def __init__(
         self,
         *,
@@ -554,12 +570,23 @@ class ActivityReport(_message.Message):
         status: _builtins.str = ...,
         done: _builtins.bool = ...,
         response: _builtins.str = ...,
+        command_type: _builtins.str | None = ...,
+        parameters: _builtins.str | None = ...,
+        started_at: _timestamp_pb2.Timestamp | None = ...,
+        completed_at: _timestamp_pb2.Timestamp | None = ...,
     ) -> None: ...
-    _HasFieldArgType: _TypeAlias = _Never  # noqa: Y015
+    _HasFieldArgType: _TypeAlias = _typing.Literal["_command_type", b"_command_type", "_parameters", b"_parameters", "command_type", b"command_type", "completed_at", b"completed_at", "parameters", b"parameters", "started_at", b"started_at"]  # noqa: Y015
     def HasField(self, field_name: _HasFieldArgType) -> _builtins.bool: ...
-    _ClearFieldArgType: _TypeAlias = _typing.Literal["correlation_id", b"correlation_id", "done", b"done", "node_id", b"node_id", "response", b"response", "status", b"status"]  # noqa: Y015
+    _ClearFieldArgType: _TypeAlias = _typing.Literal["_command_type", b"_command_type", "_parameters", b"_parameters", "command_type", b"command_type", "completed_at", b"completed_at", "correlation_id", b"correlation_id", "done", b"done", "node_id", b"node_id", "parameters", b"parameters", "response", b"response", "started_at", b"started_at", "status", b"status"]  # noqa: Y015
     def ClearField(self, field_name: _ClearFieldArgType) -> None: ...
-    def WhichOneof(self, oneof_group: _Never) -> None: ...
+    _WhichOneofReturnType__command_type: _TypeAlias = _typing.Literal["command_type"]  # noqa: Y015
+    _WhichOneofArgType__command_type: _TypeAlias = _typing.Literal["_command_type", b"_command_type"]  # noqa: Y015
+    _WhichOneofReturnType__parameters: _TypeAlias = _typing.Literal["parameters"]  # noqa: Y015
+    _WhichOneofArgType__parameters: _TypeAlias = _typing.Literal["_parameters", b"_parameters"]  # noqa: Y015
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__command_type) -> _WhichOneofReturnType__command_type | None: ...
+    @_typing.overload
+    def WhichOneof(self, oneof_group: _WhichOneofArgType__parameters) -> _WhichOneofReturnType__parameters | None: ...
 
 Global___ActivityReport: _TypeAlias = ActivityReport  # noqa: Y015
 
